@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٢ · الكلمات والرموز | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل الثاني من كتاب Speech and Language Processing: الكلمات والمورفيمات ويونيكود وBPE والتعابير النمطية والمسافة التحريرية.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="01-introduction.html" style="text-decoration:none">→ الفصل ١</a><b>الفصل ٢ من ٢٦</b><span class="pill">الفصل ٣ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الأول · النماذج اللغوية الكبيرة · الفصل الثاني</div>
+  <h1>الكلمات والرموز</h1>
+  <div class="sub en" style="font-size:16px">Chapter 2 · Words and Tokens · pp. 33–67</div>
+  <p class="epi">قبل أن «يقرأ» أي نموذج نصّك، يجب أن يقطّعه إلى وحدات. هذا الفصل يسأل: ما الكلمة أصلاً؟ وكيف تُخزَّن الحروف؟ ثم يقدّم الأدوات الثلاث التي يقوم عليها التقطيع الحديث: خوارزمية BPE، والتعابير النمطية، والمسافة التحريرية.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>«الكلمة» صعبة التعريف: هل علامات الترقيم كلمات؟ وماذا عن اللغات التي لا تفصل كلماتها بمسافات؟ ثم إن عدد الكلمات لا ينتهي.</li>
+    <li>الكلمة تتكوّن من أجزاء ذات معنى اسمها المورفيمات، لكنها أيضاً صعبة الفصل في لغات كثيرة.</li>
+    <li>كل حرف في أي لغة له رقم في يونيكود، ويُخزَّن ببايت واحد إلى أربعة بايتات بترميز UTF‑8.</li>
+    <li>الحل العملي هو BPE: خوارزمية تتعلم من البيانات وحدها أي أجزاء الكلمات تستحق أن تكون رموزاً.</li>
+    <li>التعابير النمطية لغة صغيرة لوصف أنماط النص والبحث عنها وتغييرها، وتُستخدم قبل BPE لتقسيم النص.</li>
+    <li>المسافة التحريرية تقيس كم تعديلاً يفصل كلمتين، وتُحسب بجدول من «البرمجة الديناميكية».</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 33</span></div><h2>من «إليزا» إلى التقطيع</h2></header>
+  <div class="brief"><b>باختصار</b>يبدأ الفصل بمحادثة من برنامج «إليزا» (١٩٦٦) الذي كان يطابق أنماط الكلمات. النماذج الحديثة لا تعمل هكذا، لكن مطابقة الأنماط ما زالت حاضرة في الخطوة الأولى من كل نموذج: التقطيع.</div>
+  <div class="dlg">User: I need some help, that much seems certain.<br><b>ELIZA:</b> WHAT WOULD IT MEAN TO YOU IF YOU GOT SOME HELP<br>User: Perhaps I could learn to get along with my mother.<br><b>ELIZA:</b> TELL ME MORE ABOUT YOUR FAMILY<br>User: My mother takes care of me.<br><b>ELIZA:</b> WHO ELSE IN YOUR FAMILY TAKES CARE OF YOU</div>
+  <p>كان «إليزا» برنامجاً بسيطاً جداً يقلّد معالجاً نفسياً: يلتقط عبارة مثل «I need X» ويحوّلها إلى «What would it mean to you if you got X?». ورغم بدائيته اقتنع كثيرون بأنه يفهمهم فعلاً. والنماذج الحديثة لا تقلّد بهذه الطريقة، لكن أسلوب «مطابقة الأنماط» الذي بدأه إليزا ما زال حياً في <span class="t">التقطيع <i>tokenization</i></span>: فصل الكلمات وأجزائها من النص المتصل. وهو أول خطوة في كل نظام حديث.</p>
+  <p>وللتقطيع نحتاج أن نسأل أسئلة تبدو بسيطة: ما الكلمة؟ هل «أممم» كلمة؟ وهل «نيويورك» كلمة أم كلمتان؟ ثم يقدّم الفصل خوارزمية <b>BPE</b> التي تقطّع النص آلياً، و<b>التعابير النمطية</b> التي تحتاجها كل أنظمة التقطيع، و<b>المسافة التحريرية</b> التي تقيس التشابه بين كلمتين.</p>
+</section>
+
+<!-- ============ 2.1 ============ -->
+<section class="sec" id="s2-1">
+  <header><div class="kicker">القسم ٢٫١ <span class="pg">p. 34</span></div><h2>الكلمات</h2></header>
+  <div class="brief"><b>باختصار</b>عدّ الكلمات يتطلب قرارات: هل نعدّ علامات الترقيم؟ والتأتأة في الكلام؟ ونفرّق بين «الأنواع» (الكلمات المختلفة) و«الأمثلة» (كل ظهور). ولأن بعض اللغات بلا مسافات، ولأن عدد الأنواع ينمو بلا نهاية مع حجم النص، لا تصلح الكلمة وحدةً للنماذج.</div>
+  <div class="terms"><span>نوع الكلمة <i>word type</i></span><span>مثال الكلمة <i>word instance</i></span><span>المفردات <i>vocabulary</i></span><span>قانون هيبس <i>Heaps' law</i></span><span>كلمات وظيفية <i>function words</i></span><span>كلمات محتوى <i>content words</i></span></div>
+
+  <h3>كم كلمة في هذه الجملة؟</h3>
+  <div class="dlg">They picnicked by the pool, then lay back on the grass and looked at the stars.</div>
+  <p>١٦ كلمة إن لم نعدّ علامات الترقيم، و١٨ إن عددناها. والقرار يعتمد على المهمة: علامات الترقيم مهمة لمعرفة الحدود (الفاصلة والنقطة)، ولبعض المعنى (علامة الاستفهام والتعجب). والنماذج اللغوية الكبيرة تعدّها عادةً كلمات منفصلة.</p>
+  <p>والكلام المنطوق أصعب. في عبارة <span class="ltr en">I do uh main- mainly business data processing</span> نوعان من <span class="t">التلعثم <i>disfluencies</i></span>: كلمة مبتورة <span class="ltr en">main-</span> اسمها <b>شظية</b>، و<span class="ltr en">uh</span> وأخواتها اسمها <b>وقفات مملوءة</b>. هل نعدّها كلمات؟ في نظام تفريغ صوتي قد نحذفها. لكنها مفيدة في التعرّف على الكلام لأنها تنبئ بأن المتكلم يعيد صياغة فكرته، ولذلك تُعامل ككلمات عادية. بل إنها تساعد في التعرّف على هوية المتكلم، لأن لكل شخص وقفاته. ووجد باحثون أن <span class="ltr en">uh</span> و<span class="ltr en">um</span> لهما معنيان مختلفان في الإنجليزية.</p>
+
+  <h3>الأنواع والأمثلة</h3>
+  <p>أهم تمييز في هذا القسم، وسيتكرر في الكتاب كله: في الجملة السابقة ١٦ كلمة، لكن ١٤ كلمة <b>مختلفة</b> فقط، لأن <span class="ltr en">the</span> ظهرت ٣ مرات.</p>
+  <ul class="clean">
+    <li><span class="t">أنواع الكلمات <i>word types</i></span>: الكلمات المختلفة. هنا ١٤. ومجموعة كل الكلمات الممكنة في لغة اسمها <b>المفردات</b> V، وعددها <code>|V|</code>.</li>
+    <li><span class="t">أمثلة الكلمات <i>word instances</i></span>: كل ظهور يُعدّ، حتى المكرر. هنا ١٦، ونرمز لها بـ N.</li>
+  </ul>
+  <div class="math"><div class="mh"><span class="sym">|V|</span>مفهوم رياضي · المجموعة، وعلامة |…|</div><div class="mb">
+    <p><b>المجموعة</b> في الرياضيات تجمّع أشياء <b>دون تكرار</b>: المجموعة {قط، كلب، قط} هي نفسها {قط، كلب}. ولذلك تمثّل المجموعة V «الأنواع»: كل كلمة تدخلها مرة واحدة مهما تكررت.</p>
+    <p>والخطّان العموديان حول اسم مجموعة، <code>|V|</code>، يعنيان «<b>عدد عناصرها</b>». فإذا كانت V = {قط، كلب، طائر} فإن <code>|V| = 3</code>.</p>
+    <div class="w"><div class="cap">عُدّ بنفسك</div>
+      <textarea id="wcIn" dir="auto" class="txt">They picnicked by the pool, then lay back on the grass and looked at the stars.</textarea>
+      <div class="row" style="margin-top:8px"><label class="note"><input type="checkbox" id="wcPunct"> اعدد علامات الترقيم</label><label class="note"><input type="checkbox" id="wcLower"> وحّد الأحرف الكبيرة والصغيرة</label></div>
+      <div class="stats2" id="wcStats"></div>
+      <div class="chips" id="wcTypes" style="margin-top:8px"></div>
+      <p class="note" style="margin:6px 0 0">جرّب جملة عربية مكررة الكلمات، أو غيّر الخيارين وراقب كيف يتغير الرقمان. الأرقام بين قوسين عدد مرات ظهور كل نوع.</p></div>
+  </div></div>
+  <p>وما زالت قرارات أخرى: هل <span class="ltr en">They</span> و<span class="ltr en">they</span> نوع واحد؟ يعتمد على المهمة. أحياناً يهمنا الشكل فنفرّق، وأحياناً لا. وكل ما سبق عن <b>الكلمات الإملائية</b>، أي كما تُكتب. لكن <span class="ltr en">I'm</span> كلمة إملائية واحدة، ونحوياً كلمتان: الضمير <span class="ltr en">I</span> والفعل <span class="ltr en">'m</span> اختصاراً لـ <span class="ltr en">am</span>.</p>
+  <p class="note">ملاحظة: كان «tokens» يُطلق قديماً على «أمثلة الكلمات»، لكن الكتاب يحتفظ بكلمة token الآن لمخرجات خوارزميات التقطيع إلى أجزاء كلمات.</p>
+
+  <h3>لغات بلا مسافات</h3>
+  <p>الصينية واليابانية والتايلاندية لا تضع مسافات بين الكلمات أصلاً. في الصينية تتكون الكلمات من رموز (هانزي)، وكل رمز غالباً وحدة معنى واحدة ومقطع صوتي واحد، ومتوسط طول الكلمة بين ١٫٥ و١٫٩ رمز. وجملة «ياو مينغ يصل إلى النهائي» (٧ رموز) يمكن عدّها ٣ كلمات بمعيار، أو ٥ بمعيار آخر، أو ٧ إذا عددنا كل رمز وحدة. وهذا الخيار الأخير ينجح في الصينية، لكنه لا ينجح في اليابانية والتايلاندية لأن الرمز الواحد فيهما صغير جداً.</p>
+
+  <h3>الكلمات لا تنتهي</h3>
+  <p>المشكلة الثانية أن الكلمات كثيرة جداً. انظر إلى أعداد الأنواع والأمثلة في مدوّنات إنجليزية (الشكل ٢٫١):</p>
+  <div class="scroll"><table class="tb"><tr><th>المدوّنة</th><th>الأنواع |V|</th><th>الأمثلة N</th></tr>
+    <tr><td>أعمال شكسبير</td><td class="num">29 thousand</td><td class="num">884 thousand</td></tr>
+    <tr><td>مدوّنة براون</td><td class="num">38 thousand</td><td class="num">1 million</td></tr>
+    <tr><td>محادثات هاتفية (Switchboard)</td><td class="num">20 thousand</td><td class="num">2.4 million</td></tr>
+    <tr><td>COCA</td><td class="num">2 million</td><td class="num">440 million</td></tr>
+    <tr><td>Google n-grams</td><td class="num">13 million</td><td class="num">1 trillion</td></tr></table></div>
+  <p>كلما كبرت المدوّنة ظهرت أنواع أكثر. لا يوجد جواب واضح لسؤال «كم كلمة في الإنجليزية؟»، فالجواب يكبر مع البيانات. وهذه العلاقة اسمها <span class="t">قانون هيردان <i>Herdan's law</i></span> أو <span class="t">قانون هيبس <i>Heaps' law</i></span>:</p>
+  <div class="eq">|V| = k N<sup>β</sup> &nbsp;&nbsp;&nbsp; (2.5)</div>
+  <div class="math"><div class="mh"><span class="sym">β</span>مفهوم رياضي · قراءة قانون هيبس</div><div class="mb">
+    <ol class="steps">
+      <li><code>N</code> طول النص بالكلمات (الأمثلة)، و<code>|V|</code> عدد الأنواع المختلفة فيه.</li>
+      <li><code>k</code> و<code>β</code> (بيتا) <b>ثابتان</b>: رقمان لا يتغيران لمدوّنة معينة، نستخرجهما من البيانات. والكتاب يقول إن β بين ٠ و١، وكثيراً ما تقع بين ٠٫٤٤ و٠٫٥٦.</li>
+      <li><code>N<sup>β</sup></code> يعني N مرفوعة للأس β. إذا كانت β = ١ فهي N نفسها. وإذا كانت β = ½ فهي <b>الجذر التربيعي</b> لـ N، كما رأينا في المعادلة ١٫١ في الفصل الأول.</li>
+      <li>المعنى: <b>عدد الأنواع ينمو أبطأ من طول النص</b>، لكنه لا يتوقف أبداً. ضاعِف طول النص ١٠٠ مرة، فتزيد الأنواع نحو ١٠ مرات فقط (لأن √١٠٠ = ١٠).</li>
+    </ol>
+    <div class="w"><div class="cap">حرّك β وk</div>
+      <div class="row" style="gap:22px"><label class="note">β = <b class="mono" id="hpBo"></b><br><input type="range" id="hpB" min="0.3" max="1" step="0.01" value="0.5"></label>
+      <label class="note">k = <b class="mono" id="hpKo"></b><br><input type="range" id="hpK" min="5" max="60" step="1" value="31"></label></div>
+      <div id="hpPlot" style="margin-top:10px"></div>
+      <div class="calc" id="hpCalc"></div>
+      <p class="note" style="margin:6px 0 0">بالقيم الافتراضية (k = ٣١، β = ٠٫٥) يعطي القانون لنص بطول أعمال شكسبير (٨٨٤ ألف كلمة) قرابة ٢٩ ألف نوع، وهو قريب من الرقم الحقيقي في الجدول. الخط المتقطع هو حالة β = ١، أي لو كانت كل كلمة جديدة.</p></div>
+  </div></div>
+  <p>وللقانون صيغ تفرّق بين صنفين من الكلمات: <span class="t">الكلمات الوظيفية <i>function words</i></span> مثل «في» و«من» و<span class="ltr en">a</span> و<span class="ltr en">of</span>، وعددها في أي لغة ثابت تقريباً. و<span class="t">كلمات المحتوى <i>content words</i></span>، وهي الأسماء والصفات والأفعال، وخصوصاً أسماء الأعلام والمصطلحات التقنية، وهذه تنمو بلا حدود. ولذلك يظهر في بداية المدوّنة نمو شبه خطي (β ≈ ١) لأن الصنفين يظهران معاً، ثم يتباطأ النمو نحو الجذر التربيعي بعد أن تظهر الكلمات الوظيفية كلها (الشكل ٢٫٢، من مدوّنة كتب غوتنبرغ).</p>
+  <p>النتيجة مشكلة كبيرة لأي نموذج: <b>مهما كبرت مفرداته سيواجه كلمات لم يرها</b>، تسمى <span class="t">الكلمات المجهولة <i>unknown words</i></span>. ولهذين السببين، أن بعض اللغات بلا كلمات إملائية وأن الكلمات لا تنتهي، لا تستخدم النماذج الكلمة وحدةً للمعالجة، بل وحدات أصغر اسمها <b>أجزاء الكلمات</b> <span class="en">(subwords)</span> يمكن تركيبها لتكوين كلمات جديدة.</p>
+</section>
+
+<!-- ============ 2.2 ============ -->
+<section class="sec" id="s2-2">
+  <header><div class="kicker">القسم ٢٫٢ <span class="pg">p. 37</span></div><h2>المورفيمات: أجزاء الكلمات</h2></header>
+  <div class="brief"><b>باختصار</b>المورفيم أصغر وحدة في اللغة تحمل معنى. وللكلمة جذر يعطي معناها الأساسي، ولواصق تضيف معاني. وتختلف اللغات في عدد المورفيمات في الكلمة، وفي سهولة فصلها، ولذلك لا تصلح المورفيمات معياراً موحداً للتقطيع بين اللغات.</div>
+  <div class="terms"><span>الصرف <i>morphology</i></span><span>مورفيم <i>morpheme</i></span><span>جذر <i>root</i></span><span>لاصقة <i>affix</i></span><span>تصريفي <i>inflectional</i></span><span>اشتقاقي <i>derivational</i></span><span>كلمة ملتصقة <i>clitic</i></span></div>
+  <p>كلمة <span class="ltr en">cats</span> أربعة حروف، لكنها أيضاً جزآن لكل منهما معنى: <span class="ltr en">cat</span> و<span class="ltr en">-s</span> التي تدل على الجمع. هذه الأجزاء اسمها <span class="t">المورفيمات <i>morphemes</i></span>، ودراستها اسمها <span class="t">الصرف <i>morphology</i></span>. والمورفيم <b>أصغر وحدة تحمل معنى</b>: <span class="ltr en">fox</span> مورفيم واحد، و<span class="ltr en">cats</span> مورفيمان.</p>
+  <div class="dlg">Doc work-ed care-ful-ly wash-ing the glass-es</div>
+  <p>ونميّز بين نوعين: <span class="t">الجذر <i>root</i></span> وهو المورفيم المركزي الذي يعطي المعنى الأساسي (<span class="ltr en">work</span>، <span class="ltr en">glass</span>)، و<span class="t">اللواصق <i>affixes</i></span> التي تضيف معاني أخرى (<span class="ltr en">-ed</span>، <span class="ltr en">-es</span>). واللواصق بين طرفين:</p>
+  <ul class="clean">
+    <li><b>تصريفية</b> <span class="en">(inflectional)</span>: نحوية، تؤدي دوراً تركيبياً مثل علامة الجمع <span class="ltr en">-s</span> أو الماضي <span class="ltr en">-ed</span>. منتظمة، وغالباً إلزامية، ومعناها متوقع.</li>
+    <li><b>اشتقاقية</b> <span class="en">(derivational)</span>: أقل انتظاماً، تنطبق على فئات معينة من الكلمات، وغالباً تغيّر نوع الكلمة. <span class="ltr en">care</span> (اسم) تصير <span class="ltr en">careful</span> (صفة) ثم <span class="ltr en">carefully</span> (حال).</li>
+    <li><b>الكلمات الملتصقة</b> <span class="en">(clitics)</span>: مورفيم يتصرف نحوياً كأنه كلمة، لكنه مختصر وملتصق بكلمة أخرى، مثل <span class="ltr en">'ve</span> في <span class="ltr en">I've</span>، و<span class="ltr en">l'</span> في الفرنسية. ويذكر الكتاب أن حروف الجر العربية مثل الباء، وحروف العطف مثل الواو، كلمات ملتصقة.</li>
+  </ul>
+  <div class="w"><div class="cap">مثال عربي (من الشرح): كلمة واحدة، جملة كاملة</div>
+    <div class="morph" dir="rtl"><span class="m cl">و<small>عطف</small></span><span class="m af">س<small>استقبال</small></span><span class="m af">ي<small>مضارعة</small></span><span class="m rt">كتب<small>الجذر</small></span><span class="m af">ون<small>جمع الذكور</small></span><span class="m cl">ها<small>ضمير المفعول</small></span></div>
+    <p class="note" style="margin:8px 0 0">«وسيكتبونها» كلمة إملائية واحدة تقابل جملة إنجليزية من أربع كلمات: <span class="ltr en">and they will write it</span>. الأخضر جذر، والأزرق لواصق، والوردي كلمات ملتصقة.</p></div>
+
+  <h3>الأنماط الصرفية للغات</h3>
+  <p>دراسة اختلاف اللغات في صرفها اسمها <span class="t">الأنماط الصرفية <i>morphological typology</i></span>. وبُعدان منها يهمان التقطيع:</p>
+  <p><b>البعد الأول: عدد المورفيمات في الكلمة.</b> في طرف توجد اللغات <b>العازلة</b> أو <b>التحليلية</b> <span class="en">(isolating / analytic)</span> مثل الفيتنامية، وبدرجة أقل الكانتونية، حيث الكلمة غالباً مورفيم واحد. وفي الطرف الآخر اللغات <b>التركيبية</b> <span class="en">(synthetic)</span>، وأقصاها <b>متعددة التركيب</b> <span class="en">(polysynthetic)</span> مثل لغة الكورياك في روسيا، حيث كلمة واحدة تقابل جملة إنجليزية كاملة: «خِطتُ كثيراً من أغطية الخيام في منتصف الليل».</p>
+  <div class="math"><div class="mh"><span class="sym">x̄</span>مفهوم رياضي · المتوسط</div><div class="mb">
+    <p>قدّر اللساني جوزيف غرينبرغ (١٩٦٠) <b>متوسط</b> عدد المورفيمات في الكلمة لعدة لغات: من ١٫١ للفيتنامية، و١٫٧ للإنجليزية، إلى ٣٫٧ لإحدى لغات الإنويت. والمتوسط هو المجموع مقسوماً على العدد: إذا كانت ثلاث كلمات فيها ١ و٢ و٣ مورفيمات، فالمتوسط (١ + ٢ + ٣) ÷ ٣ = ٢. ولذلك يمكن أن يكون المتوسط كسراً مثل ١٫٧ مع أن أي كلمة لا تحتوي «١٫٧ مورفيم».</p>
+  </div></div>
+  <p><b>البعد الثاني: سهولة فصل المورفيمات.</b> في اللغات <b>الإلصاقية</b> <span class="en">(agglutinative)</span> مثل التركية حدود المورفيمات واضحة. وفي <b>الاندماجية</b> <span class="en">(fusional)</span> مثل الروسية تحمل لاصقة واحدة عدة معانٍ معاً. حتى <span class="ltr en">-s</span> في <span class="ltr en">She reads</span> اندماجية: تعني «الغائب المفرد» و«الزمن الحاضر» معاً، ولا يمكن تقسيمها.</p>
+  <p>وهذه في الحقيقة <b>ميول</b> لا خصائص ثابتة، لأن اللغة الواحدة تستخدم أنظمة صرفية مختلفة. والخلاصة: صعوبة تعريف المورفيمات وفصلها في لغات كثيرة تجعل استخدامها معياراً للتقطيع بين اللغات صعباً جداً.</p>
+</section>
+
+<!-- ============ 2.3 ============ -->
+<section class="sec" id="s2-3">
+  <header><div class="kicker">القسم ٢٫٣ <span class="pg">p. 39</span></div><h2>يونيكود</h2></header>
+  <div class="brief"><b>باختصار</b>يونيكود يعطي كل حرف في كل نظام كتابة رقماً فريداً اسمه «نقطة الترميز». وعند الحفظ يتحوّل الرقم إلى بايتات بترميز UTF‑8، الذي يستخدم بايتاً واحداً للحروف الإنجليزية، وبايتين للعربية، وثلاثة للصينية، وأربعة للرموز التعبيرية.</div>
+  <div class="terms"><span>يونيكود <i>Unicode</i></span><span>آسكي <i>ASCII</i></span><span>نقطة ترميز <i>code point</i></span><span>الشكل الطباعي <i>glyph</i></span><span>ترميز <i>encoding</i></span><span>UTF‑8</span></div>
+  <p>خيار آخر للتقطيع هو الحرف الواحد. لكن كيف نمثّل الحروف عبر اللغات؟ معيار <span class="t">يونيكود <i>Unicode</i></span> طريقة لتمثيل أي حرف من أي نظام كتابة في العالم، بما فيها اللغات الميتة كالمسمارية السومرية، واللغات المخترعة كالكلينغونية.</p>
+  <h3>البداية: آسكي</h3>
+  <p>منذ الستينيات مُثّلت الحروف اللاتينية الإنجليزية برمز اسمه <span class="t">آسكي <i>ASCII</i></span>، وكل حرف فيه <b>بايت واحد</b>. البايت يمكن أن يمثّل ٢٥٦ قيمة، لكن آسكي استخدم ١٢٨ منها فقط، وفعلياً ٩٥، والباقي رموز تحكّم لآلة قديمة اسمها «تيليتايب». والكتاب يعرض الحروف بنظامين: <b>الست عشري</b> <span class="en">(hex)</span> و<b>العشري</b> <span class="en">(decimal)</span>: الحرف A رقمه 41 بالست عشري، و65 بالعشري.</p>
+  <div class="math"><div class="mh"><span class="sym">16</span>مفهوم رياضي · البِت والبايت وأنظمة العدّ</div><div class="mb">
+    <p><b>النظام العشري</b> الذي نستخدمه يومياً فيه عشرة أرقام (٠ إلى ٩). وكل خانة تساوي عشرة أضعاف التي على يمينها: ٦٥ = ٦ عشرات + ٥ آحاد.</p>
+    <p><b>النظام الثنائي</b> <span class="en">(binary)</span> فيه رقمان فقط: ٠ و١. وكل خانة ضعف التي على يمينها: ١، ٢، ٤، ٨، ١٦… والخانة الواحدة اسمها <b>بِت</b> <span class="en">(bit)</span>. وهذه لغة الحاسوب الحقيقية.</p>
+    <p><b>البايت</b> <span class="en">(byte)</span> ٨ بِتات. وكم قيمة يمكن أن تكتبها بـ٨ خانات كل منها ٠ أو ١؟ ٢ × ٢ × ٢ × ٢ × ٢ × ٢ × ٢ × ٢ = ٢<sup>٨</sup> = ٢٥٦ قيمة، من ٠ إلى ٢٥٥.</p>
+    <p><b>النظام الست عشري</b> <span class="en">(hexadecimal)</span> فيه ستة عشر رمزاً: ٠ إلى ٩، ثم الحروف A إلى F لتعني ١٠ إلى ١٥. وكل خانة ١٦ ضعف التي على يمينها. وفائدته أن كل رقم ست عشري يساوي ٤ بِتات بالضبط، فالبايت يُكتب برقمين ست عشريين دائماً، من 00 إلى FF. وتُسبق الأرقام الست عشرية عادةً بـ <code>0x</code> أو <code>U+</code> لتمييزها.</p>
+    <div class="w"><div class="cap">حوّل رقماً بين الأنظمة الثلاثة</div>
+      <div class="row"><label class="note" for="nbIn">رقم عشري (٠ إلى ١١١٤١١١):</label><input type="text" id="nbIn" value="65" class="mono" style="width:120px;direction:ltr"><button class="btn" data-nb="65">A</button><button class="btn" data-nb="1593">ع</button><button class="btn" data-nb="255">255</button><button class="btn" data-nb="1114111">أكبر نقطة ترميز</button></div>
+      <div class="calc" id="nbOut" style="margin-top:8px"></div></div>
+  </div></div>
+  <p>لكن آسكي لا يكفي: حتى الإسبانية تحتاج حروفاً مثل ñ وó، ونظام الكتابة الديفاناغاري وحده يُكتب به ١٢٠ لغة، وفي يونيكود نحو ١٠٠ ألف رمز صيني ياباني كوري فيتنامي. وإجمالاً يدعم يونيكود ١٦٫٠ أكثر من ١٥٠ ألف حرف و١٦٨ نظام كتابة، إضافة إلى الرموز الرياضية والتعبيرية والعملات.</p>
+
+  <h3>٢٫٣٫١ · نقاط الترميز</h3>
+  <p>يعطي يونيكود كل حرف رقماً فريداً اسمه <span class="t">نقطة الترميز <i>code point</i></span>، يُكتب عادةً بالست عشري، من 0 إلى <code>0x10FFFF</code> (أي ١٬١١٤٬١١١ بالعشري). وأكثر من مليون نقطة يعني مساحة واسعة لحروف جديدة. ويُكتب الرمز بالبادئة <code>U+</code>: حرف a هو <code>U+0061</code>. وأول ١٢٨ نقطة مطابقة لآسكي.</p>
+  <p>ونقطة الترميز تمثّل الحرف <b>مجرداً</b>، لا شكله المرسوم. الشكل اسمه <span class="t">الشكل الطباعي <i>glyph</i></span> ويُخزَّن في الخطوط: الحرف a بخط مختلف، أو عريضاً، أو مائلاً، هو دائماً <code>U+0061</code>. وفي العربية واضح جداً: «ع» في أول الكلمة ووسطها وآخرها ومنفردة نقطة ترميز واحدة <code>U+0639</code> بأربعة أشكال.</p>
+
+  <h3>٢٫٣٫٢ · ترميز UTF‑8</h3>
+  <p>لا نكتب نقطة الترميز في الملف كما هي، بل نكتب <span class="t">ترميزاً <i>encoding</i></span> لها. وأشهر طريقة، ويُكتب بها الويب كله تقريباً، هي <b>UTF‑8</b>.</p>
+  <p>لماذا لا نكتب الرقم مباشرة؟ لأن أكثر من مليون رقم يحتاج ٢١ بِتاً، فنحتاج ٤ بايتات لكل حرف، وهذا الترميز اسمه UTF‑32. حينها تصبح <span class="ltr en">hello</span>:</p>
+  <div class="calc">UTF-32:  00 00 00 68  00 00 00 65  00 00 00 6C  00 00 00 6C  00 00 00 6F
+UTF-8:   68 65 6C 6C 6F</div>
+  <p>في UTF‑32 الملف أطول ٤ مرات ومليء بالأصفار، والأصفار تخرّب الأنظمة القديمة التي كانت تعدّ البايت الصفري «نهاية النص». أما <b>UTF‑8 فترميز متغير الطول</b>: حروف آسكي بايت واحد كما هي (فكل ملف آسكي ملف UTF‑8 صحيح)، والنقاط من ١٢٨ فما فوق بايتان أو ثلاثة أو أربعة. وكل هذه البايتات بين ١٢٨ و٢٥٥ فلا تختلط بآسكي، وأول بِتاتها تقول كم بايتاً في الحرف.</p>
+  <div class="math"><div class="mh"><span class="sym">⇄</span>مفهوم رياضي · كيف تُرزَم البِتات في UTF‑8 (الشكل ٢٫٥)</div><div class="mb">
+    <p>الفكرة: نكتب نقطة الترميز بالنظام الثنائي، ثم «نصبّ» بِتاتها في قالب. القالب يحدده نطاق الرقم:</p>
+    <div class="scroll"><table class="tb mono-tb"><tr><th>النطاق</th><th>البايتات</th><th>القالب</th></tr>
+      <tr><td class="num">U+0000 – U+007F</td><td class="num">1</td><td class="num">0xxxxxxx</td></tr>
+      <tr><td class="num">U+0080 – U+07FF</td><td class="num">2</td><td class="num">110yyyyy 10xxxxxx</td></tr>
+      <tr><td class="num">U+0800 – U+FFFF</td><td class="num">3</td><td class="num">1110zzzz 10yyyyyy 10xxxxxx</td></tr>
+      <tr><td class="num">U+10000 – U+10FFFF</td><td class="num">4</td><td class="num">11110uuu 10uuzzzz 10yyyyyy 10xxxxxx</td></tr></table></div>
+    <p>البِتات الرمادية ثابتة في القالب: <code>110</code> تعني «أنا أول بايت من اثنين»، و<code>10</code> تعني «أنا بايت تكملة». والملوّنة هي بِتات نقطة الترميز نفسها. اختر حرفاً وتابع الرزم:</p>
+    <div class="w"><div class="cap">مختبر UTF‑8</div>
+      <div class="row"><input type="text" id="u8In" value="ñ" style="width:80px;font-size:22px;text-align:center"><button class="btn" data-u8="a">a</button><button class="btn" data-u8="ñ">ñ</button><button class="btn" data-u8="é">é</button><button class="btn" data-u8="ع">ع</button><button class="btn" data-u8="进">进</button><button class="btn" data-u8="😀">😀</button></div>
+      <div id="u8Out" style="margin-top:10px"></div></div>
+    <p>الحرف ñ مثال الكتاب: نقطته <code>U+00F1</code> تقع في الصف الثاني، فيُكتب ببايتين <code>C3 B1</code>. والنتيجة العامة: آسكي بايت واحد، ومعظم حروف أوروبا والشرق الأوسط وأفريقيا، ومنها العربية، بايتان، ومعظم الصينية واليابانية والكورية ثلاثة، والنادر منها والرموز التعبيرية أربعة.</p>
+  </div></div>
+  <p>ومزايا UTF‑8: فعّال لأن الحروف الشائعة تأخذ بايتات أقل، ولا يستخدم البايت الصفري، ومتوافق مع آسكي، و<b>متزامن ذاتياً</b>: إذا تلف جزء من الملف يمكن دائماً إيجاد بداية الحرف التالي أو السابق بالتحرك ٣ بايتات على الأكثر، لأن بايتات التكملة تبدأ دائماً بـ <code>10</code>.</p>
+  <p class="note">ويذكر الكتاب أن النصوص في بايثون ٣ تُخزَّن داخلياً سلاسل من نقاط الترميز، فتعدّ <code>len()</code> نقاط الترميز لا البايتات. وعند القراءة من ملف أو الكتابة فيه يجب تحديد الترميز: لا يوجد ملف نصي بلا ترميز.</p>
+</section>
+
+<!-- ============ 2.4 ============ -->
+<section class="sec" id="s2-4">
+  <header><div class="kicker">القسم ٢٫٤ <span class="pg">p. 42</span></div><h2>التقطيع إلى أجزاء كلمات: BPE</h2></header>
+  <div class="brief"><b>باختصار</b>BPE تبدأ بالحروف وحدها، ثم تدمج أكثر زوج متجاور تكراراً في رمز جديد، وتكرر ذلك k مرة. فتتعلم من البيانات وحدها رموزاً بحجم الكلمات أو المورفيمات. وعند التقطيع تُطبَّق الدمجات المتعلَّمة بالترتيب نفسه. وتُطبَّق عملياً على بايتات UTF‑8.</div>
+  <div class="terms"><span>تقطيع <i>tokenization</i></span><span>أجزاء الكلمات <i>subwords</i></span><span>BPE</span><span>مرحلة التدريب <i>training</i></span><span>المرمِّز <i>encoder</i></span><span>التقطيع المسبق <i>pretokenization</i></span></div>
+  <p>رأينا ثلاثة مرشحين للرموز: الكلمات والمورفيمات والحروف. الكلمات والمورفيمات بالحجم المناسب لأن معانيها ثابتة، لكنها صعبة التعريف. والحروف سهلة التعريف لكنها صغيرة جداً. والحل العملي: <b>طريقة مبنية على البيانات</b> تنتج غالباً وحدات بحجم المورفيمات أو الكلمات، وأحياناً حروفاً.</p>
+  <p><b>لماذا نقطّع أصلاً؟</b> أولاً لتتفق الأنظمة على أسئلة بسيطة: كم طول هذا النص؟ هل <span class="ltr en">don't</span> رمز أم اثنان؟ وهذا ضروري لتكرار التجارب، وكثير من الخوارزميات (مثل مقياس الحيرة) تفترض تقطيعاً ثابتاً. وثانياً للتخلص من <b>الكلمات المجهولة</b>: إذا رأى النموذج في التدريب <span class="ltr en">low</span> و<span class="ltr en">new</span> و<span class="ltr en">newer</span> ولم يرَ <span class="ltr en">lower</span>، فإنه يستطيع تقطيعها إلى <span class="ltr en">low</span> + <span class="ltr en">er</span> اللذين رآهما. وفي أسوأ الحالات، كلمة غريبة جداً مثل الاختصار GRPO تُقطَّع حرفاً حرفاً.</p>
+  <p>وأشهر خوارزميتين: <b>BPE</b> وخوارزمية <b>النموذج اللغوي الأحادي</b> (ULM). ولكل منهما مرحلتان: <b>التدريب</b> الذي يتعلم المفردات من مدوّنة، و<b>الترميز</b> الذي يقطّع نصاً جديداً بتلك المفردات.</p>
+
+  <h3>٢٫٤٫١ · تدريب BPE</h3>
+  <p>تبدأ الخوارزمية بمفردات هي الحروف وحدها، ثم تبحث عن أكثر حرفين متجاورين تكراراً. مثال الكتاب: مدوّنة من ١٠ حروف ومفرداتها ٥ حروف:</p>
+  <div class="calc">A B D C A B E C A B        vocab: {A,B,C,D,E}         length 10
+AB D C AB E C AB           vocab: + AB                 length 7
+AB D CAB E CAB             vocab: + CAB                length 5</div>
+  <p>الزوج <span class="ltr en">A B</span> ظهر ٣ مرات فدُمج. ثم صار <span class="ltr en">C AB</span> الأكثر فدُمج. وتستمر حتى k دمجة، فتكون المفردات النهائية الحروف الأصلية زائد k رمزاً جديداً. فالعدد k <b>معامل</b> نختاره نحن.</p>
+  <p>تعقيد واحد: عملياً لا تعمل الخوارزمية على النص كله متصلاً، بل <b>داخل الكلمات فقط</b>. يُقسَّم النص أولاً عند المسافات وعلامات الترقيم، وتُلصق المسافة غالباً ببداية الكلمة، ونحفظ عدد مرات كل كلمة. والدمج لا يعبر حدود الكلمة. وهذا مثال الكتاب كاملاً، والمسافة تظهر بالرمز <span class="chip">␣</span>:</p>
+  <div class="math"><div class="mh"><span class="sym">#</span>مفهوم رياضي · العدّ الموزون</div><div class="mb">
+    <p>لا نعدّ الزوج في كل كلمة مرة واحدة، بل <b>نضرب في عدد مرات ظهور الكلمة</b>. الزوج <span class="ltr mono">n e</span> يظهر مرة في <span class="ltr mono">␣new</span> التي تكررت مرتين، ومرة في <span class="ltr mono">␣renew</span> التي تكررت مرتين:</p>
+    <div class="calc">count(n e) = 1×2 (in ␣new) + 1×2 (in ␣renew) = 4</div>
+    <p>ونأخذ الأكبر. وإذا تساوى زوجان نأخذ الذي ظهر أولاً.</p>
+  </div></div>
+  <div class="w"><div class="cap">مختبر BPE</div>
+    <div class="row" style="margin-bottom:8px"><button class="btn" data-bpe="set new new renew reset renew">مثال الكتاب (٢٫١١)</button><button class="btn" data-bpe="كتب كاتب كتاب مكتب كتب كتاب كاتب مكتبة كتابة يكتب">مثال عربي</button></div>
+    <textarea id="bpeIn" dir="auto" class="txt">set new new renew reset renew</textarea>
+    <div class="row" style="margin-top:8px"><button class="btn pri" id="bpeStep">الدمج التالي</button><button class="btn" id="bpe5">٥ دمجات</button><button class="btn" id="bpeReset">من البداية</button><span class="note" id="bpeStatus"></span></div>
+    <div class="bpe-grid">
+      <div><div class="sub-h">الكلمات وعددها</div><div id="bpeWords"></div></div>
+      <div><div class="sub-h">أكثر الأزواج تكراراً</div><div id="bpePairs"></div><div class="sub-h">سجلّ الدمج</div><div id="bpeMerges" class="merges"></div></div>
+    </div>
+    <div class="sub-h">المفردات (<span id="bpeVN"></span>)</div><div class="chips" id="bpeVocab"></div>
+  </div>
+  <p>اضغط ثماني مرات وقارن بالكتاب: <span class="ltr mono">n e</span> ثم <span class="ltr mono">ne w</span> ثم <span class="ltr mono">␣ r</span> ثم <span class="ltr mono">␣r e</span>. لقد «اكتشفت» الخوارزمية أن <span class="ltr en">re-</span> بادئة في أول الكلمات، دون أن يخبرها أحد. ثم <span class="ltr mono">␣ new</span> و<span class="ltr mono">␣re new</span> و<span class="ltr mono">s e</span> و<span class="ltr mono">se t</span>.</p>
+
+  <h3>٢٫٤٫٢ · مرمِّز BPE</h3>
+  <p>بعد التدريب نقطّع النص الجديد بتطبيق <b>الدمجات نفسها بالترتيب الذي تعلمناه</b>: أولاً كل <span class="ltr mono">n e</span> تصبح <span class="ltr mono">ne</span>، ثم كل <span class="ltr mono">ne w</span> تصبح <span class="ltr mono">new</span>، وهكذا. والمهم أن <b>تكرارات النص الجديد لا تؤثر</b>، فقط تكرارات بيانات التدريب. كثير من الدمجات تعيد بناء كلمات التدريب، لكنها تتعلم أيضاً مورفيمات مثل البادئة <span class="ltr en">re-</span> التي قد تظهر في كلمات لم تُرَ مثل <span class="ltr en">revisit</span>.</p>
+  <div class="w"><div class="cap">قطّع كلمة جديدة بالدمجات التي تعلّمتها فوق</div>
+    <div class="row"><input type="text" id="encIn" value="renewset" dir="auto" style="width:180px"><label class="note"><input type="checkbox" id="encSp" checked> الكلمة مسبوقة بمسافة</label></div>
+    <div id="encSteps" style="margin-top:8px"></div></div>
+  <p>وفي الواقع تُشغَّل BPE بعشرات آلاف الدمجات على مدوّنة هائلة، فتنتج مفردات من ٥٠ أو ١٠٠ أو ٢٠٠ ألف رمز. فتصبح معظم الكلمات رمزاً واحداً، ولا يُقطَّع إلا النادر والمجهول. هذا في الإنجليزية على الأقل.</p>
+
+  <h3>٢٫٤٫٣ · BPE في الواقع</h3>
+  <p><b>مع يونيكود:</b> تُشغَّل BPE عادةً على <b>بايتات UTF‑8</b> لا على الحروف. فتبدأ بإعادة اكتشاف تسلسلات البايتين والثلاثة الشائعة التي تكوّن حروفاً. ولأن للبايت ٢٥٦ قيمة فقط، <b>لا توجد رموز مجهولة أبداً</b>. وقد تتعلم أحياناً تسلسلات غير صالحة تعبر حدود الحروف، لكنها نادرة وتُحذف بفلتر.</p>
+  <p><b>مثال صناعي:</b> مقطِّع GPT‑4o فيه ٢٠٠ ألف رمز. وبتجربة جملة على أداة Tiktokenizer يلاحظ المؤلفان:</p>
+  <ul class="clean">
+    <li>معظم الكلمات رمز واحد، يشمل غالباً المسافة التي قبلها.</li>
+    <li>الكلمة الملتصقة <span class="ltr en">'s</span> تُفصل عن أسماء الأعلام مثل <span class="ltr en">Jane's</span>، لكنها تبقى جزءاً من الكلمات الشائعة مثل <span class="ltr en">she's</span>.</li>
+    <li>الأرقام تُقطَّع إلى مجموعات من ٣ خانات.</li>
+    <li>الكلمة نفسها قد تُقطَّع بطريقة مختلفة بحسب موقعها: <span class="ltr en">Anyhow</span> في أول الجملة رمزان، و<span class="ltr en">␣anyhow</span> بعد مسافة رمز واحد.</li>
+  </ul>
+  <p>وبعض هذا من <span class="t">التقطيع المسبق <i>pretokenization</i></span>: مرحلة قبل BPE تقسّم النص بالتعابير النمطية عند المسافات وعلامات الترقيم، وتفصل الكلمات الملتصقة، وتجزّئ الأرقام (القسم ٢٫٦٫٩). ويمكن تغيير ذلك: خوارزميتا SuperBPE وBoundlessBPE تتعلمان أولاً رموزاً عادية، ثم تسمحان في مرحلة ثانية بالدمج عبر المسافات، فتنتجان رموزاً تمتد على عدة كلمات وتكون أكفأ (الشكل ٢٫٧).</p>
+  <p><b>مشكلة اللغات غير الإنجليزية:</b> المقطِّعات متعددة اللغات تتدرب على بيانات تهيمن عليها الإنجليزية، فتذهب معظم الرموز للإنجليزية، وتُقطَّع اللغات الأخرى إلى قطع أصغر. مثال الكتاب: جملة من وصفة طبخ، بالإنجليزية ١٩ رمزاً لـ١٤ كلمة، وبالإسبانية ٣٣ رمزاً لـ١٦ كلمة، حتى إن <span class="ltr en">hondo</span> («عميق») قُطِّعت إلى <span class="ltr en">h</span> + <span class="ltr en">ondo</span>. والإسبانية ليست لغة قليلة الموارد، والمشكلة أسوأ في اللغات الأقل حضوراً، حيث قد يصل التقطيع إلى الحروف المفردة. وهذا التفتيت يضعف تمثيل المعنى، ويحتاج سياقات أطول، ويرفع كلفة التدريب.</p>
+</section>
+
+<!-- ============ 2.5 ============ -->
+<section class="sec" id="s2-5">
+  <header><div class="kicker">القسم ٢٫٥ <span class="pg">p. 47</span></div><h2>المدوّنات النصية</h2></header>
+  <div class="brief"><b>باختصار</b>كل نص كتبه شخص معيّن، بلهجة معيّنة، في زمان ومكان ولغرض معيّن. ولذلك يجب أن نعرف عن أي مدوّنة نستخدمها: لغتها ولهجتها ونوعها وكتّابها وطريقة جمعها. والأداة المقترحة لذلك «بطاقة بيانات» ترافق كل مدوّنة.</div>
+  <div class="terms"><span>مدوّنة <i>corpus</i></span><span>تبديل اللغات <i>code switching</i></span><span>ورقة بيانات <i>datasheet</i></span></div>
+  <p>الكلمات لا تأتي من فراغ. وأهم أبعاد الاختلاف:</p>
+  <ul class="clean">
+    <li><b>اللغة:</b> في العالم ٧٠٩٧ لغة بحسب فهرس Ethnologue. ومن المهم اختبار الخوارزميات على أكثر من لغة، خصوصاً لغات بخصائص مختلفة، لا على الإنجليزية وحدها، ولا على اللغات الرسمية للدول الصناعية الكبرى وحدها.</li>
+    <li><b>اللهجة والتنوع:</b> لمعظم اللغات تنوعات بحسب المنطقة والفئة الاجتماعية. مثلاً تنوعات الإنجليزية في المجتمعات الأمريكية الأفريقية تكتب <span class="ltr en">iont</span> بدل <span class="ltr en">I don't</span>، وهذا يؤثر في التقطيع مباشرة. ويجب أن تعمل الأدوات مع هذه التنوعات.</li>
+    <li><b>تبديل اللغات</b> <span class="en">(code switching)</span>: استخدام لغتين في عبارة واحدة، وهو شائع جداً في العالم. مثل تغريدة تبدأ بالإسبانية وتنتهي بالإنجليزية، أو مزيج الهندية والإنجليزية. (وهو مألوف في الكتابة العربية اليومية أيضاً.)</li>
+    <li><b>الشفاهية:</b> لغات كثيرة شفهية أساساً. ومتكلموها يستخدمون لهجة محكية في البيت، ولغة أخرى مكتوبة للاقتصاد والدولة.</li>
+    <li><b>النوع</b> <span class="en">(genre)</span>: أخبار، روايات، أبحاث علمية، ويكيبيديا، نصوص دينية، محادثات هاتفية، اجتماعات عمل، ملاحظات أطباء، نصوص قانونية…</li>
+    <li><b>خصائص الكاتب:</b> العمر والجنس والعرق والطبقة الاجتماعية كلها تؤثر في لغة النص.</li>
+    <li><b>الزمن:</b> اللغة تتغير، ولبعض اللغات مدوّنات من عصور مختلفة.</li>
+  </ul>
+  <p>ولأن اللغة مرتبطة بسياقها هكذا، يقترح الباحثون أن يرافق كل مدوّنة <span class="t">ورقة بيانات <i>datasheet</i></span> تجيب عن:</p>
+  <div class="scroll"><table class="tb"><tr><th>البند</th><th>السؤال</th></tr>
+    <tr><td><b>الدافع</b></td><td>لماذا جُمعت المدوّنة؟ ومن جمعها؟ ومن موّلها؟</td></tr>
+    <tr><td><b>الموقف</b></td><td>متى وفي أي ظرف كُتب النص أو قيل؟ محادثة أم نص محرر؟ وسائل تواصل؟ حديث فردي أم حوار؟</td></tr>
+    <tr><td><b>التنوع اللغوي</b></td><td>أي لغة ولهجة ومنطقة؟</td></tr>
+    <tr><td><b>المتكلمون</b></td><td>أعمار الكتّاب وأجناسهم مثلاً.</td></tr>
+    <tr><td><b>طريقة الجمع</b></td><td>كم حجمها؟ وكيف أُخذت العيّنة؟ وهل جُمعت بموافقة أصحابها؟ وكيف عولجت؟</td></tr>
+    <tr><td><b>الوسم</b></td><td>ما الوسوم؟ ومن الواسمون؟ وكيف دُرّبوا؟</td></tr>
+    <tr><td><b>التوزيع</b></td><td>هل عليها قيود حقوق نشر أو ملكية فكرية؟</td></tr></table></div>
+</section>
+
+<!-- ============ 2.6 ============ -->
+<section class="sec" id="s2-6">
+  <header><div class="kicker">القسم ٢٫٦ <span class="pg">p. 48</span></div><h2>التعابير النمطية</h2></header>
+  <div class="brief"><b>باختصار</b>التعبير النمطي (Regex) لغة صغيرة لوصف مجموعة من النصوص: «حرف من هذه»، «تكرار مرة أو أكثر»، «في أول السطر». نستخدمها للبحث والاستبدال، وهي الخطوة التي تسبق BPE في كل نموذج.</div>
+  <div class="terms"><span>تعبير نمطي <i>regular expression · regex</i></span><span>سلسلة نصية <i>string</i></span><span>نجمة كلين <i>Kleene *</i></span><span>مرساة <i>anchor</i></span><span>مجموعة التقاط <i>capture group</i></span><span>نظرة أمامية <i>lookahead</i></span></div>
+  <p><span class="t">التعبير النمطي <i>regular expression</i></span> من أنفع أدوات معالجة النصوص في علوم الحاسوب. يوجد في كل لغة برمجة، وفي أدوات مثل <code>grep</code>، وفي المحررات. ورسمياً هو <b>ترميز جبري يصف مجموعة من النصوص</b>. وعملياً نستخدمه لنبحث عن نص، ولنحدد كيف نغيّره. والكتاب يكتب الأمثلة بصيغة بايثون، مثل <code>re.search(pattern, string)</code> التي تعيد أول تطابق.</p>
+  <div class="w rx" id="rxBox"><div class="cap">مختبر التعابير النمطية: اكتب نمطاً وشاهد ما يطابقه</div>
+    <div class="row"><label class="note" for="rxPat">النمط:</label><input type="text" id="rxPat" class="mono" style="flex:1;min-width:200px;direction:ltr" value="[mM]ary" autocomplete="off" spellcheck="false"><label class="note"><input type="checkbox" id="rxI"> تجاهل حالة الأحرف</label></div>
+    <textarea id="rxText" class="txt mono" dir="ltr" style="margin-top:8px">Mary Ann stopped by Mona's</textarea>
+    <div class="rx-out" id="rxOut" dir="ltr"></div>
+    <div class="note" id="rxInfo"></div>
+    <div class="sub-h">أمثلة الكتاب (اضغط لتحميلها)</div>
+    <div class="rx-presets" id="rxPresets"></div>
+    <p class="note" style="margin:6px 0 0">الأداة تعمل بمحرك التعابير النمطية في المتصفح. وهو متوافق مع صيغة الكتاب في كل الأمثلة هنا، والفرق الوحيد في الاستبدال، حيث يُكتب <code>$1</code> بدل <code>\1</code>.</p></div>
+
+  <h3>٢٫٦٫١ · الأقواس المربعة: حرف من عدة حروف</h3>
+  <p>أبسط نمط سلسلة حروف عادية: <code>Buttercup</code> يطابق كلمة Buttercup حيث وُجدت. والأنماط حساسة لحالة الأحرف: <code>s</code> لا يطابق <code>S</code>. ولقول «هذا الحرف أو ذاك» نستخدم الأقواس المربعة: <code>[mM]</code> يطابق m أو M. و<code>[1234567890]</code> أي رقم واحد.</p>
+  <p>ولتجنب كتابة الأبجدية كلها، الشَّرطة داخل الأقواس تعني <b>مدى</b>: <code>[A-Z]</code> حرف كبير، و<code>[a-z]</code> حرف صغير، و<code>[0-9]</code> رقم، و<code>[2-5]</code> واحد من 2 و3 و4 و5. وإذا جاءت <code>^</code> <b>أول شيء</b> بعد القوس كانت <b>نفياً</b>: <code>[^A-Z]</code> أي حرف ليس كبيراً، و<code>[^Ss]</code> لا S ولا s. وفي أي مكان آخر تعني الرمز ^ نفسه.</p>
+
+  <h3>٢٫٦٫٢ · العدّ والاختيار والحرف البديل</h3>
+  <ul class="clean">
+    <li><code>?</code>: <b>صفر أو مرة واحدة</b> من الحرف السابق. <code>colou?r</code> يطابق color وcolour، و<code>koalas?</code> يطابق koala وkoalas.</li>
+    <li><code>*</code> اسمها <span class="t">نجمة كلين <i>Kleene *</i></span>: <b>صفر مرة أو أكثر</b> من السابق. <code>a*</code> أي عدد من a، حتى لا شيء.</li>
+    <li><code>+</code> <b>مرة أو أكثر</b>. <code>[0-9]+</code> هي الطريقة المعتادة لـ «سلسلة أرقام».</li>
+    <li><code>{n}</code> <b>بالضبط n مرة</b>. <code>ax{10}z</code> تعني a ثم عشر x ثم z.</li>
+    <li><code>.</code> النقطة <b>أي حرف واحد</b> عدا السطر الجديد. و<code>.*</code> «أي شيء». <code>rose.*rose</code> سطر فيه rose مرتين.</li>
+  </ul>
+  <p>مثال الكتاب الطريف «لغة الخراف»: <span class="ltr mono">baa!</span> و<span class="ltr mono">baaa!</span> و<span class="ltr mono">baaaa!</span>… أي b ثم a مرتين على الأقل ثم !. النمط <code>ba*!</code> خاطئ لأنه يقبل <span class="ltr mono">b!</span> و<span class="ltr mono">ba!</span>. الصحيح <code>baaa*!</code> أو باختصار <code>baa+!</code>. ولماذا نكتب العدد الصحيح <code>[0-9][0-9]*</code> وليس <code>[0-9]*</code>؟ لأن الثاني يطابق النص الفارغ أيضاً.</p>
+
+  <h3>٢٫٦٫٣ · المراسي والحدود</h3>
+  <p>المراسي <span class="en">(anchors)</span> تربط النمط بمكان: <code>^</code> <b>أول السطر</b>، و<code>$</code> <b>آخره</b>. فـ <code>^The dog\.$</code> سطر ليس فيه إلا «The dog.». (وهكذا يصبح للرمز ^ ثلاثة استخدامات: أول السطر، والنفي داخل الأقواس، والرمز نفسه.) و<code>\b</code> <b>حد كلمة</b>، و<code>\B</code> «ليس حد كلمة». <code>\bthe\b</code> تطابق the لا other. و«الكلمة» هنا أي تسلسل من الحروف والأرقام والشرطة السفلية، فـ <code>\b99\b</code> تطابق 99 في «$99» لكن لا تطابقها في «299».</p>
+  <p>والمراسي <b>لا تستهلك حروفاً</b>: هي تطابق «موقعاً» بين حرفين، أي نصاً فارغاً.</p>
+
+  <h3>٢٫٦٫٤ · «أو»، والتجميع، والأسبقية</h3>
+  <p>لقول «cat أو dog» لا تكفي الأقواس المربعة (<code>[catdog]</code> تعني حرفاً واحداً من هذه الحروف!). نستخدم الخط العمودي: <code>cat|dog</code>. لكن <code>guppy|ies</code> تطابق guppy أو ies فقط، لأن التسلسل أقوى من «أو». الحل بالأقواس: <code>gupp(y|ies)</code>. والأقواس أيضاً تجعل العدّاد يطبَّق على مجموعة لا على حرف: <code>(Column [0-9]+ +)*</code>.</p>
+  <div class="math"><div class="mh"><span class="sym">( )</span>مفهوم رياضي · أسبقية العمليات</div><div class="mb">
+    <p>في الحساب، ٢ + ٣ × ٤ = ١٤ وليس ٢٠، لأن الضرب <b>أسبق</b> من الجمع. وإذا أردت الجمع أولاً تكتب أقواساً: (٢ + ٣) × ٤ = ٢٠. والتعابير النمطية لها ترتيب أسبقية مثله، من الأقوى إلى الأضعف:</p>
+    <div class="scroll"><table class="tb"><tr><th>الرتبة</th><th>العملية</th><th>الرموز</th></tr>
+      <tr><td class="num">1</td><td>الأقواس</td><td class="num">( )</td></tr>
+      <tr><td class="num">2</td><td>العدّادات</td><td class="num">* + ? {}</td></tr>
+      <tr><td class="num">3</td><td>التسلسل والمراسي</td><td class="num">the ^my end$</td></tr>
+      <tr><td class="num">4</td><td>«أو»</td><td class="num">|</td></tr></table></div>
+    <p>لذلك <code>the*</code> تطابق theeeee لا thethe (العدّاد ينطبق على e وحدها)، و<code>the|any</code> تطابق the أو any لا thany.</p>
+  </div></div>
+  <p>والأنماط <b>جشعة</b> <span class="en">(greedy)</span>: <code>[a-z]*</code> على «once upon a time» يمكن أن تطابق لا شيء، أو o، أو on… لكنها تطابق دائماً <b>أطول</b> ما تستطيع: once. وللمطابقة غير الجشعة نستخدم <code>*?</code> و<code>+?</code>.</p>
+
+  <h3>٢٫٦٫٥ · مثال كامل: البحث عن the</h3>
+  <ol class="clean">
+    <li><code>the</code>: يفوّت The في أول الجملة.</li>
+    <li><code>[tT]he</code>: يطابق خطأً داخل other وthere.</li>
+    <li><code>\b[tT]he\b</code>: صحيح.</li>
+  </ol>
+  <p>لقد صححنا نوعين من الأخطاء: <span class="t">الإيجابيات الكاذبة <i>false positives</i></span>، أي نصوص طابقناها خطأً مثل other، و<span class="t">السلبيات الكاذبة <i>false negatives</i></span>، أي نصوص فاتتنا مثل The. وتقليل الخطأ صراع بين جهتين: رفع <b>الدقة</b> <span class="en">(precision)</span> بتقليل الإيجابيات الكاذبة، ورفع <b>الاستدعاء</b> <span class="en">(recall)</span> بتقليل السلبيات الكاذبة. ويعرّفهما الفصل ٤ بدقة.</p>
+  <div class="w"><div class="cap">جرّب الأنماط الثلاثة على نص واحد</div>
+    <div class="dlg" style="margin:0 0 8px">The cat sat on the mat. Is there other cat? THE END.</div>
+    <div id="theCmp"></div></div>
+
+  <h3>٢٫٦٫٦ · اختصارات وحروف خاصة</h3>
+  <div class="scroll"><table class="tb"><tr><th>الاختصار</th><th>يساوي</th><th>المعنى</th></tr>
+    <tr><td class="num">\d</td><td class="num">[0-9]</td><td>أي رقم</td></tr>
+    <tr><td class="num">\D</td><td class="num">[^0-9]</td><td>أي شيء ليس رقماً</td></tr>
+    <tr><td class="num">\w</td><td class="num">[a-zA-Z0-9_]</td><td>حرف أو رقم أو شرطة سفلية</td></tr>
+    <tr><td class="num">\W</td><td class="num">[^\w]</td><td>عكسه</td></tr>
+    <tr><td class="num">\s</td><td class="num">[ \r\t\n\f]</td><td>مسافة بيضاء</td></tr>
+    <tr><td class="num">\S</td><td class="num">[^\s]</td><td>ليس مسافة</td></tr></table></div>
+  <p>والحروف الخاصة نفسها (<code>. * ? [ ] \</code>) إذا أردناها بمعناها الحرفي نسبقها بشرطة مائلة عكسية: <code>\.</code> نقطة حقيقية، و<code>\*</code> نجمة. ومنها أيضاً <code>\n</code> سطر جديد و<code>\t</code> مسافة جدولة.</p>
+
+  <h3>٢٫٦٫٧ · الاستبدال ومجموعات الالتقاط</h3>
+  <p>من أهم الاستخدامات <b>الاستبدال</b>: <code>re.sub(pattern, repl, string)</code>. مثلاً استبدال كل cherry بـ apricot. لكن غالباً يعتمد الاستبدال على ما طابقناه. مثال: تحويل التواريخ من الصيغة الأمريكية mm/dd/yyyy إلى dd-mm-yyyy. الأقواس <b>تلتقط</b> ما بداخلها وتحفظه في مجموعة مرقّمة من اليسار، ونشير إليها في الاستبدال بـ <code>\1</code> و<code>\2</code>…</p>
+  <div class="calc">re.sub(r"(\d{2})/(\d{2})/(\d{4})", r"\2-\1-\3", "The date is 10/15/2011")
+→ "The date is 15-10-2011"</div>
+  <p>ويمكن استخدام المجموعة داخل النمط نفسه: <code>\b([A-Za-z]+)\s+\1\b</code> يجد كلمة مكررة مثل «the the». وإذا أردنا أقواساً للتجميع دون التقاط نكتب <code>(?:...)</code>.</p>
+  <p><b>وهكذا يعمل إليزا:</b> سلسلة استبدالات. يحوّل المدخل إلى أحرف كبيرة، ثم يستبدل MY بـ YOUR وI'M بـ YOU ARE، ثم يطبّق قواعد مثل:</p>
+  <div class="calc">re.sub(r".* YOU ARE (DEPRESSED|SAD) .*", r"I AM SORRY TO HEAR YOU ARE \1", input)
+re.sub(r".* ALWAYS .*", r"CAN YOU THINK OF A SPECIFIC EXAMPLE", input)</div>
+  <div class="w"><div class="cap">إليزا مصغّر بقواعد الكتاب (بالإنجليزية)</div>
+    <div class="eliza" id="elLog" dir="ltr"></div>
+    <div class="row" style="margin-top:8px"><input type="text" id="elIn" dir="ltr" style="flex:1;min-width:200px" placeholder="Try: He says I'm depressed much of the time." autocomplete="off"><button class="btn pri" id="elGo">أرسل</button></div>
+    <p class="note" id="elRule" style="margin:6px 0 0"></p></div>
+
+  <h3>٢٫٦٫٨ · النظرة الأمامية</h3>
+  <p>أحياناً نريد أن «ننظر للأمام» لنتحقق من نمط دون أن نتقدم في النص. <code>(?=pattern)</code> صحيحة إذا جاء النمط، و<code>(?!pattern)</code> صحيحة إذا <b>لم</b> يأتِ، وكلتاهما <b>بعرض صفر</b> لا تستهلك حروفاً، مثل المراسي. مثال: التقط أول كلمة في السطر بشرط ألا تبدأ بـ T: <code>^(?![tT])(\w+)\b</code>.</p>
+
+  <h3>٢٫٦٫٩ · التعابير النمطية للتقطيع المسبق</h3>
+  <p>هذا هو التعبير الذي استخدمه نموذج GPT‑2 لتقسيم النص قبل BPE (الشكل ٢٫١٥). يستخدم <code>\p{L}</code> بمعنى «أي حرف يونيكود» من أي لغة، و<code>\p{N}</code> «أي رقم»:</p>
+  <div class="calc" style="white-space:pre-wrap">'s|'t|'re|'ve|'m|'ll|'d|            ← contractions
+ ?\p{L}+|                            ← words (optional leading space)
+ ?\p{N}+|                            ← numbers
+ ?[^\s\p{L}\p{N}]+|                  ← punctuation
+\s+(?!\S)|\s+                        ← whitespace</div>
+  <div class="w"><div class="cap">شغّل مقطِّع GPT‑2 المسبق على نصّك</div>
+    <input type="text" id="g2In" value="We're 350 dogs! Um, lunch?" dir="auto" style="width:100%">
+    <div class="chips" id="g2Out" style="margin-top:8px"></div>
+    <p class="note" style="margin:6px 0 0">كما في الكتاب: <span class="ltr en">We're</span> تنفصل إلى <span class="ltr en">We</span> و<span class="ltr en">'re</span>، وعلامات الترقيم تنفصل، وبعض القطع تبدأ بمسافة (تظهر ␣) وبعضها لا. جرّب نصاً عربياً: <code>\p{L}</code> تطابق الحروف العربية أيضاً.</p></div>
+</section>
+
+<!-- ============ 2.7 ============ -->
+<section class="sec" id="s2-7">
+  <header><div class="kicker">القسم ٢٫٧ <span class="pg">p. 56</span></div><h2>أدوات يونكس البسيطة للتقطيع</h2></header>
+  <div class="brief"><b>باختصار</b>بسطر واحد من أوامر يونكس يمكن تقطيع نص إنجليزي وعدّ كلماته وترتيبها حسب التكرار. والنتيجة دائماً: الكلمات الأكثر تكراراً هي الكلمات الوظيفية القصيرة.</div>
+  <p>ثلاثة أوامر: <code>tr</code> يغيّر حروفاً بأخرى، و<code>sort</code> يرتب الأسطر، و<code>uniq -c</code> يدمج الأسطر المتطابقة المتجاورة ويعدّها. وتُربط بالرمز <code>|</code> الذي يمرر ناتج أمر إلى الذي بعده. امشِ في السلسلة خطوة خطوة على أبيات من سونيتات شكسبير:</p>
+  <div class="w"><div class="cap">خط أنابيب يونكس</div>
+    <textarea id="uxIn" class="txt" dir="ltr" style="min-height:96px">Shall I compare thee to a summer's day?
+Thou art more lovely and more temperate:
+Rough winds do shake the darling buds of May,
+And summer's lease hath all too short a date;
+Sometime too hot the eye of heaven shines,
+And often is his gold complexion dimm'd;
+And every fair from fair sometime declines,
+By chance or nature's changing course untrimm'd;</textarea>
+    <div class="ux-steps" id="uxSteps"></div>
+    <div class="calc ux-cmd" id="uxCmd"></div>
+    <div class="ux-out" id="uxOut" dir="ltr"></div>
+    <p class="note" id="uxNote" style="margin:6px 0 0"></p></div>
+  <p>وعلى أعمال شكسبير كاملة تكون أكثر الكلمات: the (٢٧٣٧٨)، ثم and، ثم i، ثم to، ثم of، ثم a، ثم you. وهذه الأدوات مفيدة لإحصاءات سريعة للإنجليزية. ولأي شيء أعقد نستخدم خوارزميات التقطيع السابقة.</p>
+</section>
+
+<!-- ============ 2.8 ============ -->
+<section class="sec" id="s2-8">
+  <header><div class="kicker">القسم ٢٫٨ <span class="pg">p. 58</span></div><h2>التقطيع بالقواعد</h2></header>
+  <div class="brief"><b>باختصار</b>أحياناً نريد أن تكون الرموز كلمات حقيقية لا أجزاء، للتحليل النحوي أو العلوم الاجتماعية. حينها نكتب قواعد بالتعابير النمطية تعالج علامات الترقيم والأرقام والاختصارات والروابط. وتقسيم النص إلى جمل يُعالج بالطريقة نفسها.</div>
+  <div class="terms"><span>كلمة ملتصقة <i>clitic</i></span><span>تعبير متعدد الكلمات <i>multiword expression</i></span><span>معيار Penn Treebank</span><span>تقسيم الجمل <i>sentence segmentation</i></span></div>
+  <p>التقطيع بالبيانات (BPE) هو الأشيع، لكن أحياناً نريد كلمات حقيقية: لمحلل نحوي يحتاج كلمات نحوية، أو لدراسة لغوية لها تعريف مسبق للوحدة، أو لعلوم اجتماعية تدرس الكلمات الإملائية. حينها نحدد معياراً ونكتب قواعد تنفّذه. ومتطلبات الإنجليزية مثلاً:</p>
+  <ul class="clean">
+    <li><b>علامات الترقيم</b> تنفصل عادةً: الفواصل مفيدة للمحلل، والنقاط تدل على نهاية الجمل. لكن نُبقي ما داخل الكلمات: <span class="ltr en">m.p.h.</span> و<span class="ltr en">Ph.D.</span> و<span class="ltr en">AT&amp;T</span>.</li>
+    <li><b>الأسعار والتواريخ</b> تبقى معاً: <span class="ltr en">$45.55</span> لا تُقطَّع إلى 45 و55. وكذلك <span class="ltr en">01/02/06</span>، والروابط، والوسوم مثل <span class="ltr en">#nlproc</span>، والبريد الإلكتروني.</li>
+    <li><b>الأرقام</b> تختلف بين اللغات: الإنجليزية تكتب <span class="ltr mono">555,500.50</span>، والإسبانية والفرنسية والألمانية تكتب <span class="ltr mono">555 500,50</span>، أي الفاصلة للكسر العشري.</li>
+    <li><b>الكلمات الملتصقة</b> قد تُوسَّع: <span class="ltr en">what're</span> تصبح <span class="ltr en">what are</span>. ومثلها في الفرنسية <span class="ltr en">j'ai</span> و<span class="ltr en">l'homme</span>.</li>
+    <li><b>التعابير متعددة الكلمات</b> مثل <span class="ltr en">New York</span> و<span class="ltr en">rock 'n' roll</span> قد تُعامل رمزاً واحداً، وهذا يحتاج قاموساً، ويرتبط بالتعرّف على الكيانات المسمّاة (الفصل ١٨).</li>
+  </ul>
+  <p>ومن المعايير الشائعة <b>معيار Penn Treebank</b>: يفصل الكلمات الملتصقة (<span class="ltr en">doesn't</span> → <span class="ltr en">does</span> + <span class="ltr en">n't</span>)، ويُبقي الكلمات الموصولة بشرطة، ويفصل كل علامات الترقيم:</p>
+  <div class="dlg">Input:&nbsp; "The San Francisco-based restaurant," they said, "doesn't charge $10".<br>Output: <b>"</b> The San Francisco-based restaurant <b>,</b> <b>"</b> they said <b>,</b> <b>"</b> does <b>n't</b> charge <b>$</b> 10 <b>"</b> <b>.</b></div>
+  <p>ولأن التقطيع أول خطوة، يجب أن يكون سريعاً جداً، فتُستخدم تعابير نمطية تُحوَّل إلى آلات حالات منتهية فعّالة. وهذا تعبير مكتبة NLTK (الشكل ٢٫١٦) على الجملة <span class="ltr en">That U.S.A. poster-print costs $12.40...</span>:</p>
+  <div class="w"><div class="cap">مقطِّع NLTK بالقواعد</div>
+    <input type="text" id="nkIn" value="That U.S.A. poster-print costs $12.40..." dir="ltr" style="width:100%">
+    <div class="chips" id="nkOut" style="margin-top:8px"></div>
+    <div class="calc" style="margin-top:8px;font-size:13px">(?:[A-Z]\.)+          abbreviations, e.g. U.S.A.
+| \w+(?:-\w+)*         words with optional internal hyphens
+| \$?\d+(?:\.\d+)?%?   currency, percentages, e.g. $12.40, 82%
+| \.\.\.               ellipsis
+| [][.,;"'?():_`-]     these are separate tokens</div></div>
+  <p>والقواعد المصممة بعناية تعالج الالتباسات، مثل الفاصلة العليا التي قد تكون علامة ملكية (<span class="ltr en">the book's cover</span>)، أو علامة اقتباس، أو جزءاً من كلمة ملتصقة (<span class="ltr en">they're</span>).</p>
+
+  <h3>٢٫٨٫١ · تقسيم الجمل</h3>
+  <p>تقسيم النص إلى جمل خطوة اختيارية، مهمة خصوصاً للتحليل النحوي. وأهم إشارة علامات الترقيم: علامتا الاستفهام والتعجب واضحتان نسبياً. أما <b>النقطة فملتبسة</b>: قد تنهي جملة، وقد تكون جزءاً من اختصار مثل <span class="ltr en">Dr.</span> أو <span class="ltr en">Inc.</span>، وقد تكون الاثنين معاً حين يأتي الاختصار في آخر الجملة. لذلك يُعالج تقطيع الكلمات وتقسيم الجمل معاً: نقرر أولاً هل النقطة جزء من كلمة (بقاموس اختصارات مكتوب يدوياً أو متعلَّم) أم نهاية جملة. وفي أداة Stanford CoreNLP مثلاً، تنتهي الجملة حين تأتي علامة نهاية (. ! ?) لم تُضم إلى رمز آخر كاختصار أو رقم.</p>
+</section>
+
+<!-- ============ 2.9 ============ -->
+<section class="sec" id="s2-9">
+  <header><div class="kicker">القسم ٢٫٩ <span class="pg">p. 60</span></div><h2>المسافة التحريرية الدنيا</h2></header>
+  <div class="brief"><b>باختصار</b>المسافة التحريرية أقل عدد من عمليات الحذف والإدراج والاستبدال يحوّل نصاً إلى آخر. وتُحسب بجدول تعتمد كل خانة فيه على ثلاث خانات قبلها، وهذه «البرمجة الديناميكية». ومن الجدول نستخرج أيضاً المحاذاة بين النصين بتتبّع الأسهم للخلف.</div>
+  <div class="terms"><span>المسافة التحريرية الدنيا <i>minimum edit distance</i></span><span>محاذاة <i>alignment</i></span><span>مسافة ليفنشتاين <i>Levenshtein</i></span><span>البرمجة الديناميكية <i>dynamic programming</i></span><span>التتبّع العكسي <i>backtrace</i></span></div>
+  <p>كثيراً ما نحتاج قياس تشابه نصين، خصوصاً في التعرّف على الكلام والترجمة، حيث نقارن ناتج النظام بنص مرجعي. و<span class="t">المسافة التحريرية الدنيا <i>minimum edit distance</i></span> هي أقل عدد من عمليات التحرير (إدراج، حذف، استبدال) لتحويل نص إلى آخر.</p>
+  <p>المسافة بين <span class="ltr en">intention</span> و<span class="ltr en">execution</span> هي ٥: احذف i، واستبدل n بـ e، وt بـ x، وأدرج c، واستبدل n بـ u. وأوضح تمثيل لذلك <span class="t">المحاذاة <i>alignment</i></span>: مطابقة بين أجزاء النصين، وتحتها قائمة العمليات:</p>
+  <div class="calc" style="text-align:center">I N T E * N T I O N
+| | | | | | | | | |
+* E X E C U T I O N
+d s s   i s        </div>
+  <p>ويمكن إعطاء كل عملية <b>كلفة</b>. في <span class="t">مسافة ليفنشتاين <i>Levenshtein distance</i></span> كل عملية بكلفة ١، واستبدال الحرف بنفسه بكلفة ٠، فالمسافة ٥. وفي نسخة أخرى لا يُسمح بالاستبدال، وهذا يعادل أن يكلف الاستبدال ٢ لأنه حذف ثم إدراج، فتصبح المسافة ٨.</p>
+
+  <h3>٢٫٩٫١ · خوارزمية المسافة التحريرية</h3>
+  <p>يمكن تخيّل المسألة <b>بحثاً</b> عن أقصر طريق، أي سلسلة تعديلات، من نص إلى آخر. لكن عدد الطرق الممكنة هائل. والملاحظة الذكية: طرق كثيرة تصل إلى الحالة نفسها، فبدل حسابها كلها نتذكر <b>أقصر طريق</b> إلى كل حالة. وهذه هي <span class="t">البرمجة الديناميكية <i>dynamic programming</i></span>.</p>
+  <div class="math"><div class="mh"><span class="sym">DP</span>مفهوم رياضي · البرمجة الديناميكية</div><div class="mb">
+    <p>البرمجة الديناميكية عائلة خوارزميات قدّمها ريتشارد بيلمان (١٩٥٧). فكرتها: <b>حلّ المسألة الكبيرة بتجميع حلول مسائل أصغر، وحفظ كل حل في جدول حتى لا يُحسب مرتين</b>.</p>
+    <p>ولماذا يصح ذلك هنا؟ لنفترض أن أقصر طريق من intention إلى execution يمر بالكلمة exention. حينها <b>لا بد</b> أن يكون الجزء الأول منه أقصر طريق من intention إلى exention. فلو وُجد طريق أقصر لهذا الجزء لاستبدلناه وحصلنا على طريق كامل أقصر، وهذا يناقض أن طريقنا هو الأقصر. هذا النوع من الحجج اسمه <b>البرهان بالتناقض</b>.</p>
+    <p>والتسمية لها قصة يرويها بيلمان: وزير الدفاع الأمريكي في الخمسينيات كان يكره كلمة «بحث»، فاختار بيلمان «برمجة» ليخفي أنه يبحث، و«ديناميكية» لأنها كلمة لا يمكن أن تُستخدم بمعنى سلبي، «شيء لا يعترض عليه حتى عضو في الكونغرس». وستتكرر هذه الطريقة في خوارزميتي Viterbi (الفصل ١٨) وCKY (الفصل ١٩).</p>
+  </div></div>
+  <p>نعرّف <code>D[i, j]</code> بأنها المسافة بين <b>أول i حرفاً</b> من المصدر X و<b>أول j حرفاً</b> من الهدف Y. فإذا كان طول X هو n وطول Y هو m، فالمسافة الكاملة هي <code>D[n, m]</code>.</p>
+  <div class="math"><div class="mh"><span class="sym">min</span>مفهوم رياضي · قراءة المعادلة ٢٫٢٠</div><div class="mb">
+    <div class="eq" style="text-align:left;line-height:2">D[i, j] = min { D[i−1, j] + 1 ,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D[i, j−1] + 1 ,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D[i−1, j−1] + (2 if source[i] ≠ target[j], else 0) }</div>
+    <ol class="steps">
+      <li><code>D[i, j]</code> تعني الخانة في <b>الصف i والعمود j</b> من جدول، كما تقول «الصف الثالث، العمود الخامس» في جدول بيانات.</li>
+      <li><code>min{…}</code> تعني «<b>أصغر</b> هذه القيم». <code>min{7, 3, 5} = 3</code>.</li>
+      <li>نصل إلى الخانة من ثلاث جهات: من <b>فوقها</b> <code>D[i−1, j]</code> بحذف حرف من المصدر (كلفة ١)، ومن <b>يسارها</b> <code>D[i, j−1]</code> بإدراج حرف من الهدف (كلفة ١)، ومن <b>القطر</b> <code>D[i−1, j−1]</code> باستبدال (كلفة ٢) أو تطابق (كلفة ٠).</li>
+      <li>الرمز <code>≠</code> يعني «لا يساوي».</li>
+      <li><b>البداية:</b> <code>D[i, 0] = i</code> لأن تحويل i حرفاً إلى نص فارغ يحتاج i حذفاً، و<code>D[0, j] = j</code> لأن بناء j حرفاً من الفراغ يحتاج j إدراجاً.</li>
+    </ol>
+  </div></div>
+  <div class="w"><div class="cap">املأ الجدول خطوة خطوة (الشكلان ٢٫٢٠ و٢٫٢٢)</div>
+    <div class="row"><label class="note" for="edA">المصدر</label><input id="edA" type="text" value="intention" dir="ltr" style="width:130px"><label class="note" for="edB">الهدف</label><input id="edB" type="text" value="execution" dir="ltr" style="width:130px">
+      <select id="edSub"><option value="2">استبدال = ٢ (كالكتاب)</option><option value="1">استبدال = ١ (ليفنشتاين)</option></select></div>
+    <div class="row" style="margin-top:8px"><button class="btn pri" id="edPlay">▶ تشغيل</button><button class="btn" id="edStep">خطوة</button><button class="btn" id="edAll">املأ الجدول</button><button class="btn" id="edReset">من البداية</button><label class="note"><input type="checkbox" id="edArrows"> أظهر الأسهم</label></div>
+    <div class="row" style="margin-top:6px"><button class="btn" data-ed="leda|deal|1">تمرين ٢٫٧: leda ← deal</button><button class="btn" data-ed="drive|brief|1">drive ← brief</button><button class="btn" data-ed="drive|divers|1">drive ← divers</button><button class="btn" data-ed="مكتبة|كتابة|1">مكتبة ← كتابة</button></div>
+    <div class="scroll" style="margin-top:10px"><div id="edTable"></div></div>
+    <div class="calc" id="edF" style="margin-top:8px"></div>
+    <div id="edAlign"></div></div>
+
+  <h3>المحاذاة والتتبّع العكسي</h3>
+  <p>المسافة وحدها مفيدة لاقتراح تصحيحات إملائية مثلاً. لكن بتعديل صغير نحصل أيضاً على <b>المحاذاة</b>. وهي مهمة في كل المجال: تُحسب بها <b>نسبة خطأ الكلمات</b> في التعرّف على الكلام (الفصل ١٦)، وتُطابَق بها جمل النصوص المتوازية في الترجمة.</p>
+  <p>نتخيل المحاذاة <b>مساراً</b> عبر الجدول. خطوتان:</p>
+  <ol class="clean">
+    <li>عند ملء كل خانة نحفظ <b>مؤشراً للخلف</b>: سهماً إلى الخانة التي جئنا منها (←، ↑، ↖). وقد يكون أكثر من سهم إذا تساوت جهتان.</li>
+    <li>بعد امتلاء الجدول نبدأ من آخر خانة ونتبع الأسهم إلى البداية. هذا <span class="t">التتبّع العكسي <i>backtrace</i></span>، وكل مسار كامل محاذاة بأقل كلفة.</li>
+  </ol>
+  <p>وفي المسار: خانتان متتاليتان في <b>الصف نفسه</b> تعنيان إدراجاً، وفي <b>العمود نفسه</b> تعنيان حذفاً. فعّل «أظهر الأسهم» في الأداة فوق لترى المؤشرات كما في الشكل ٢٫٢٢.</p>
+  <p>ويمكن أن تكون الكلف أي أرقام. في التصحيح الإملائي مثلاً، الاستبدال بين حرفين متجاورين على لوحة المفاتيح أرجح فنعطيه كلفة أقل. وخوارزمية Viterbi (الفصل ١٨) امتداد احتمالي لهذه الخوارزمية: بدل «أقل مسافة» تحسب «أعلى احتمال للمحاذاة».</p>
+</section>
+
+<!-- ============ summary, exercises, glossary ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وتمارينه <span class="pg">pp. 64–67</span></div><h2>الخلاصة والتمارين</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>الكلمات والمورفيمات وحدات مفيدة لكنها صعبة التعريف رسمياً.</li>
+    <li>يونيكود نظام لتمثيل حروف كل أنظمة الكتابة، وكل حرف له نقطة ترميز فريدة، ويُكتب في الملفات بترميز مثل UTF‑8 متغير الطول.</li>
+    <li>BPE هي الطريقة المعيارية لاستخراج الرموز من البيانات، وأول خطوة في معظم النماذج الكبيرة. ورموزها غالباً بحجم الكلمة أو المورفيم، وقد تصغر إلى حرف.</li>
+    <li>التعابير النمطية أداة قوية لمطابقة الأنماط: «أو» (<code>[ ] |</code>)، والعدّادات (<code>* + {n,m}</code>)، والمراسي (<code>^ $</code>)، ومجموعات الالتقاط، والاستبدال.</li>
+    <li>المسافة التحريرية الدنيا أقل عدد من العمليات لتحويل نص إلى آخر، وتُحسب بالبرمجة الديناميكية التي تعطي المحاذاة أيضاً.</li>
+  </ul>
+  <h3>من الحواشي التاريخية</h3>
+  <p>نُشرت مسودة يونيكود عام ١٩٨٨ ثم الإصدار الرسمي عام ١٩٩١، بعد نقاشات بين مهندسين من زيروكس وآبل. وخصائص التزامن الذاتي في UTF‑8 رسمها كين تومسون وروب بايك على مفرش طاولة في مطعم بنيوجيرسي عام ١٩٩٢. وكانت BPE في الأصل طريقة لضغط النصوص (غيج، ١٩٩٤)، ثم استُخدمت للتقطيع في الترجمة العصبية (سينريتش وزملاؤه، ٢٠١٦)، ثم صارت الطريقة الافتراضية في GPT‑2. وعرّف كلين التعابير النمطية في الخمسينيات. ومن أمر المحرر <code>g/re/p</code> («اطبع كل الأسطر المطابقة للتعبير») جاء اسم أداة <code>grep</code> الشهيرة.</p>
+  <h3>تمارين الفصل</h3>
+  <ol class="clean">
+    <li>ترجم جملة من لغة تعرفها إلى أخرى، ثم قطّع الجملتين (مثلاً بأداة Tiktokenizer). هل يختلف عدد الرموز؟</li>
+    <li>قطّع رقماً طويلاً، ورابطاً، وصيغة كيميائية. لماذا قد يضعف النموذج في الحساب بناءً على ما ترى؟</li>
+    <li>باستخدام الشكل ٢٫٥، رمّز يدوياً إلى UTF‑8: الحرف é <code>U+00E9</code> والحرف 进 <code>U+8FDB</code>. كم بايتاً لكل منهما؟ (جرّبهما في مختبر UTF‑8 بعد أن تحلّهما.)</li>
+    <li>اكتب تعابير نمطية لـ: كل النصوص الأبجدية؛ النصوص الصغيرة المنتهية بـ b؛ نصوص من a وb كل a فيها محاطة بـ b من الجانبين.</li>
+    <li>اكتب تعابير لـ: كلمتين متكررتين متتاليتين («the the»)؛ سطر يبدأ برقم صحيح وينتهي بكلمة؛ نص فيه الكلمتان grotto وraven (لا grottos)؛ نمط يلتقط أول كلمة في الجملة.</li>
+    <li>اكتب برنامجاً شبيهاً بإليزا باستبدالات كالتي في القسم ٢٫٦٫٧، في مجال آخر غير العلاج النفسي.</li>
+    <li>احسب المسافة التحريرية (كل العمليات بكلفة ١) من leda إلى deal، وأظهر الجدول.</li>
+    <li>هل drive أقرب إلى brief أم إلى divers؟ وما المسافة لكل منهما؟</li>
+    <li>برمج خوارزمية المسافة التحريرية وتحقق بنتائجك اليدوية.</li>
+    <li>أضف إلى الخوارزمية حفظ المؤشرات والتتبّع العكسي لإخراج المحاذاة.</li>
+  </ol>
+  <p class="note">للتمارين ٧ و٨ أزرار جاهزة في أداة المسافة التحريرية، لكن حاول الحل أولاً.</p>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="01-introduction.html">→ الفصل السابق: مقدمة</a><span>الفصل التالي: نماذج N-gram اللغوية (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch02.js"></script>
+</body>
+</html>
