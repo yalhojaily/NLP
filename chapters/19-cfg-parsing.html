@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ١٩ · النحو الخالي من السياق وتحليل المكوّنات | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل التاسع عشر من كتاب Speech and Language Processing: المكوّنات النحوية، والنحو الخالي من السياق، وبنوك الأشجار، وصيغة تشومسكي المعيارية، واللبس البنيوي، وخوارزمية CKY، والتحليل العصبي القائم على المقاطع، ومقاييس PARSEVAL، والرؤوس.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="18-pos-ner.html" style="text-decoration:none">→ الفصل ١٨</a><b>الفصل ١٩ من ٢٦</b><span class="pill">الفصل ٢٠ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الثالث · وسم البنية اللغوية · الفصل التاسع عشر</div>
+  <h1>النحو الخالي من السياق وتحليل المكوّنات</h1>
+  <div class="sub en" style="font-size:16px">Chapter 19 · Context-Free Grammars and Constituency Parsing · pp. 425–448</div>
+  <p class="epi">يفتتح الفصل بستة عناوين ليست «مكوّنات» نحوية، جمعها جيفري بولوم ليُظهر ندرتها: <span dir="ltr"><i>Because the Night</i>, <i>The Fire Next Time</i>, <i>If on a winter’s night a traveler</i>, <i>Love Actually</i>, <i>Suddenly Last Summer</i>, <i>A Scanner Darkly</i></span>. ثم بنكتة غروتشو ماركس الشهيرة: «One morning I shot an elephant in my pajamas. How he got into my pajamas I don’t know»، أي: «أطلقتُ النار ذات صباح على فيل وأنا في بيجامتي. كيف دخل بيجامتي؟ لا أدري!»</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>الكلمات تتجمع في «مكوّنات» تتصرف وحدةً واحدة، مثل العبارة الاسمية NP. والنحو الخالي من السياق (CFG) قواعد إعادة كتابة مثل S → NP VP تصف هذه المكوّنات وتعطي الجملة شجرة.</li>
+    <li>بنوك الأشجار (مثل Penn Treebank) جمل موسومة بأشجارها يدوياً، وفيها نحو ضمني من آلاف القواعد.</li>
+    <li>المشكلة الكبرى «اللبس البنيوي»: جملة واحدة بأشجار كثيرة صحيحة نحوياً (أين يتعلق «in my pajamas»؟).</li>
+    <li>خوارزمية CKY تجد كل الأشجار بكفاءة بالبرمجة الديناميكية، على نحو بصيغة تشومسكي المعيارية (كل قاعدة A → B C أو A → كلمة).</li>
+    <li>ولاختيار شجرة واحدة: محلل عصبي يعطي كل مقطع (i, j) ونوعه درجة، ثم CKY معدّل يجمع الدرجات. والتقييم بمقاييس PARSEVAL: الدقة والاستدعاء للمكوّنات الموسومة.</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 425</span></div><h2>من بانيني إلى CKY</h2></header>
+  <div class="brief"><b>باختصار</b>دراسة النحو قديمة: وصف بانيني نحو السنسكريتية بين القرنين السابع والرابع قبل الميلاد، وكلمة syntax يونانية بمعنى «الترتيب معاً». وهذا الفصل عن النحو الخالي من السياق وخوارزمية CKY. وأشجار التحليل تفيد في تدقيق القواعد، والتحليل الدلالي، وتحليل النصوص في علم البيانات.</div>
+  <div class="terms"><span>النحو / التركيب <i>syntax</i></span><span>التحليل النحوي <i>syntactic parsing</i></span><span>شجرة التحليل <i>parse tree</i></span></div>
+  <p>وصف النحوي الهندي بانيني نحو السنسكريتية بين القرنين السابع والرابع قبل الميلاد في رسالته الشهيرة «أشتادهيايي» (ثمانية كتب). وكلمة syntax من اليونانية sýntaxis: «الترتيب معاً». ورأينا مفاهيم نحوية كأقسام الكلام (الفصل ١٨)، وفي هذا الفصل والتالي نماذج صورية لبنى نحوية أعقد وخوارزميات لتحليلها.</p>
+  <p>و<b>التحليل النحوي</b> إعطاء الجملة بنية نحوية. وأشجار التحليل (للنحو الخالي من السياق، أو للاعتماديات والأنحاء الأخرى في الفصول التالية) تفيد في: <b>تدقيق القواعد</b> (جملة لا يمكن تحليلها قد تكون خاطئة نحوياً، أو صعبة القراءة على الأقل)؛ و<b>التحليل الدلالي الصوري</b> مرحلةً وسيطة؛ و<b>تحليل النصوص</b> في تطبيقات علم البيانات التي تحتاج العلاقات بين عناصر الجملة. ويعرض الفصل: النحو الخالي من السياق، ونحواً صغيراً للإنجليزية، والتعريف الصوري والصيغة المعيارية، وبنوك الأشجار، ثم اللبس، ثم خوارزمية <b>CKY</b> (كوك-كاسامي-يونغر)، ثم المحللات العصبية القائمة على المقاطع، ثم مقاييس التقييم.</p>
+</section>
+
+<!-- ============ 19.1 ============ -->
+<section class="sec" id="s19-1">
+  <header><div class="kicker">القسم ١٩٫١ <span class="pg">p. 426</span></div><h2>المكوّنات</h2></header>
+  <div class="brief"><b>باختصار</b>«المكوّن» مجموعة كلمات تتصرف وحدةً واحدة. فالعبارات الاسمية (Harry the Horse، three parties from Brooklyn، they) كلها يمكن أن تأتي قبل الفعل، أما كلماتها منفردة فلا (*from arrive). فنحتاج طريقة صورية لقول «العبارة الاسمية تأتي قبل الفعل».</div>
+  <div class="terms"><span>المكوّن <i>constituent</i></span><span>العبارة الاسمية <i>noun phrase, NP</i></span></div>
+  <p><b>المكوّنات النحوية</b> فكرة أن مجموعات من الكلمات تتصرف وحدات مفردة. وجزء من بناء النحو جرد مكوّنات اللغة. خذ <span class="t">العبارة الاسمية <i>noun phrase</i></span>: سلسلة كلمات حول اسم واحد على الأقل. أمثلة من قصص ديمون رنيون: <span dir="ltr">Harry the Horse · the Broadway coppers · they · a high-class spot such as Mindy’s · the reason he comes into the Hot Box · three parties from Brooklyn</span>. وما الدليل على أنها تتجمع؟ أنها تظهر كلها في بيئات نحوية متشابهة، مثلاً قبل الفعل. لكن كلماتها منفردة لا تفعل ذلك (والنجمة * تعني جملة غير نحوية):</p>
+  <div class="w" id="ctBox"><div class="cap">اختبار الاستبدال: أي جزء يصلح قبل الفعل؟</div>
+    <div class="row" id="ctBtns" dir="ltr"></div>
+    <div class="calc" id="ctCalc"></div></div>
+</section>
+
+<!-- ============ 19.2 ============ -->
+<section class="sec" id="s19-2">
+  <header><div class="kicker">القسم ١٩٫٢ <span class="pg">p. 426</span></div><h2>النحو الخالي من السياق</h2></header>
+  <div class="brief"><b>باختصار</b>CFG قواعد (إنتاجات) مثل NP → Det Nominal، ومعجم مثل Det → the. الرموز «النهائية» كلمات، و«غير النهائية» تجريدات (NP، VP). ونقرأ السهم «أعِد كتابة اليسار باليمين»: من S نشتق الجملة خطوة خطوة، وتسلسل الخطوات «اشتقاق» تمثّله «شجرة تحليل». واللغة المعرَّفة: كل سلاسل الكلمات المشتقة من S. والنحو الصغير L₀ يكفي لجمل مثل «I prefer a morning flight».</div>
+  <div class="terms"><span>النحو الخالي من السياق <i>context-free grammar, CFG</i></span><span>القاعدة / الإنتاج <i>rule / production</i></span><span>المعجم <i>lexicon</i></span><span>نهائي / غير نهائي <i>terminal / non-terminal</i></span><span>الاشتقاق <i>derivation</i></span><span>يهيمن <i>dominates</i></span><span>رمز البداية <i>start symbol S</i></span><span>الصيغة القوسية <i>bracketed notation</i></span><span>النحو التوليدي <i>generative grammar</i></span></div>
+  <p>أشيع نظام صوري لنمذجة بنية المكوّنات <span class="t">النحو الخالي من السياق <i>CFG</i></span> (ويسمى نحو بنية العبارات، ويعادل صيغة باكوس-ناور BNF في لغات البرمجة). وفكرة بناء النحو على المكوّنات تعود إلى عالم النفس فيلهلم فونت (١٩٠٠)، ولم تُصَغ صورياً إلا عند تشومسكي (١٩٥٦) وباكوس (١٩٥٩) باستقلال. ويتكون من <b>قواعد</b> تعبّر عن طرق تجميع الرموز وترتيبها، و<b>معجم</b> من الكلمات:</p>
+  <div class="eq" dir="ltr">NP → Det Nominal &nbsp;&nbsp; NP → ProperNoun &nbsp;&nbsp; Nominal → Noun | Nominal Noun &nbsp;&nbsp;&nbsp;&nbsp; Det → a &nbsp; Det → the &nbsp; Noun → flight</div>
+  <p>(ويُقرأ السهم «يذهب إلى»: «NP goes to Det Nominal».) والرموز التي تقابل كلمات اللغة <b>نهائية</b>، والمعجم القواعد التي تُدخلها؛ والتجريدات <b>غير نهائية</b>. يمين السهم قائمة مرتبة من رمز أو أكثر، ويساره رمز غير نهائي واحد. ويمكن النظر إلى CFG بطريقتين: <b>مولِّداً</b> للجمل (نقرأ السهم «أعِد كتابة اليسار باليمين»)، و<b>مُسنِداً</b> بنيةً لجملة معطاة. فمن NP: NP ⇒ Det Nominal ⇒ Det Noun ⇒ a flight. هذا <span class="t">اشتقاق <i>derivation</i></span>، ونمثّله بـ<b>شجرة تحليل</b> (مقلوبة، جذرها في الأعلى)، وفيها NP <b>يهيمن</b> على كل العقد، و<b>يهيمن مباشرة</b> على Det وNom. واللغة التي يعرّفها النحو: كل السلاسل المشتقة من <b>رمز البداية</b> S («الجملة»).</p>
+  <p>ونضيف قواعد: S → NP VP («I + prefer a morning flight»)، وVP → Verb NP، وVP → Verb NP PP («leave Boston in the morning»)، وVP → Verb PP («leaving on Thursday»)، وPP → Preposition NP («from Los Angeles»). والعبارات الجرّية في مدوّنة ATIS متنوعة: to Seattle، on these flights، about the ground transportation in Chicago… ومعاً هذا النحو <b>L₀</b> (الشكلان ١٩٫٢ و١٩٫٣). ولنولّد به جملاً عشوائية:</p>
+  <div class="w" id="dvBox"><div class="cap">مولّد جمل من النحو L₀ (الشكلان ١٩٫٢–١٩٫٣)</div>
+    <div class="row"><button class="btn pri" id="dvGo">ولّد جملة عشوائية</button><button class="btn" id="dvBook">«I prefer a morning flight»</button></div>
+    <div class="scroll" dir="ltr"><div id="dvTree" style="margin-top:8px"></div></div>
+    <div class="calc" id="dvCalc"></div></div>
+  <details class="note"><summary>النحو L₀ ومعجمه كاملين</summary><div class="scroll" dir="ltr"><table class="tb" dir="ltr" id="l0Tab"></table></div></details>
+  <p>ويمكن تمثيل الشجرة بصيغة أوجز هي <b>الصيغة القوسية</b>: <span dir="ltr" class="mono">[S [NP [Pro I]] [VP [V prefer] [NP [Det a] [Nom [Nom [N morning]] [N flight]]]]]</span> (19.1). (في المسودة قوس إغلاق زائد في آخرها.) والجمل المشتقة من النحو <b>نحوية</b> في لغته الصورية، وغيرها <b>غير نحوية</b>. وهذا الحد القاطع تبسيط كبير لطبيعة اللغات الحقيقية، حيث يعتمد قبول الجملة كثيراً على السياق. واستعمال اللغات الصورية لنمذجة اللغات الطبيعية يسمى <b>النحو التوليدي</b> (معنى «التوليد» هنا غير معناه في النماذج اللغوية).</p>
+  <h3>١٩٫٢٫١ · التعريف الصوري</h3>
+  <p>النحو G رباعية (N, Σ, R, S): N مجموعة الرموز غير النهائية؛ وΣ مجموعة الرموز النهائية (منفصلة عن N)؛ وR مجموعة قواعد A → β، حيث A غير نهائي وβ سلسلة من (Σ ∪ N)*؛ وS رمز البداية (من N). والاصطلاح: الحروف الكبيرة (A، B، S) غير نهائية؛ والإغريقية الصغيرة (α، β، γ) سلاسل من (Σ ∪ N)*؛ واللاتينية الصغيرة (u، v، w) سلاسل نهائية.</p>
+  <div class="eq">αAγ ⇒ αβγ &nbsp; (إذا كانت A → β قاعدة) &nbsp;&nbsp;&nbsp;&nbsp; α₁ ⇒* α<sub>m</sub> &nbsp; (سلسلة اشتقاقات مباشرة) &nbsp;&nbsp;&nbsp;&nbsp; L<sub>G</sub> = { w | w ∈ Σ* و S ⇒* w }</div>
+  <div class="math"><div class="mh"><span class="sym">Σ*</span>مفهوم رياضي · النجمة، والمجموعة، و«الخالي من السياق»</div><div class="mb">
+    <p><b>Σ*</b> (نجمة كلين) = كل السلاسل الممكنة من رموز Σ بأي طول، ومنها السلسلة الفارغة. فإذا كانت Σ = {a, b} فإن Σ* = {ε, a, b, aa, ab, ba, bb, aaa, …}: لانهائية. و<b>∪</b> اتحاد مجموعتين. و{ w | شرط } تعني «كل w التي تحقق الشرط». و<b>«خالٍ من السياق»</b> لأن يسار كل قاعدة رمز واحد بلا جيران: تُطبَّق A → β أينما ظهر A، أياً كان ما حوله (α وγ). أما نحو «حساس للسياق» فقد يقول: أعد كتابة A فقط إذا سبقه كذا. وهذه البساطة هي ما يسمح بخوارزميات تحليل فعّالة مثل CKY.</p>
+  </div></div>
+  <p>ومشكلة تحويل سلسلة كلمات إلى شجرتها هي <b>التحليل النحوي</b> (القسم ١٩٫٦).</p>
+</section>
+
+<!-- ============ 19.3 ============ -->
+<section class="sec" id="s19-3">
+  <header><div class="kicker">القسم ١٩٫٣ <span class="pg">p. 430</span></div><h2>بنوك الأشجار</h2></header>
+  <div class="brief"><b>باختصار</b>بنك الأشجار مدوّنة كل جملة فيها موسومة بشجرتها، تُصنع عادةً بتشغيل محلل ثم تصحيح بشري. وPenn Treebank (للإنجليزية والعربية والصينية) يكتب الأشجار بأقواس على طريقة LISP. والأشجار تحوي نحواً ضمنياً يمكن استخراجه، لكنه «مسطّح» جداً: حوالي ٤٥٠٠ قاعدة لـ VP وحدها.</div>
+  <div class="terms"><span>بنك الأشجار <i>treebank</i></span><span>Penn Treebank</span></div>
+  <p><span class="t">بنك الأشجار <i>treebank</i></span> مدوّنة كل جملة فيها مُعلَّمة بشجرة تحليل. ولها دور مهم في التحليل وفي البحث اللغوي. وتُصنع عادةً بتشغيل محلل على كل جملة ثم تصحيح لغويين للنتيجة. ومشروع <b>Penn Treebank</b> فيه بنوك للإنجليزية والعربية والصينية، ويكتب الأشجار بأقواس على طريقة LISP. اكتب أو اختر شجرة لتراها مرسومة:</p>
+  <div class="w" id="trBox"><div class="cap">من الأقواس إلى الشجرة (الشكلان ١٩٫٥ و١٩٫٦)</div>
+    <div class="row"><button class="btn" data-t="a">(أ) Brown</button><button class="btn" data-t="b">(ب) ATIS</button><button class="btn" data-t="c">(19.1)</button></div>
+    <textarea id="trIn" class="mono" dir="ltr" rows="4" style="width:100%;margin-top:6px"></textarea>
+    <div class="scroll" dir="ltr"><div id="trTree" style="margin-top:8px"></div></div>
+    <div class="calc" id="trCalc"></div></div>
+  <p>والجمل في بنك الأشجار تشكّل ضمنياً نحواً للغة: من جملتي الشكل ١٩٫٥ نستخرج قواعد الشكل ١٩٫٧ (الأداة أعلاه تستخرجها من أي شجرة). ونحو Penn Treebank <b>مسطّح</b> جداً، فقواعده كثيرة جداً: من حوالي ٤٥٠٠ قاعدة لتوسيع VP، قواعد منفصلة لسلاسل PP بكل طول وكل ترتيب لمعمولات الفعل: VP → VBD PP، وVP → VBD PP PP، وVP → VBD PP PP PP، وVP → VB ADVP PP، وVP → ADVP VB PP… (وفي الشكل ١٩٫٧ في المسودة القاعدة VP → MD VP مكررة.)</p>
+</section>
+
+<!-- ============ 19.4 ============ -->
+<section class="sec" id="s19-4">
+  <header><div class="kicker">القسم ١٩٫٤ <span class="pg">p. 432</span></div><h2>تكافؤ الأنحاء والصيغة المعيارية</h2></header>
+  <div class="brief"><b>باختصار</b>نحوان متكافئان «بقوة» إذا ولّدا السلاسل نفسها بالبنى نفسها، و«بضعف» إذا ولّدا السلاسل نفسها ببنى مختلفة. وصيغة تشومسكي المعيارية (CNF): كل قاعدة A → B C أو A → a، فالأشجار ثنائية التفرع. وكل CFG يمكن تحويله إلى CNF مكافئ بضعف: A → B C D يصير A → B X وX → C D.</div>
+  <div class="terms"><span>تكافؤ قوي / ضعيف <i>strongly / weakly equivalent</i></span><span>صيغة تشومسكي المعيارية <i>Chomsky normal form, CNF</i></span><span>ثنائي التفرع <i>binary branching</i></span><span>الإلحاق التشومسكي <i>Chomsky-adjunction</i></span></div>
+  <p>اللغة الصورية مجموعة (قد تكون لانهائية) من السلاسل، وقد يولّد نحوان مختلفان اللغة نفسها. فهما <b>متكافئان بقوة</b> إذا ولّدا السلاسل نفسها وأعطيا كل جملة البنية نفسها (مع إعادة تسمية الرموز فقط)، و<b>متكافئان بضعف</b> إذا ولّدا السلاسل نفسها ببنى مختلفة. ونحو بـ<span class="t">صيغة تشومسكي المعيارية <i>CNF</i></span> (تشومسكي ١٩٦٣) خالٍ من ε وكل قاعدة فيه A → B C (رمزان غير نهائيين) أو A → a (رمز نهائي واحد)، فأشجاره <b>ثنائية التفرع</b> حتى مستوى ما قبل الكلمات. وأي CFG يمكن تحويله إلى CNF مكافئ بضعف، فالقاعدة A → B C D تصير A → B X وX → C D. والتفرع الثنائي قد يصغّر النحو أحياناً: سلسلة قواعد Penn (VP → VBD NP PP، VP → VBD NP PP PP، …) يولّدها نحو من قاعدتين: VP → VBD NP PP وVP → VP PP. وتوليد رمز A مع سلسلة لانهائية محتملة من B بقاعدة مثل A → A B يسمى <b>الإلحاق التشومسكي</b>.</p>
+</section>
+
+<!-- ============ 19.5 ============ -->
+<section class="sec" id="s19-5">
+  <header><div class="kicker">القسم ١٩٫٥ <span class="pg">p. 433</span></div><h2>اللبس</h2></header>
+  <div class="brief"><b>باختصار</b>أخطر مشكلة للمحللات: «اللبس البنيوي»، حين يعطي النحو الجملة أكثر من شجرة. ومنه لبس التعلّق (أين نعلّق العبارة الجرية «in my pajamas»: بالاسم elephant أم بالفعل shot؟) ولبس العطف (old [men and women] أم [old men] and women؟). والجمل الحقيقية تجمع لبوساً كثيرة غير معقولة دلالياً لكنها صحيحة نحوياً.</div>
+  <div class="terms"><span>اللبس البنيوي <i>structural ambiguity</i></span><span>لبس التعلّق <i>attachment ambiguity</i></span><span>لبس تعلّق العبارة الجرية <i>PP-attachment ambiguity</i></span><span>لبس العطف <i>coordination ambiguity</i></span><span>إزالة اللبس النحوي <i>syntactic disambiguation</i></span></div>
+  <p>رأينا في الفصل ١٨ لبس أقسام الكلام. وهنا نوع جديد: <span class="t">اللبس البنيوي <i>structural ambiguity</i></span>، حين يعطي النحو الجملة أكثر من تحليل. ونستعمل نحواً صغيراً أكبر قليلاً هو <b>L₁</b> (الشكل ١٩٫٨)، يضيف إلى L₀ قواعد مثل Nominal → Nominal PP وVP → VP PP وS → Aux NP VP. وجملة غروتشو ماركس ملتبسة لأن «in my pajamas» قد تكون جزءاً من العبارة الاسمية التي رأسها elephant (الفيل في البيجامة!) أو من العبارة الفعلية التي رأسها shot (هو يطلق النار وهو بالبيجامة):</p>
+  <div class="w" id="amBox"><div class="cap">الشكل ١٩٫٩: تحليلان لجملة واحدة</div>
+    <div class="row"><span class="seg" id="amM"><button data-m="np" class="on">الفيل في البيجامة (تعلّق بالاسم)</button><button data-m="vp">أنا في البيجامة (تعلّق بالفعل)</button></span></div>
+    <div class="scroll" dir="ltr"><div id="amTree" style="margin-top:8px"></div></div>
+    <div class="calc" id="amCalc"></div></div>
+  <p>ومن أشكاله الشائعة <b>لبس التعلّق</b>: حين يمكن تعليق مكوّن بالشجرة في أكثر من موضع، كتعلّق العبارة الجرية أعلاه، أو العبارات الظرفية: في «We saw the Eiffel Tower flying to Paris» (19.2) قد تكون «flying to Paris» وصفاً لبرج إيفل (!) أو ملحقة بالفعل saw. و<b>لبس العطف</b>: «old men and women» إما [old [men and women]] (الرجال والنساء كبار) أو [old men] and [women] (الرجال وحدهم كبار). وتتراكب هذه اللبوس في الجمل الحقيقية، كجملة Brown (19.3): «President Kennedy today pushed aside other White House business to devote all his time and attention to working on the Berlin crisis address he will deliver tomorrow night to the American people over nationwide television and radio»: [nationwide [television and radio]] أو [[nationwide television] and radio]؛ ومفعول pushed aside قد يُحلل بغرابة [other White House business to devote all his time and attention to working]؛ و«over nationwide television and radio» قد تتعلق بأي VP أو NP أعلى (people أو night). وكثرة التحليلات الصحيحة نحوياً غير المعقولة دلالياً مشكلة مزعجة لكل المحللات. ولحسن الحظ CKY يتعامل معها بكفاءة، ونضيف إليه طرقاً عصبية لاختيار تحليل واحد: <b>إزالة اللبس النحوي</b>.</p>
+</section>
+
+<!-- ============ 19.6 ============ -->
+<section class="sec" id="s19-6">
+  <header><div class="kicker">القسم ١٩٫٦ <span class="pg">p. 435</span></div><h2>تحليل CKY: البرمجة الديناميكية</h2></header>
+  <div class="brief"><b>باختصار</b>لأن النحو خالٍ من السياق، فالمكوّن الذي اكتُشف في جزء من الجملة يصلح لأي اشتقاق يحتاجه، فنحفظه في جدول ولا نعيد تحليله. وCKY يعمل على نحو بصيغة CNF، بجدول مثلثي: الخلية [i, j] فيها كل الرموز التي تغطي الكلمات من الفاصل i إلى j. ولكل خلية نجرب كل نقاط القسمة k: هل من قاعدة A → B C مع B في [i, k] وC في [k, j]؟ ونملأ عموداً عموداً من اليسار، وكل عمود من الأسفل للأعلى. وإذا كان S في [0, n] فالجملة نحوية.</div>
+  <div class="terms"><span>البرمجة الديناميكية <i>dynamic programming</i></span><span>التحليل بالجدول <i>chart parsing</i></span><span>خوارزمية CKY</span><span>الإنتاج الأحادي <i>unit production</i></span><span>أعمدة السياج <i>fenceposts</i></span><span>المُعرِّف / المحلل <i>recognizer / parser</i></span></div>
+  <p>البرمجة الديناميكية تملأ جدولاً بحلول المسائل الجزئية، والجدول الكامل فيه حلول كل ما يلزم للمسألة كلها. وفي التحليل، المسائل الجزئية أشجار كل المكوّنات المكتشفة. وميزتها تأتي من طبيعة القواعد «الخالية من السياق»: المكوّن المكتشف في جزء من المدخل نسجّله ونستعمله في أي اشتقاق لاحق يحتاجه، فنوفّر الوقت والذاكرة. وCKY أشهر هذه الخوارزميات، و«التحليل بالجدول» (كابلان ١٩٧٣، كاي ١٩٨٢) نهج قريب.</p>
+  <h3>١٩٫٦٫١ · التحويل إلى صيغة تشومسكي</h3>
+  <p>CKY يتطلب CNF. ولنحو خالٍ من ε ثلاث حالات: (١) قواعد تخلط النهائي بغير النهائي يميناً: نضيف رمزاً وهمياً، فـ INF-VP → to VP تصير INF-VP → TO VP وTO → to. (٢) <b>الإنتاجات الأحادية</b> (رمز غير نهائي واحد يميناً): إذا كان A ⇒* B بسلسلة إنتاجات أحادية وB → γ قاعدة غير أحادية، نضيف A → γ ونحذف الأحادية. وهذا «يسطّح» النحو ويرفع الكلمات إلى مستويات عالية. (٣) القواعد الأطول من ٢: A → B C γ تصير A → X₁ γ وX₁ → B C، ونكرر. فـ S → Aux NP VP تصير S → X₁ VP وX₁ → Aux NP. والخطوات: انسخ القواعد المطابقة؛ حوّل النهائيات داخل القواعد؛ حوّل الأحادية؛ اجعل الكل ثنائياً.</p>
+  <div class="scroll" dir="ltr"><table class="tb cnf" dir="ltr" id="cnfTab"></table></div>
+  <p>(الشكل ١٩٫١٠. والقواعد المعجمية الأصلية تنتقل كما هي، ولا تظهر في الجدول. ولاحظ كيف «رُفعت» الأفعال إلى VP وS: S → book | include | prefer، لأن S → VP وVP → Verb أحاديتان.)</p>
+  <h3>١٩٫٦٫٢ · التعرّف بـ CKY</h3>
+  <p>مع CNF كل عقدة فوق مستوى أقسام الكلام لها ابنتان بالضبط. فنستعمل الجزء المثلثي العلوي من مصفوفة (n + 1) × (n + 1). والخلية [i, j] فيها كل الرموز التي تمثّل مكوّنات تغطي المواضع من i إلى j. والفهارس تشير إلى <b>الفواصل بين الكلمات</b>: <span dir="ltr">0 Book 1 the 2 flight 3 through 4 Houston 5</span> («أعمدة السياج»)، فالجملة كلها في [0, n]. ولأن لكل مكوّن [i, j] ابنتين، يوجد موضع قسمة k (i &lt; k &lt; j): الابنة الأولى [i, k] على يسار [i, j] في صفّها، والثانية [k, j] تحتها في عمودها. ونملأ عموداً عموداً من اليسار، وكل عمود من الأسفل للأعلى، فكل ما نحتاجه يكون جاهزاً (وهذا يحاكي المعالجة المباشرة كلمة كلمة):</p>
+  <div class="eq" dir="ltr" style="text-align:left;font-size:14.5px;line-height:1.75">function CKY-PARSE(words, grammar) returns table<br>&nbsp;&nbsp;for j ← 1 to LENGTH(words) do<br>&nbsp;&nbsp;&nbsp;&nbsp;for all {A | A → words[j] ∈ grammar}: table[j−1, j] ← table[j−1, j] ∪ A<br>&nbsp;&nbsp;&nbsp;&nbsp;for i ← j−2 down to 0 do<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for k ← i+1 to j−1 do<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for all {A | A → B C ∈ grammar, B ∈ table[i, k], C ∈ table[k, j]}: table[i, j] ← table[i, j] ∪ A</div>
+  <div class="w" id="ckBox"><div class="cap">CKY بالنحو L₁ في صيغة CNF (اضغط خلية لترى قسماتها)</div>
+    <div class="row"><select id="ckS" dir="ltr"><option>Book the flight through Houston</option><option>I prefer a flight</option><option>Does she prefer a morning flight</option><option>Book a meal on United</option><option>she book the flight</option><option>I prefer a flight from Houston to Houston</option></select><button class="btn pri" id="ckNext">الخطوة التالية</button><button class="btn" id="ckAll">املأ الكل</button></div>
+    <div class="scroll" dir="ltr"><div id="ckTab" style="margin-top:8px"></div></div>
+    <div class="calc" id="ckCalc"></div>
+    <div class="row" id="ckParses" style="margin-top:6px" dir="ltr"></div>
+    <div class="scroll" dir="ltr"><div id="ckTree" style="margin-top:8px"></div></div></div>
+  <p class="note">«morning» ليست في معجم L₁ (Noun → book | flight | meal | money)، فجملة «Does she prefer a morning flight» تفشل؛ هذا مقصود لترى كيف يبدو الرفض. و«she book the flight» تُقبل، لأن L₁ لا يعرف المطابقة بين الفاعل والفعل.</p>
+  <h3>١٩٫٦٫٣ · من المُعرِّف إلى المحلل</h3>
+  <p>الخوارزمية أعلاه <b>مُعرِّف</b>: تخبرنا هل يوجد تحليل (S في [0, n])، لكنها لا تعطي الاشتقاق. ولتصير <b>محللاً</b> يعيد كل التحليلات نغيّر أمرين: نقرن كل رمز في الجدول بمؤشرات إلى الخليتين اللتين اشتُق منهما، ونسمح بنسخ متعددة من الرمز نفسه في الخلية (الشكل ١٩٫١٤: في [0, 5] ثلاثة S، أي ثلاثة تحليلات: الجار يعدّل flight، أو يعدّل الحجز، أو هو المعمول الثاني في VP → Verb NP PP، الممثَّل الآن بـ VP → X2 PP). وإعادة تحليل واحد: نختار S من [0, n] ونسترجع مكوّناته تكرارياً. لكن عادةً نريد الأفضل فقط (القسم التالي).</p>
+  <h3>١٩٫٦٫٤ · CKY عملياً</h3>
+  <p>CNF لا يشكّل مشكلة نظرية، لكنه عملياً يعطي أشجاراً لا تطابق نحو المطوّرين، ويعقّد التحليل الدلالي المبني على النحو. والحل: نحفظ معلومات تسمح بتحويل الأشجار إلى النحو الأصلي بعد التحليل. وهذا سهل مع القواعد الطويلة: نحذف الرموز الوهمية (X1، X2) ونرفع بناتها. أما الإنتاجات الأحادية فالأسهل تعديل CKY ليعالجها مباشرة (التمرين ١٩٫٣).</p>
+  <div class="math"><div class="mh"><span class="sym">O(n³)</span>مفهوم رياضي · كم تكلّف CKY؟</div><div class="mb">
+    <p>عدد الخلايا حوالي n²/2، ولكل خلية نجرب حتى n − 1 نقطة قسمة، ولكل قسمة نفحص أزواج الرموز مع قواعد النحو |G|. فالمجموع يتناسب مع n³ · |G|. جملة من ١٠ كلمات: حوالي ٥٠٠ خطوة × |G|؛ ومن ٤٠ كلمة: ٣٢ ألفاً × |G|. أما عدد <b>الأشجار</b> نفسها فقد ينمو أُسّياً مع عدد العبارات الجرية (أعداد كاتالان: ١، ٢، ٥، ١٤، ٤٢، ١٣٢…)، لكن الجدول يحفظها كلها بحجم n² فقط، لأن الأشجار المختلفة تتشارك الأجزاء. جرّب الجملة الأخيرة في القائمة. (هذا الإطار من عندنا لا من نص الفصل.)</p>
+  </div></div>
+</section>
+
+<!-- ============ 19.7 ============ -->
+<section class="sec" id="s19-7">
+  <header><div class="kicker">القسم ١٩٫٧ <span class="pg">p. 441</span></div><h2>التحليل العصبي القائم على المقاطع</h2></header>
+  <div class="brief"><b>باختصار</b>CKY يعدّد كل الأشجار ولا يختار. والحل (كيتاييف وزملاؤه ٢٠١٩): نمرر الجملة في BERT، ونمثّل كل مقطع (i, j) بفروق تمثيلات طرفيه، ونمرره في شبكة صغيرة تعطي درجة s(i, j, l) لكل وسم l. ودرجة الشجرة مجموع درجات مقاطعها، ونجد الأفضل بنسخة من CKY: s<sub>best</sub>(i, j) = max<sub>l</sub> s(i, j, l) + max<sub>k</sub>[s<sub>best</sub>(i, k) + s<sub>best</sub>(k, j)]. ولا نحو مكتوباً: الشبكة تتعلم ما يتجمع مع ما.</div>
+  <div class="terms"><span>التحليل القائم على المقاطع <i>span-based parsing / neural CKY</i></span><span>المقطع <i>span</i></span><span>درجة المقطع <i>span score s(i, j, l)</i></span></div>
+  <p>المحلل يتعلم ربط مقطع من الكلمات بمكوّن، ويجمع كـ CKY مقاطع أكبر فأكبر من الأسفل. لكنه لا يستعمل نحواً مكتوباً يقيّد ما يُجمع، بل يعتمد على التمثيلات العصبية المتعلَّمة.</p>
+  <h3>١٩٫٧٫١ · حساب درجة مقطع</h3>
+  <p>المقطع بين الفاصلين i وj بوسم l، ونريد درجته s(i, j, l) (الشكل ١٩٫١٥). نمرر الكلمات في نموذج مسبق التدريب مثل BERT. ولأن BERT يعمل على رموز فرعية، نحوّل مخرجاته إلى تمثيلات كلمات (أول رمز فرعي للكلمة غالباً، أو الأخير، أو مجموعها)، ثم طبقات معالجة لاحقة (كيتاييف وزملاؤه: ٨ طبقات محوّل). ثم ننتقل من تمثيلات الكلمات إلى تمثيلات <b>الفواصل</b>: نقسم كل مخرج y<sub>t</sub> نصفين: نصف «يتجه يساراً» ←y<sub>t</sub> للمقاطع المنتهية عند هذا الفاصل، ونصف «يتجه يميناً» →y<sub>t</sub> للمقاطع البادئة منه، لأن طرف المقطع يمين الكلمة يحمل معلومات غير طرفه يسارها. ونمثّل المقطع بلصق فروق مكوّنات طرفيه، ثم شبكة من طبقتين:</p>
+  <div class="eq">v(i, j) = [ →y<sub>j</sub> − →y<sub>i</sub> ; ←y<sub>j+1</sub> − ←y<sub>i+1</sub> ] &nbsp;&nbsp; (19.5) &nbsp;&nbsp;&nbsp;&nbsp; s(i, j, ·) = W₂ ReLU(LayerNorm(W₁ v(i, j))) &nbsp;&nbsp; (19.6)</div>
+  <h3>١٩٫٧٫٢ · من درجات المقاطع إلى شجرة</h3>
+  <p>الشجرة T مجموعة مقاطع موسومة {(i<sub>t</sub>, j<sub>t</sub>, l<sub>t</sub>)} (19.7)، ودرجتها مجموع درجات مقاطعها: s(T) = Σ s(i, j, l) (19.8)، ونختار T̂ = argmax<sub>T</sub> s(T) (19.9). وأبسط طريقة: لكل مقطع الوسم الأعلى درجة، بجشع. وهذا لا يضمن شجرة صحيحة، لكنه عملياً يعطي أشجاراً غالباً (غادي وزملاؤه ٢٠١٨: ٩٥٪ من الأقواس المتنبأ بها تكوّن أشجاراً صحيحة). والأشيع نسخة من CKY:</p>
+  <div class="eq">s<sub>best</sub>(i, i+1) = max<sub>l</sub> s(i, i+1, l) &nbsp;(19.10) &nbsp;&nbsp;&nbsp; s<sub>best</sub>(i, j) = max<sub>l</sub> s(i, j, l) + max<sub>k</sub> [ s<sub>best</sub>(i, k) + s<sub>best</sub>(k, j) ] &nbsp;(19.11)</div>
+  <div class="w" id="spBox"><div class="cap">CKY على درجات المقاطع لـ «Book the flight through Houston» (الدرجات من صنعنا)</div>
+    <div class="row"><label class="note">درجة NP للمقطع «the flight through Houston» [1,5] = <b class="mono" id="spNo"></b><br><input type="range" id="spN" min="-2" max="6" step="0.1" value="3"></label><label class="note">درجة VP للمقطع «Book the flight» [0,3] = <b class="mono" id="spVo"></b><br><input type="range" id="spV" min="-2" max="6" step="0.1" value="1"></label></div>
+    <div class="scroll" dir="ltr"><div id="spTree" style="margin-top:8px"></div></div>
+    <div class="calc" id="spCalc"></div></div>
+  <p>لاحظ أن المحلل يجمع أفضل وسم للمقطع (i, j) مع أفضل الأوسمة للمقطعين (i, k) و(k, j) دون أن يسأل هل يجيز النحو ذلك. فدور النحو في التحليل الكلاسيكي تقييد التركيبات (NP يليها VP)، أما النموذج العصبي فيبدو أنه يتعلم هذه القيود أثناء تعلّم ربط المقاطع بالأوسمة. (والتدريب بخسارة الهامش: ستيرن وزملاؤه ٢٠١٧ وغيرهم.)</p>
+</section>
+
+<!-- ============ 19.8 ============ -->
+<section class="sec" id="s19-8">
+  <header><div class="kicker">القسم ١٩٫٨ <span class="pg">p. 443</span></div><h2>تقييم المحللات</h2></header>
+  <div class="brief"><b>باختصار</b>مقاييس PARSEVAL: المكوّن في التحليل صحيح إذا وُجد في الشجرة المرجعية مكوّن بالبداية والنهاية والوسم نفسها. فالاستدعاء الموسوم = الصحيح ÷ مكوّنات المرجع، والدقة الموسومة = الصحيح ÷ مكوّنات الفرضية، وF1. ومقياس «الأقواس المتقاطعة»: كم مكوّناً في المرجع ((A B) C) وفي الفرضية (A (B C)). والتنفيذ المعياري evalb.</div>
+  <div class="terms"><span>PARSEVAL</span><span>الاستدعاء / الدقة الموسومة <i>labeled recall / precision</i></span><span>الأقواس المتقاطعة <i>crossing brackets</i></span><span>evalb</span></div>
+  <p>المقياس المعياري لمحللات تعطي شجرة واحدة <b>PARSEVAL</b> (بلاك وزملاؤه ١٩٩١): كم تشبه مكوّنات التحليل مكوّنات تحليل مرجعي موسوم يدوياً (من بنك أشجار مثل Penn). والمكوّن C<sub>h</sub> صحيح إذا كان في المرجع C<sub>r</sub> مكوّن بالبداية والنهاية والرمز نفسها:</p>
+  <div class="eq">labeled recall = (# correct constituents in hypothesis) / (# constituents in reference) &nbsp;&nbsp;&nbsp; labeled precision = (# correct) / (# constituents in hypothesis) &nbsp;&nbsp;&nbsp; F₁ = 2PR / (P + R) &nbsp;(19.12)</div>
+  <div class="w" id="pvBox"><div class="cap">PARSEVAL بين تحليلي جملة الفيل</div>
+    <div class="row"><span class="seg" id="pvM"><button data-m="np" class="on">المرجع: تعلّق بالفعل · الفرضية: بالاسم</button><button data-m="same">الفرضية = المرجع</button></span></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="pvTab" dir="ltr" style="margin-top:8px"></table></div>
+    <div class="calc" id="pvCalc"></div></div>
+  <p>ومقياس آخر لكل جملة: <b>الأقواس المتقاطعة</b>، عدد المكوّنات التي يقوّسها المرجع ((A B) C) وتقوّسها الفرضية (A (B C)). ولمقارنة محللات بأنحاء مختلفة، يتضمن PARSEVAL خوارزمية «توحيد» تحذف ما يرجح أنه خاص بالنحو (الأفعال المساعدة، وto قبل المصدر…). والتنفيذ المعياري برنامج <b>evalb</b> (سيكين وكولينز ١٩٩٧).</p>
+</section>
+
+<!-- ============ 19.9 ============ -->
+<section class="sec" id="s19-9">
+  <header><div class="kicker">القسم ١٩٫٩ <span class="pg">p. 444</span></div><h2>الرؤوس وإيجادها</h2></header>
+  <div class="brief"><b>باختصار</b>لكل مكوّن «رأس» معجمي: الاسم رأس NP، والفعل رأس VP. والرأس أهم كلمة نحوياً، ويُرفع في الشجرة فيُعلَّم كل عقد بكلمة. وفي الأنظمة العملية نجد الرؤوس بعد التحليل بقواعد مكتوبة (جدول «ارتشاح الرؤوس» لكولينز/ماغرمان): لكل نوع عقدة، اتجاه بحث وقائمة أولويات.</div>
+  <div class="terms"><span>الرأس المعجمي <i>lexical head</i></span><span>الشجرة المعجمية <i>lexicalized tree</i></span><span>ابنة الرأس <i>head child</i></span><span>جدول ارتشاح الرؤوس <i>head percolation table</i></span></div>
+  <p>فكرة الرأس تعود إلى بلومفيلد (١٩١٤)، وهي مركزية في أنحاء الاعتماديات (الفصل ٢٠)، بل تُستعمل للتحويل بين تحليل المكوّنات وتحليل الاعتماديات، ومهمة في التحليل الاحتمالي وأنحاء مثل HPSG. وفي نموذج بسيط، كل قاعدة مقترنة برأس: الكلمة الأهم نحوياً في العبارة، وتُرفع الرؤوس في الشجرة، فتُعلَّم كل عقدة بكلمة واحدة (الشكل ١٩٫١٦ من كولينز ١٩٩٩). فكل قاعدة يجب أن تحدد ابنة واحدة «ابنة الرأس»، ورأس العقدة رأس ابنتها هذه. وهذا سهل في الأمثلة (NN رأس NP)، لكنه معقد بل مختلف فيه في معظم العبارات (هل to أم الفعل رأس عبارة المصدر؟).</p>
+  <p>والبديل العملي: نجد الرؤوس ديناميكياً في أشجار جمل معيّنة بعد التحليل، بقواعد مكتوبة يدوياً (ماغرمان ١٩٩٥، كولينز ١٩٩٩). فقاعدة رأس NP: (١) إذا وُسمت الكلمة الأخيرة POS فهي الرأس؛ (٢) وإلا ابحث من اليمين لليسار عن أول NN أو NNP أو NNPS أو NX أو POS أو JJR؛ (٣) وإلا من اليسار عن أول NP؛ (٤) وإلا من اليمين عن أول $ أو ADJP أو PRN؛ (٥) وإلا من اليمين عن CD؛ (٦) وإلا عن JJ أو JJS أو RB أو QP؛ (٧) وإلا الكلمة الأخيرة. ولـ VP: من اليسار، أول TO، وإلا VBD، وإلا VBN… (الشكل ١٩٫١٧):</p>
+  <div class="w" id="hdBox"><div class="cap">إيجاد الرؤوس بجدول الارتشاح (الشكل ١٩٫١٦: workers dumped sacks into a bin)</div>
+    <div class="row"><button class="btn pri" id="hdStep">ارفع الرؤوس خطوة</button><button class="btn" id="hdReset">من البداية</button></div>
+    <div class="scroll" dir="ltr"><div id="hdTree" style="margin-top:8px"></div></div>
+    <div class="calc" id="hdCalc"></div></div>
+  <details class="note"><summary>الشكل ١٩٫١٧: بعض قواعد الرؤوس من كولينز (١٩٩٩)</summary><div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>Parent</th><th>Direction</th><th>Priority List</th></tr>
+    <tr><td>ADJP</td><td>Left</td><td>NNS QP NN $ ADVP JJ VBN VBG ADJP JJR NP JJS DT FW RBR RBS SBAR RB</td></tr>
+    <tr><td>ADVP</td><td>Right</td><td>RB RBR RBS FW ADVP TO CD JJR JJ IN NP JJS NN</td></tr>
+    <tr><td>PRN</td><td>Left</td><td></td></tr><tr><td>PRT</td><td>Right</td><td>RP</td></tr>
+    <tr><td>QP</td><td>Left</td><td>$ IN NNS NN JJ RB DT CD NCD QP JJR JJS</td></tr>
+    <tr><td>S</td><td>Left</td><td>TO IN VP S SBAR ADJP UCP NP</td></tr>
+    <tr><td>SBAR</td><td>Left</td><td>WHNP WHPP WHADVP WHADJP IN DT S SQ SINV SBAR FRAG</td></tr>
+    <tr><td>VP</td><td>Left</td><td>TO VBD VBN MD VBZ VB VBG VBP VP ADJP NN NNS NP</td></tr></table></div></details>
+</section>
+
+<!-- ============ summary ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وتمارينه <span class="pg">pp. 445–448</span></div><h2>الخلاصة والتمارين</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>في لغات كثيرة تتصرف مجموعات من الكلمات المتتالية مجموعةً أو مكوّناً، ويمكن نمذجتها بالنحو الخالي من السياق (نحو بنية العبارات).</li>
+    <li>النحو الخالي من السياق قواعد (إنتاجات) على رموز غير نهائية ونهائية. واللغة الخالية من السياق صورياً مجموعة السلاسل المشتقة من نحو معيّن.</li>
+    <li>اللبس البنيوي مشكلة كبيرة للمحللات، ومن مصادره الشائعة تعلّق العبارات الجرية والعطف.</li>
+    <li>خوارزميات البرمجة الديناميكية مثل CKY تستعمل جدولاً من التحليلات الجزئية لتحليل الجمل الملتبسة بكفاءة.</li>
+    <li>CKY يقصر النحو على صيغة تشومسكي المعيارية.</li>
+    <li>CKY الأساسية تمثّل كل التحليلات الممكنة بإيجاز، لكنها لا تختار أفضلها.</li>
+    <li>اختيار تحليل واحد (إزالة اللبس) يمكن بمحللات المكوّنات العصبية.</li>
+    <li>المحللات العصبية القائمة على المقاطع تدرّب مصنّفاً يعطي كل مكوّن درجة، ثم CKY معدّل يجمع الدرجات لأفضل شجرة.</li>
+    <li>تُقيَّم المحللات بثلاثة مقاييس: الاستدعاء الموسوم، والدقة الموسومة، والأقواس المتقاطعة.</li>
+    <li>التحليل الجزئي والتقطيع (chunking) طرق لإيجاد المكوّنات السطحية، وتُحل بنماذج سلاسل مدرَّبة على بيانات موسومة نحوياً.</li>
+  </ul>
+  <p class="note">ملاحظة على المسودة: البند الأخير عن «التحليل الجزئي والتقطيع» لا يقابله قسم في الفصل الحالي (يبدو من نسخة سابقة).</p>
+  <h3>من الحواشي التاريخية</h3>
+  <p>فكرة تقسيم الجملة إلى هرم مكوّنات ظهرت في «علم نفس الشعوب» لفونت (١٩٠٠)، وأدخلها بلومفيلد إلى اللسانيات (١٩١٤)، وصار «تحليل المكوّنات المباشرة» منهجاً راسخاً في أمريكا بحلول كتابه «Language» (١٩٣٣). أما النحو الأوروبي التقليدي منذ العصر الكلاسيكي فعرّف العلاقات بين الكلمات لا المكوّنات، وبقي على «أنحاء الاعتماديات» (الفصل ٢٠). وفي البنيوية الأمريكية اختبار هاريس للاستبدال: إذا أمكن وضع شكل بسيط (man) مكان مجموعة أعقد (intense young man)، فالمجموعة مكوّن على الأرجح: بداية فكرة أن المكوّن «فئة تكافؤ». والنحو الخالي من السياق صاغه تشومسكي (١٩٥٦)، ثم أعاد اختراعه باكوس (١٩٥٩) ونور (١٩٦٠) باستقلال لوصف لغة ALGOL. وللتحليل بالبرمجة الديناميكية تاريخ اكتشاف مستقل متكرر: أول تنفيذ لجذور CKY لجون كوك (١٩٦٠) بحسب مارتن كاي، ثم كاي ويونغر (١٩٦٧) وكاسامي (١٩٦٥)، و«جدول السلاسل الجزئية جيدة التكوين» لكونو (١٩٦٥)، وخوارزمية إيرلي (١٩٦٨). وأظهر نورفيغ (١٩٩١) أن كفاءة البرمجة الديناميكية تتحقق بإحاطة محلل بسيط من الأعلى بعملية «تذكّر» (memoization). وأقدم طرق إزالة اللبس الأنحاء الاحتمالية (١٩٦٩)، ثم العصبية: من تقدير احتمالات المحللات الإحصائية (هندرسون)، إلى الشبكات العودية (سوشر)، والمرمِّز-المفكِّك (فينيالز ٢٠١٥)، والتركيز على المقاطع (كروس وهوانغ ٢٠١٦) وصولاً إلى كيتاييف وزملائه (٢٠١٩).</p>
+  <h3>تمارين الفصل</h3>
+  <ol class="clean">
+    <li><b>١٩٫١</b> نفّذ خوارزمية تحويل أي CFG إلى CNF، وطبّقها على النحو L₁.</li>
+    <li><b>١٩٫٢</b> نفّذ CKY واختبرها بالنحو L₁ المحوَّل. (الأداة في القسم ١٩٫٦ تنفيذ لها.)</li>
+    <li><b>١٩٫٣</b> أعد كتابة CKY (الشكل ١٩٫١٢) لتقبل أنحاء فيها إنتاجات أحادية. <details><summary>تلميح (من عندنا)</summary>بعد ملء كل خلية، كرر حتى لا يتغير شيء: لكل قاعدة A → B مع B في الخلية، أضف A إلى الخلية نفسها (هذا «إغلاق أحادي» للخلية).</details></li>
+    <li><b>١٩٫٤</b> ناقش كيف يُعدَّل محلل ليتعامل مع مدخل قد يكون خاطئاً (أخطاء إملائية، أو أخطاء التعرّف على الكلام).</li>
+    <li><b>١٩٫٥</b> نفّذ مقاييس PARSEVAL، واستعمل محللاً وبنك أشجار، وقارن بتنفيذ معياري، وحلّل الأخطاء.</li>
+  </ol>
+  <h3>أسئلة للمراجعة</h3>
+  <ol class="clean">
+    <li>اقترح اختباراً يبيّن أن «the reason he comes into the Hot Box» مكوّن.</li>
+    <li>حوّل القاعدة VP → Verb NP PP PP إلى CNF.</li>
+    <li>في جدول CKY لجملة من ٦ كلمات، ما الخلايا التي تُفحص لملء [1, 5]؟</li>
+    <li>لماذا لا يضمن الاختيار الجشع للوسم الأفضل لكل مقطع شجرة صحيحة؟</li>
+    <li>احسب PARSEVAL لتحليلي «old men and women».</li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="18-pos-ner.html">→ الفصل السابق: وسم أقسام الكلام والكيانات المسمّاة</a><span>الفصل التالي: تحليل الاعتماديات (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch19.js"></script>
+</body>
+</html>
