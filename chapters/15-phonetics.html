@@ -15,7 +15,7 @@
 <div class="bar">
   <div class="bar-in">
     <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
-    <div class="chnav"><a class="pill" href="14-rnns-lstms.html" style="text-decoration:none">→ الفصل ١٤</a><b>الفصل ١٥ من ٢٦</b><span class="pill">الفصل ١٦ · قريباً</span></div>
+    <div class="chnav"><a class="pill" href="14-rnns-lstms.html" style="text-decoration:none">→ الفصل ١٤</a><b>الفصل ١٥ من ٢٦</b><a class="pill" href="16-asr.html" style="text-decoration:none">الفصل ١٦ ←</a></div>
   </div>
   <div class="progress" id="prog"></div>
 </div>
@@ -66,7 +66,7 @@
   <p>الحرف مثل p أو a نموذج مفيد لأصوات الكلام (وسنرى في الفصل ١٦ كيف نربط الحروف بالموجات مباشرة). لكن من المفيد تمثيل الأصوات بشكل أكثر تجريداً: نكتب نطق الكلمة سلسلةً من <span class="t">الأصوات <i>phones</i></span>، لكل صوت رمز مقتبس من الحروف اللاتينية. والمعيار لكتابة لغات العالم هو <b>الأبجدية الصوتية الدولية IPA</b>، معيار متطوّر بدأ عام ١٨٨٨. لكن الكتاب يستعمل <b>ARPAbet</b> (شوب، ١٩٨٠): أبجدية بسيطة برموز ASCII تغطي جزءاً من IPA خاصاً بالإنجليزية الأمريكية (الشكل ١٥٫١):</p>
   <div class="w" id="apBox"><div class="cap">الشكل ١٥٫١: رموز ARPAbet وIPA (اضغط سطراً لترى أين يقع الصوت في الكلمة)</div>
     <div class="row"><span class="seg" id="apM"><button data-m="c" class="on">الصوامت</button><button data-m="v">الصوائت</button></span></div>
-    <div class="scroll" style="margin-top:8px"><table class="tb" id="apTab" dir="ltr"></table></div>
+    <div class="scroll" dir="ltr" style="margin-top:8px"><table class="tb" id="apTab" dir="ltr"></table></div>
     <div class="calc" id="apCalc"></div></div>
   <p>كثير من الرموز يطابق الحروف المألوفة: [p] هو الصوت في أول platypus وpuma. لكن العلاقة بين الإملاء الإنجليزي والأصوات <b>معتمة</b> عموماً: الحرف c هو [k] في cougar [k uw g axr] و[s] في cell [s eh l]. والصوت [k] يظهر حرفَي c وk، وجزءاً من x (fox [f aa k s])، وck (jackal)، وcc (raccoon). ولغات أخرى كالإسبانية أكثر شفافية بكثير.</p>
   <p>ومن موارد الكتابة الصوتية <span class="t">قواميس النطق <i>pronunciation dictionaries</i></span>. توزّع LDC قواميس للعربية المصرية والهولندية والإنجليزية والألمانية واليابانية والكورية والماندرين والإسبانية. وللإنجليزية: CELEX (١٦٠٬٥٩٥ صيغة كلمة، مع المقاطع والنبر والصرف وأقسام الكلام)، وقاموس CMU المفتوح (حوالي ١٣٤٬٠٠٠)، وUNISYN (١١٠٬٠٠٠ كلمة بنطق عشرات اللهجات).</p>
@@ -88,7 +88,7 @@
   <p><b>مكان النطق</b> نقطة أقصى تضييق (الشكل ١٥٫٥): <b>شفوي</b> (الشفتان معاً: [p] [b] [m]؛ أو الشفة السفلى بالأسنان العليا: [f] [v])، و<b>أسناني</b> (اللسان على الأسنان: [th] في thing و[dh] في though)، و<b>لثوي</b> (طرف اللسان على اللثة خلف الأسنان العليا: [s] [z] [t] [d])، و<b>غاري</b> (سقف الحلق: [sh] [ch] [zh] [jh] و[y])، و<b>طبقي</b> (مؤخر اللسان على الحنك اللين: [k] [g] [ng])، و<b>حنجري</b> (إغلاق المزمار: الوقفة [q]).</p>
   <p>و<b>طريقة النطق</b> كيف يُقيَّد الهواء: <b>الانفجاري</b> (stop / plosive) يحبس الهواء كلياً لحظة («الإغلاق») ثم يطلقه («الإطلاق»)؛ و<b>الأنفي</b> بخفض الحنك اللين ليمر الهواء إلى الأنف؛ و<b>الاحتكاكي</b> (fricative) يضيّق دون حبس، فيحدث «هسيس» مضطرب، والحادة منه ([s] [z] [sh] [zh]) تسمى «صفيرية»؛ و<b>المركّب</b> انفجاري يليه احتكاكي ([ch] [jh])؛ و<b>المقارب</b> (approximant) تقترب فيه الأعضاء دون اضطراب ([y] [w] [r]، و[l] «جانبي» لأن جانبي اللسان ينخفضان)؛ و<b>النقري</b> (tap/flap) [dx] ضربة سريعة على اللثة، كوسط lotus في الأمريكية. والمكان والطريقة معاً يكفيان عادةً لتمييز الصامت:</p>
   <div class="w" id="cnBox"><div class="cap">صوامت الإنجليزية: المكان × الطريقة (المجهور بالأخضر، والمهموس بالأحمر)</div>
-    <div class="scroll"><table class="tb cn" id="cnTab" dir="ltr"></table></div>
+    <div class="scroll" dir="ltr"><table class="tb cn" id="cnTab" dir="ltr"></table></div>
     <div class="calc" id="cnCalc"></div></div>
   <h3>الصوائت</h3>
   <p>تُوصف بموضع أعلى نقطة في اللسان: <b>الارتفاع</b> (عالٍ، أوسط، منخفض)، و<b>التقدّم</b> (أمامي أو خلفي)، و<b>استدارة الشفتين</b>. ففي [iy] (beet) أعلى نقطة في مقدمة الفم وعالية؛ وفي [uw] (boot) في المؤخرة وعالية؛ و[ae] (bat) أمامي منخفض (الشكل ١٥٫٦). والصوائت المستديرة (كهيئة الصفير): [uw] [ao] [ow]. والصائت الذي يتحرك فيه اللسان كثيراً أثناء نطقه <span class="t">مزدوج <i>diphthong</i></span> (مثل [ay] في iris)، والإنجليزية غنية بها. و«فضاء الصوائت» في الشكل ١٥٫٧ تخطيطي، لأن «الارتفاع» يرتبط بموضع اللسان تقريبياً فقط، وهو في الحقيقة أدق في وصف الحقائق الصوتية (القسم ١٥٫٤٫٥ يعرض هذا بالأرقام).</p>
@@ -119,7 +119,7 @@
     <div id="tnPlot" style="margin-top:6px"></div>
     <div class="calc" id="tnCalc"></div></div>
   <p>وفي الإنجليزية أيضاً <b>صعود الاستمرار</b> بعد كل اسم في قائمة مفصولة بفواصل، وألحان للاعتراض والدهشة. ونظام <b>ToBI</b> (Tone and Break Indices) يكتب كل كلمة بأحد خمسة أنواع من النبر اللحني، وكل عبارة تنغيمية بإحدى أربع نغمات حدّية (الشكل ١٥٫٩):</p>
-  <div class="scroll"><table class="tb" dir="ltr">
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
     <tr><th colspan="2">Pitch accents</th><th colspan="2">Boundary tones</th></tr>
     <tr><td>H*</td><td>peak accent</td><td>L-L%</td><td>“final fall”: declarative contour</td></tr>
     <tr><td>L*</td><td>low accent</td><td>L-H%</td><td>continuation rise</td></tr>
@@ -281,7 +281,7 @@
   <div class="scroll"><table class="tb" id="gloss"></table></div>
 </section>
 
-<div class="foot"><a href="14-rnns-lstms.html">→ الفصل السابق: الشبكات التكرارية وLSTM</a><span>الفصل التالي: التعرّف الآلي على الكلام (قريباً)</span></div>
+<div class="foot"><a href="14-rnns-lstms.html">→ الفصل السابق: الشبكات التكرارية وLSTM</a><a href="16-asr.html">الفصل التالي: التعرّف الآلي على الكلام ←</a></div>
 </article>
 
 <nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>

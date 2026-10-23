@@ -390,3 +390,6 @@ table.cn td{text-align:center;padding:4px 3px;min-width:44px}
 table.cn th{font-size:12px}
 .cnb{font-family:var(--f-mono);font-size:14px;font-weight:600;background:none;border:1px solid transparent;border-radius:5px;padding:0 4px;cursor:pointer;margin:1px}
 .cnb.on{border-color:currentColor;background:var(--tint)}
+/* ch16 */
+#wrBars .br{grid-template-columns:150px minmax(0,1fr) 54px}
+table.we td,table.we th{white-space:nowrap;font-family:var(--f-mono);font-size:13px;padding:4px 6px}
