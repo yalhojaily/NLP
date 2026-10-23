@@ -373,3 +373,9 @@ table.emt td,table.emt th{white-space:nowrap}
 table.emt tr.pool td{background:var(--amber-soft)}
 #emVocab .chip,#emSent .chip{font-size:13.5px}
 #xnBtns .btn,#ceBtns .btn{font-family:var(--f-mono);font-size:13px}
+/* ch7 */
+table.mk td,table.mk th{padding:4px 7px;font-size:13px;cursor:pointer}
+table.mk td.cut{color:var(--soft);background:var(--tint)}
+table.mk tr.sel th,table.md tr.sel td{background:var(--amber-soft)}
+#qkStp button{width:auto;padding:0 10px;font-family:var(--f-body)}
+#dcBars .br{grid-template-columns:70px minmax(0,1fr) 110px}
