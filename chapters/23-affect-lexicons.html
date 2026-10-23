@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٢٣ · معاجم المشاعر والانفعال | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل الثالث والعشرين من كتاب Speech and Language Processing: الانفعالات الأساسية وأبعاد الانفعال، ومعاجم المشاعر (General Inquirer وNRC VAD وEmoLex وLIWC)، وبناؤها بالوسم البشري وبالقياس الأفضل-الأسوأ، وشبه الإشرافي (المحور الدلالي وSentProp)، والإشرافي (مخططات بوتس ونسبة الأرجحية اللوغاريتمية بأولية ديريكليه)، والتصنيف بالمعاجم، والانفعال نحو الكيانات، وأطر الإيحاء.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="22-semantic-role-labeling.html" style="text-decoration:none">→ الفصل ٢٢</a><b>الفصل ٢٣ من ٢٦</b><span class="pill">الفصل ٢٤ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الثالث · وسم البنية اللغوية · الفصل الثالث والعشرون</div>
+  <h1>معاجم المشاعر والانفعال والإيحاء</h1>
+  <div class="sub en" style="font-size:16px">Chapter 23 · Lexicons for Sentiment, Affect, and Connotation · pp. 519–538</div>
+  <p class="epi">«سيأتي يوم نستطيع فيه أن نقيس قوة الكلمات» — مايا أنجلو. والفصل محاولة لذلك: قوائم كلمات تحمل شحنة عاطفية، وطرق لبنائها يدوياً أو آلياً، واستعمالها لاكتشاف المشاعر والانفعالات، بل لمعرفة موقف الكاتب ممن يكتب عنهم.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>«الوجداني» (<i>affective</i>) يشمل الانفعال والمزاج والموقف من الآخرين والاتجاه (ومنه المشاعر الإيجابية والسلبية) والشخصية. والانفعال يُنمذج إما <b>وحدات أساسية</b> (ستة إكمان، وعجلة بلوتشيك الثمانية) أو <b>نقاطاً في فضاء</b> أبعاده التكافؤ والإثارة والهيمنة.</li>
+    <li>بدل استعمال كل الكلمات خصائص، نركز على <b>معاجم</b> كلمات ذات شحنة قوية: General Inquirer وMPQA (موجب/سالب)، وNRC VAD (٢٠ ألف كلمة بثلاثة أبعاد)، وEmoLex (ثمانية انفعالات)، وLIWC (٧٣ فئة).</li>
+    <li>تُبنى المعاجم بثلاث طرق: <b>الوسم البشري</b> بالتعهيد الجماعي (ومنه القياس الأفضل-الأسوأ)، و<b>شبه الإشرافي</b> من كلمات بذرية (محور دلالي في فضاء التضمينات، أو نشر الوسوم على رسم بياني، أو العطف بـ and/but، أو WordNet)، و<b>الإشرافي</b> من تقييمات المراجعات (مخططات بوتس، ونسبة الأرجحية اللوغاريتمية بأولية ديريكليه).</li>
+    <li>الاستعمال: قاعدة بسيطة (نسبة الكلمات الموجبة إلى السالبة > λ)، أو خصائص في مصنّف. ويمكن قياس الانفعال <b>نحو كيان</b> بعينه بتضمينات سياقية وانحدار.</li>
+    <li><b>أطر الإيحاء</b>: الفعل يحمل موقفاً من معمولاته. violate يجعل المفعول ضحية والفاعل خصماً، وsurvive يجعل الفاعل محل تعاطف، وimplore يجعل الفاعل أضعف من المفعول.</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 519</span></div><h2>المعنى الوجداني</h2></header>
+  <div class="brief"><b>باختصار</b>«وجداني» بمعنى الحوسبة الوجدانية (بيكارد ١٩٩٥): الانفعال والمشاعر والشخصية والمزاج والاتجاهات، وهو قريب من «الذاتية». وتصنيف شيرر (٢٠٠٠) يميّز خمس حالات وجدانية بمدتها وطبيعتها. وتحليل المشاعر (الملحق B) يقابل «الاتجاهات» فيه. ونركز في الفصل على <b>معاجم</b> كلمات ذات شحنة وجدانية قوية، أي «إيحاءات» الكلمات.</div>
+  <div class="terms"><span>وجداني <i>affective</i></span><span>الذاتية <i>subjectivity</i></span><span>تحليل المشاعر <i>sentiment analysis</i></span><span>المعجم الوجداني <i>affective / sentiment lexicon</i></span><span>الإيحاء <i>connotation</i></span></div>
+  <p>نوسّع هنا دراسة تحليل المشاعر من الملحق B إلى أدوات لتفسير <span class="t">المعنى الوجداني <i>affective meaning</i></span>. ونستعمل «وجداني» على تقليد الحوسبة الوجدانية (بيكارد ١٩٩٥) بمعنى الانفعال والمشاعر والشخصية والمزاج والاتجاهات. وهو قريب من <span class="t">الذاتية <i>subjectivity</i></span>: دراسة تقييمات المتكلم أو الكاتب وآرائه وانفعالاته وتخميناته (وايبي وزملاؤها ١٩٩٩). وكيف نعرّف المعنى الوجداني؟ من التصنيفات المؤثرة تصنيف شيرر (٢٠٠٠)، الذي يميّز الحالات بطبيعتها المعرفية ومدتها:</p>
+  <div class="w" id="scBox"><div class="cap">الشكل ٢٣٫١: تصنيف شيرر للحالات الوجدانية (اضغط حالة)</div>
+    <div class="row" id="scBtns" style="flex-wrap:wrap"></div>
+    <div class="calc" id="scCalc"></div></div>
+  <p>ويمكن تصميم مستخرِج لكل حالة. فتحليل المشاعر (اتجاه الكاتب الإيجابي أو السلبي) يقابل استخراج <b>الاتجاهات</b>: ما يحبه الناس وما يكرهونه في مراجعات الكتب والأفلام والمقالات والتغريدات. واكتشاف <b>الانفعال والمزاج</b> يفيد في معرفة هل الطالب مرتبك أو منخرط أو واثق مع نظام تعليمي، وهل المتصل بخط المساعدة محبط، وهل تدل منشورات شخص على الاكتئاب؛ واكتشاف الخوف في الروايات يتتبع ما تخشاه الجماعات وكيف يتغير. واكتشاف <b>المواقف من الآخرين</b> (الود أو الحرج في المقابلات) يفيد في تلخيص الاجتماعات وإيجاد «البقع الساخنة» في المحادثة. واكتشاف <b>الشخصية</b> (انبساطي؟ منفتح على التجربة؟) يحسّن الوكلاء الحواريين، الذين يعملون أفضل إذا طابقوا توقعات شخصية المستخدم (ميريس وووكر ٢٠٠٨). والوجدان مهم للتوليد أيضاً: في معلّمي القراءة كقصص الأطفال، وفي ألعاب الحاسوب.</p>
+  <p>في الملحق B صنّفنا مشاعر الوثيقة ببايز الساذج، مستعملين كل كلمات التدريب خصائص. وهنا نموذج بديل: نركز فقط على كلمات تحمل إشارات قوية للوجدان، أي <span class="t">المعاجم الوجدانية <i>affective lexicons</i></span> أو معاجم المشاعر. وهي تفترض حقيقة دلالية: للكلمات معانٍ وجدانية أو <span class="t">إيحاءات <i>connotations</i></span>، أي جوانب المعنى المتعلقة بانفعالات الكاتب أو القارئ ومشاعره وآرائه وتقييماته. وتفيد هذه المعاجم خصائصَ لمهام وجدانية أخرى وللعلوم الاجتماعية الحاسوبية.</p>
+</section>
+
+<!-- ============ 23.1 ============ -->
+<section class="sec" id="s23-1">
+  <header><div class="kicker">القسم ٢٣٫١ <span class="pg">p. 520</span></div><h2>تعريف الانفعال</h2></header>
+  <div class="brief"><b>باختصار</b>الانفعال عند شيرر «نوبة قصيرة نسبياً من الاستجابة لتقييم حدث خارجي أو داخلي بأنه بالغ الأهمية». ونماذجه في المعالجة الحاسوبية من عائلتين: <b>انفعالات أساسية</b> ذرية محدودة (ستة إكمان: الدهشة والسعادة والغضب والخوف والاشمئزاز والحزن؛ وعجلة بلوتشيك: ثمانية في أربعة أزواج متضادة)، أو <b>فضاء</b> من بعدين أو ثلاثة: التكافؤ (المتعة)، والإثارة (النشاط)، والهيمنة (السيطرة). والمشاعر حالة خاصة: بُعد التكافؤ وحده.</div>
+  <div class="terms"><span>الانفعال <i>emotion</i></span><span>الانفعالات الأساسية <i>basic emotions</i></span><span>عجلة بلوتشيك <i>Plutchik wheel</i></span><span>التكافؤ <i>valence</i></span><span>الإثارة <i>arousal</i></span><span>الهيمنة <i>dominance</i></span><span>نظرية التقييم <i>appraisal theory</i></span></div>
+  <p>اكتشاف <span class="t">الانفعال <i>emotion</i></span> قد يحسّن مهام كثيرة: أنظمة تعليم تكتشف ضجر الطالب أو تردده أو ثقته، وشركات تكتشف الغضب أو عدم الرضا أو الثقة في ردود العملاء، ومهام طبية كالمساعدة في تشخيص الاكتئاب، ودراسة نظرة المجتمع إلى فئات اجتماعية عبر الانفعالات المعبّر عنها نحو شخصيات الروايات. والنماذج الحاسوبية من عائلتين (من بين نظريات كثيرة في علم الوجدان):</p>
+  <p><b>الأولى: الانفعالات الأساسية.</b> الانفعالات وحدات ذرية ثابتة محدودة العدد، تتولد منها البقية (تومكنز ١٩٦٢، وبلوتشيك ١٩٦٢)، وهو نموذج يعود إلى داروين. أشهرها انفعالات <b>إكمان</b> الستة التي اقتُرح أنها عالمية في كل الثقافات: الدهشة، والسعادة، والغضب، والخوف، والاشمئزاز، والحزن. ومنها <span class="t">عجلة بلوتشيك <i>Plutchik wheel</i></span> (١٩٨٠): ثمانية انفعالات أساسية في أربعة أزواج متضادة، مع ما يُشتق منها:</p>
+  <div class="w" id="plBox"><div class="cap">الشكل ٢٣٫٢: عجلة بلوتشيك (اضغط انفعالاً)</div>
+    <div class="row"><span class="seg" id="plM"><button data-m="b" class="on">الأساسية الثمانية</button><button data-m="d">المركّبة من جارين</button><button data-m="e">ستة إكمان</button></span></div>
+    <div id="plSvg" style="margin-top:8px"></div><div class="calc" id="plCalc"></div></div>
+  <p class="note">أسماء الانفعالات المركّبة (الحب = الفرح + الثقة…) من نموذج بلوتشيك المعروف وتظهر في رسم الكتاب، لكن نص الكتاب لا يسردها.</p>
+  <p><b>الثانية: الانفعال فضاءٌ</b> من بعدين أو ثلاثة (رسل ١٩٨٠). ومعظم النماذج فيها بعدا <span class="t">التكافؤ <i>valence</i></span> و<span class="t">الإثارة <i>arousal</i></span>، ويضيف كثير منها <span class="t">الهيمنة <i>dominance</i></span>:</p>
+  <ul class="clean">
+    <li><b>التكافؤ:</b> مدى إمتاع المثير.</li>
+    <li><b>الإثارة:</b> مستوى اليقظة أو النشاط أو الطاقة الذي يثيره المثير.</li>
+    <li><b>الهيمنة:</b> درجة السيطرة التي يمارسها المثير أو الانفعال.</li>
+  </ul>
+  <p>والمشاعر (<i>sentiment</i>) حالة خاصة من هذه النظرة: بُعد التكافؤ (كم الكلمة ممتعة أو منفّرة) كثيراً ما يُستعمل مباشرة مقياساً للمشاعر. وفي النماذج المعجمية يكون المعنى الوجداني للكلمة ثابتاً بغض النظر عن سياقها أو لهجة المتكلم أو ثقافته. أما نماذج أخرى في علم الوجدان فتمثل الانفعالات عمليات أغنى تتضمن الإدراك (باريت وزملاؤه ٢٠٠٧)؛ ففي <b>نظرية التقييم</b> يقدّر الشخص مدى توافق الحدث مع أهدافه، آخذاً في الحسبان الفاعلية واليقين والإلحاح والجدة والسيطرة (مورز وزملاؤه ٢٠١٣). والنماذج الحاسوبية التي تراعي هذه النظريات ستؤدي على الأرجح دوراً مهماً مستقبلاً.</p>
+</section>
+
+<!-- ============ 23.2 ============ -->
+<section class="sec" id="s23-2">
+  <header><div class="kicker">القسم ٢٣٫٢ <span class="pg">p. 522</span></div><h2>المعاجم المتاحة</h2></header>
+  <div class="brief"><b>باختصار</b>أبسطها قائمتان (موجبة وسالبة): General Inquirer (١٩١٥ موجبة و٢٢٩١ سالبة)، وMPQA (٢٧١٨ و٤٩١٢)، وهو وليو (٢٠٠٦ و٤٧٨٣). وأعمّ منها NRC VAD: ٢٠ ألف كلمة بدرجات للأبعاد الثلاثة. وEmoLex: نحو ١٤ ألف كلمة بانفعالات بلوتشيك الثمانية (٠ أو ١). ومعجم الشدة: ٥٨١٤ كلمة بدرجات للغضب والخوف والفرح والحزن. وLIWC: ٧٣ معجماً بأكثر من ٢٣٠٠ كلمة. ومعاجم أخرى للقوة والنشاط والملموسية.</div>
+  <div class="terms"><span>General Inquirer</span><span>MPQA</span><span>NRC VAD</span><span>EmoLex</span><span>NRC Affect Intensity</span><span>LIWC</span><span>ملموس / مجرد <i>concrete / abstract</i></span></div>
+  <p>أبسط المعاجم تسم الكلمات على بعد واحد يسمى «المشاعر» أو «التكافؤ»، وفي أبسطها يكون ثنائياً: قائمة كلمات موجبة وقائمة سالبة. أقدمها <b>General Inquirer</b> (ستون وزملاؤه ١٩٦٦)، المستند إلى تحليل المحتوى وأعمال علم النفس المعرفي المبكرة عن معنى الكلمات (أوسغود وزملاؤه ١٩٥٧)، وفيه ١٩١٥ كلمة موجبة و٢٢٩١ سالبة. ومعجم <b>MPQA</b> للذاتية (ويلسون وزملاؤها ٢٠٠٥): ٢٧١٨ موجبة و٤٩١٢ سالبة من معاجم سابقة وقائمة كلمات ذاتية مستخرجة بالإقلاع الذاتي، وكل مدخل موسوم يدوياً بالمشاعر وبالموثوقية (ذاتي بقوة أو بضعف). ومعجم <b>هو وليو</b> (٢٠٠٤): ٢٠٠٦ موجبة و٤٧٨٣ سالبة من مراجعات المنتجات، بإقلاع ذاتي من WordNet. ومن الكلمات المتفقة المشاعر في المعاجم الثلاثة (الشكل ٢٣٫٣):</p>
+  <div class="quote" dir="ltr"><b>Positive</b> admire, amazing, assure, celebration, charm, eager, enthusiastic, excellent, fancy, fantastic, frolic, graceful, happy, joy, luck, majesty, mercy, nice, patience, perfect, proud, rejoice, relief, respect, satisfactorily, sensational, super, terrific, thank, vivid, wise, wonderful, zest<br><b>Negative</b> abominable, anger, anxious, bad, catastrophe, cheap, complaint, condescending, deceit, defective, disappointment, embarrass, fake, fear, filthy, fool, guilt, hate, idiot, inflict, lazy, miserable, mourn, nervous, objection, pest, plot, reject, scream, silly, terrible, unfriendly, vile, wicked</div>
+  <p>وأعمّ منها معاجم تعطي كل كلمة قيمة على الأبعاد الثلاثة: <b>NRC VAD</b> (محمد ٢٠١٨أ) يعطي ٢٠ ألف كلمة درجات للتكافؤ والإثارة والهيمنة. و<b>EmoLex</b> (محمد وترني ٢٠١٣) يستعمل انفعالات بلوتشيك الثمانية، ونحو ١٤ ألف كلمة (من معاجم سابقة ومن الأسماء والأفعال والظروف والصفات الشائعة). و<b>معجم شدة الانفعال</b> (محمد ٢٠١٨ب) لمجموعة أصغر من ٥٨١٤ كلمة، بدرجات حقيقية للغضب والخوف والفرح والحزن:</p>
+  <div class="w" id="lxBox"><div class="cap">الأشكال ٢٣٫٤–٢٣٫٦: أمثلة من المعاجم (اختر معجماً)</div>
+    <div class="row"><span class="seg" id="lxM" style="flex-wrap:wrap"><button data-m="vad" class="on">NRC VAD</button><button data-m="emo">EmoLex</button><button data-m="int">شدة الانفعال</button><button data-m="liwc">LIWC</button></span></div>
+    <div id="lxOut" style="margin-top:8px"></div><div class="calc" id="lxCalc"></div></div>
+  <p class="note">ملاحظة: في الشكل ٢٣٫٥ عمودا الفرح والحزن غير مرتبين تماماً: gesture ٠٫٣٨٧ قبل warms ٠٫٣٩١، وdifficulties ٠٫٤٢١ قبل beggar ٠٫٤٢٢. نقلنا القيم كما هي.</p>
+  <p>و<b>LIWC</b> (Linguistic Inquiry and Word Count، بنيبيكر وزملاؤه ٢٠٠٧) مجموعة واسعة الاستعمال من ٧٣ معجماً بأكثر من ٢٣٠٠ كلمة، مصممة لجوانب المعنى المهمة في علم النفس الاجتماعي: انفعال سالب (bad، weird، hate، problem، tough) وموجب (love، nice، sweet)، وفئات كالغضب والحزن والآليات المعرفية والإدراك والتردد والكبح (العلامة * تعني أن ما قبلها بادئة تشمل كل الكلمات التي تبدأ بها). وفي General Inquirer معاجم أخرى: قوي/ضعيف، ونشِط/خامل، ومبالغ/مخفَّف، واللذة والألم والفضيلة والرذيلة والدافع. ومن الخصائص المفيدة أيضاً الفرق بين الكلمات <b>الملموسة</b> (banana، bathrobe) و<b>المجردة</b> (belief، although): معجم برايسبارت وزملائه (٢٠١٤) أعطى ٤٠ ألف كلمة درجة ملموسية من ١ إلى ٥ بالتعهيد الجماعي: banana وbathrobe وbagel ٥، وbelief ١٫١٩، وalthough ١٫٠٧، وbrisk بينهما ٢٫٥.</p>
+</section>
+
+<!-- ============ 23.3 ============ -->
+<section class="sec" id="s23-3">
+  <header><div class="kicker">القسم ٢٣٫٣ <span class="pg">p. 523</span></div><h2>بناء المعاجم بالوسم البشري</h2></header>
+  <div class="brief"><b>باختصار</b>أقدم طريقة وما زالت شائعة: يسم البشر كل كلمة، اليوم بالتعهيد الجماعي. EmoLex: سؤال مرادفات أولاً لضبط المعنى المقصود، ثم تقدير الارتباط بكل انفعال (لا/ضعيف/متوسط/قوي) يُحوَّل إلى ٠/١. NRC VAD: <b>القياس الأفضل-الأسوأ</b>: من أربع كلمات، أيها الأعلى وأيها الأدنى؟ والدرجة = نسبة اختيارها الأعلى − نسبة اختيارها الأدنى. والاتفاق يقاس بموثوقية التنصيف.</div>
+  <div class="terms"><span>التعهيد الجماعي <i>crowdsourcing</i></span><span>القياس الأفضل-الأسوأ <i>best-worst scaling</i></span><span>موثوقية التنصيف <i>split-half reliability</i></span></div>
+  <p><span class="t">التعهيد الجماعي <i>crowdsourcing</i></span>: تقسيم المهمة إلى أجزاء صغيرة توزَّع على عدد كبير من الواسمين. ولننظر في اختيارات منهجية لمعجمين. <b>EmoLex</b> (محمد وترني ٢٠١٣) وُسم على خطوتين. ولضمان أن الواسم يحكم على المعنى الصحيح، أجاب أولاً سؤال مرادفات متعدد الخيارات يستحضر المعنى (دون قراءة تعريف قد يربك)، مولَّداً آلياً من الكلمات الرأسية لفئة المعنى في معجم Macquarie وثلاث فئات مموِّهة عشوائية:</p>
+  <div class="quote" dir="ltr">Which word is closest in meaning (most related) to <i>startle</i>? &nbsp; • automobile &nbsp; • shake &nbsp; • honesty &nbsp; • entertain</div>
+  <p>ثم يقدّر الواسم ارتباط الكلمة بكل من الانفعالات الثمانية: لا، أو ضعيف، أو متوسط، أو قوي. تُحذف التقديرات الشاذة، وتأخذ الكلمة صنف الأغلبية (والتعادل يُحسم بالأشد)، ثم تُحوَّل المستويات الأربعة إلى ثنائي: لا وضعيف = ٠، ومتوسط وقوي = ١.</p>
+  <p>أما <b>NRC VAD</b> (محمد ٢٠١٨أ) فوُسم بـ<span class="t">القياس الأفضل-الأسوأ <i>best-worst scaling</i></span> (لوفيير وزملاؤه ٢٠١٥): يُعطى الواسم N عناصر (عادةً ٤) ويُسأل أيها الأفضل (الأعلى) وأيها الأسوأ (الأدنى) في خاصية ما. فللتكافؤ: «أيّ الكلمات الأربع أكثر ارتباطاً بالسعادة / المتعة / الإيجابية / الرضا / القناعة / الأمل، أو أقل ارتباطاً بالتعاسة / الانزعاج / السلبية / السخط / الكآبة / اليأس؟» والسؤال المعاكس للأدنى. ودرجة الكلمة = نسبة اختيارها الأعلى − نسبة اختيارها الأدنى. ويقاس الاتفاق بـ<span class="t">موثوقية التنصيف <i>split-half reliability</i></span>: نقسم التقديرات نصفين ونحسب الارتباط بين درجات النصفين:</p>
+  <div class="w" id="bwBox"><div class="cap">محاكاة القياس الأفضل-الأسوأ (القيم «الحقيقية» والضوضاء من صنعنا)</div>
+    <div class="row"><label class="note">عدد الرباعيات = <b class="mono" id="bwNo"></b><br><input type="range" id="bwN" min="10" max="400" step="10" value="60"></label><label class="note">ضوضاء الواسمين = <b class="mono" id="bwSo"></b><br><input type="range" id="bwS" min="0" max="0.6" step="0.05" value="0.15"></label><button class="btn pri" id="bwGo">أعد المحاكاة</button></div>
+    <div id="bwBars" style="margin-top:8px"></div><div class="calc" id="bwCalc"></div></div>
+</section>
+
+<!-- ============ 23.4 ============ -->
+<section class="sec" id="s23-4">
+  <header><div class="kicker">القسم ٢٣٫٤ <span class="pg">p. 525</span></div><h2>الاستقراء شبه الإشرافي للمعاجم</h2></header>
+  <div class="brief"><b>باختصار</b>نبدأ بكلمات بذرية لقطبين (good / bad) ونسم كل كلمة بقربها من القطبين. <b>المحور الدلالي</b>: مركز تضمينات البذور الموجبة ناقص مركز السالبة = متجه «اتجاه الإيجابية»، ودرجة الكلمة جيب تمام الزاوية بينه وبين تضمينها. <b>نشر الوسوم</b> (SentProp): رسم بياني بأقرب الجيران، ومشي عشوائي من البذور، والدرجة نسبة زيارات الموجب إلى المجموع. وطرق أخرى: العطف بـ and وbut، والنفي الصرفي، ومرادفات WordNet ومتضاداته (SentiWordNet).</div>
+  <div class="terms"><span>الكلمات البذرية <i>seed words</i></span><span>المحور الدلالي <i>semantic axis</i></span><span>المركز <i>centroid</i></span><span>نشر الوسوم <i>label propagation</i></span><span>المشي العشوائي <i>random walk</i></span><span>SentProp</span><span>SentiWordNet</span></div>
+  <h3>٢٣٫٤٫١ · طرق المحور الدلالي</h3>
+  <p>خوارزمية ترني وليتمان (٢٠٠٣) الشهيرة: لكل كلمة نقيس قربها من good وبعدها عن bad. ونصف امتداداً لها (آن وزملاؤه ٢٠١٨) قائماً على <span class="t">محور دلالي <i>semantic axis</i></span>. أولاً نختار البذور يدوياً. ولأن وجدان الكلمة يختلف بالسياق، فإما معجم بذور كبير واحد تضبطه الخوارزمية على المجال، أو بذور مختلفة لكل نوع نصوص. (هيلريش وزملاؤه ٢٠١٩: لنمذجة الوجدان عبر الحقب التاريخية، البدء بمعجم حديث كبير أفضل من بذور صغيرة مختارة لثباتها.) ومثال الطريقة الثانية بذور هاملتون وزملائه (٢٠١٦أ):</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>Domain</th><th>Positive seeds</th><th>Negative seeds</th></tr>
+    <tr><td>General</td><td>good, lovely, excellent, fortunate, pleasant, delightful, perfect, loved, love, happy</td><td>bad, horrible, poor, unfortunate, unpleasant, disgusting, evil, hated, hate, unhappy</td></tr>
+    <tr><td>Twitter</td><td>love, loved, loves, awesome, nice, amazing, best, fantastic, correct, happy</td><td>hate, hated, hates, terrible, nasty, awful, worst, horrible, wrong, sad</td></tr>
+    <tr><td>Finance</td><td>successful, excellent, profit, beneficial, improving, improved, success, gains, positive</td><td>negligent, loss, volatile, wrong, losses, damages, bad, litigation, failure, down, negative</td></tr>
+  </table></div>
+  <p>ثانياً نحسب تضمينات البذور: جاهزة (word2vec)، أو مدرَّبة على مدوّنة المجال (مدوّنة مالية لمعجم مالي)، أو جاهزة ثم مضبوطة بمواصلة تدريبها على المدوّنة الصغيرة (مهم إذا كان النوع خاصاً جداً والبيانات لا تكفي لتدريب تضمينات جيدة). ثالثاً نمثل كل قطب بـ<b>مركز</b> تضمينات بذوره (المتوسط متعدد الأبعاد)، والمحور هو الفرق بين المركزين، والدرجة جيب تمام الزاوية:</p>
+  <div class="eq" dir="ltr">V<sup>+</sup> = (1/n) Σ<sub>i</sub> E(w<sub>i</sub><sup>+</sup>) &nbsp;&nbsp; V<sup>−</sup> = (1/m) Σ<sub>i</sub> E(w<sub>i</sub><sup>−</sup>) &nbsp;(23.1) &nbsp;&nbsp;&nbsp; V<sub>axis</sub> = V<sup>+</sup> − V<sup>−</sup> &nbsp;(23.2) &nbsp;&nbsp;&nbsp; score(w) = cos(E(w), V<sub>axis</sub>) = E(w)·V<sub>axis</sub> / (‖E(w)‖‖V<sub>axis</sub>‖) &nbsp;(23.3)</div>
+  <div class="w" id="axBox"><div class="cap">المحور الدلالي في فضاء تضمينات ثنائي الأبعاد (التضمينات من صنعنا؛ اضغط كلمة رمادية أو بذرة لإخراجها)</div>
+    <div id="axSvg"></div><div class="calc" id="axCalc"></div></div>
+  <p>إن كفانا معجم بدرجات انتهينا؛ وإن احتجنا قائمتين منفصلتين استعملنا عتبة أو طريقة أخرى.</p>
+  <div class="math"><div class="mh"><span class="sym">cos θ</span>مفهوم رياضي · المركز وجيب التمام</div><div class="mb">
+    <p><b>المركز</b> متوسط النقاط: نجمع كل إحداثي وحده ونقسم على العدد. فمركز (٢، ٤) و(٤، ٠) هو (٣، ٢). و<b>طرح متجهين</b> يعطي سهماً من الثاني إلى الأول: V<sup>+</sup> − V<sup>−</sup> سهم يبدأ عند مركز الكلمات السالبة ويشير نحو مركز الموجبة، أي «اتجاه الإيجابية».</p>
+    <p>و<b>جيب التمام</b> (الفصل ٥) يقيس تشابه اتجاهين بغض النظر عن الطول: ١ إذا تطابق الاتجاهان، و٠ إذا تعامدا، و−١ إذا تعاكسا. فالكلمة التي يشير تضمينها في اتجاه المحور تأخذ درجة قريبة من ١، والتي تشير عكسه قريبة من −١.</p>
+  </div></div>
+  <h3>٢٣٫٤٫٢ · نشر الوسوم</h3>
+  <p>عائلة بديلة تنشر وسوم المشاعر على رسم بياني (فكرة هاتزيفاسيلوغلو وماكيون ١٩٩٧). وخوارزمية <b>SentProp</b> البسيطة (هاملتون وزملاؤه ٢٠١٦أ): (١) <b>الرسم:</b> نصل كل كلمة بأقرب k جيران بجيب التمام، ووزن الحافة E<sub>i,j</sub> = arccos(−w<sub>i</sub><sup>⊤</sup>w<sub>j</sub> / ‖w<sub>i</sub>‖‖w<sub>j</sub>‖) (23.4)؛ (٢) <b>البذور:</b> كلمات موجبة وسالبة؛ (٣) <b>النشر:</b> مشي عشوائي من البذور: من عقدة ننتقل إلى جارة باحتمال يتناسب مع وزن الحافة، ودرجة القطبية للكلمة تتناسب مع احتمال أن يصل المشي إليها؛ (٤) <b>الدرجات:</b> نمشي من البذور الموجبة ومن السالبة، ونجمع:</p>
+  <div class="eq" dir="ltr">score<sup>+</sup>(w<sub>i</sub>) = rawscore<sup>+</sup>(w<sub>i</sub>) / ( rawscore<sup>+</sup>(w<sub>i</sub>) + rawscore<sup>−</sup>(w<sub>i</sub>) ) &nbsp;&nbsp; (23.5)</div>
+  <p>ويفيد غالباً توحيد الدرجات (متوسط صفر وتباين واحد) في المدوّنة. (٥) <b>الثقة:</b> الدرجات تتأثر بالبذور، فنعيد النشر B مرة على مجموعات فرعية عشوائية من البذور (مثلاً B = ٥٠ واختيار ٧ من ١٠ بذور كل مرة)، والانحراف المعياري للدرجات مقياس ثقة.</p>
+  <div class="w" id="spBox"><div class="cap">الشكل ٢٣٫٧: SentProp على رسم كلمات الشكل (الحواف والأوزان من صنعنا)</div>
+    <div class="row"><button class="btn pri" id="spStep">خطوة نشر</button><button class="btn" id="spRun">حتى الاستقرار</button><button class="btn" id="spReset">من جديد</button><button class="btn" id="spBoot">ثقة بالإقلاع (B = 50)</button></div>
+    <div class="scroll" dir="ltr" id="spSvg" style="margin-top:8px"></div><div class="calc" id="spCalc"></div></div>
+  <p class="note">الشكل ٢٣٫٧ في الكتاب رسم توضيحي بلا أوزان ولا بذور محددة؛ اخترنا love وadore وappreciate بذوراً موجبة، وhate وloathe وdespise سالبة (والإقلاع يختار ٢ من ٣ كل مرة)، ومشياً عشوائياً مع «إعادة» إلى البذور باحتمال ٠٫٢ في كل خطوة (وهو ما يجعل المشي يبقى قرب بذوره).</p>
+  <h3>٢٣٫٤٫٣ · طرق أخرى</h3>
+  <p>جوهر الطرق شبه الإشرافية مقياس التشابه مع البذور. فالطريقتان السابقتان تستعملان جيب تمام التضمينات، وأخرى تستعمل مقاييس مختلفة. <b>هاتزيفاسيلوغلو وماكيون (١٩٩٧)</b> يستعملان إشارات نحوية: صفتان متشابهتان إذا عُطفتا بـ and كثيراً وبـ but نادراً؛ لأن المعطوفتين بـ and متفقتان قطبيةً عادةً (fair and legitimate، corrupt and brutal)، ونادراً ما نجد *fair and brutal أو *corrupt and legitimate، أما but فتربط متضادتين (fair but brutal). وإشارة أخرى: <b>النفي الصرفي</b> (un-، im-، -less): adequate/inadequate وthoughtful/thoughtless متضادتا القطبية. وطريقة ثالثة بمعجم مثل <b>WordNet</b> (كيم وهوفي ٢٠٠٤، وهو وليو ٢٠٠٤): المرادف يشارك الكلمة قطبيتها، والمضاد يعاكسها. فبعد معجم بذري نكرر:</p>
+  <ul class="clean" dir="ltr" style="text-align:left">
+    <li>Lex<sup>+</sup>: add synonyms of positive words (<i>well</i>) and antonyms (like <i>fine</i>) of negative words</li>
+    <li>Lex<sup>−</sup>: add synonyms of negative words (<i>awful</i>) and antonyms (like <i>evil</i>) of positive words</li>
+  </ul>
+  <div class="w" id="cjBox"><div class="cap">قطبية بالعطف والنفي الصرفي (رسم صغير من صنعنا؛ البذرة: good موجبة)</div>
+    <div class="row"><span class="seg" id="cjM"><button data-m="0" class="on">and فقط</button><button data-m="1">and + but</button><button data-m="2">and + but + un-/-less</button></span></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="cjTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="cjCalc"></div></div>
+  <p>وامتداد هذه الطريقة يعطي القطبية لمعاني WordNet: <b>SentiWordNet</b> (باتشانيلا وزملاؤه ٢٠١٠). يُبنى معجم موجب من كل المعاني المرتبطة بسبع كلمات موجبة، وسالب من سبع سالبة، ثم يُدرَّب مصنّف يقرأ تعريف المعنى (gloss) ويقرر هل هو موجب أو سالب أو محايد، ثم تعطي خوارزمية مشي عشوائي كل معنى درجة إيجابية وسلبية وحياد (مجموعها ١):</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>Synset</th><th>Pos</th><th>Neg</th><th>Obj</th></tr>
+    <tr><td>good#6 ‘agreeable or pleasing’</td><td class="mono">1</td><td class="mono">0</td><td class="mono">0</td></tr>
+    <tr><td>respectable#2 honorable#4 good#4 estimable#2 ‘deserving of esteem’</td><td class="mono">0.75</td><td class="mono">0</td><td class="mono">0.25</td></tr>
+    <tr><td>estimable#3 computable#1 ‘may be computed or estimated’</td><td class="mono">0</td><td class="mono">0</td><td class="mono">1</td></tr>
+    <tr><td>sting#1 burn#4 bite#2 ‘cause a sharp or stinging pain’</td><td class="mono">0</td><td class="mono">0.875</td><td class="mono">.125</td></tr>
+    <tr><td>acute#6 ‘of critical importance and consequence’</td><td class="mono">0.625</td><td class="mono">0.125</td><td class="mono">.250</td></tr>
+    <tr><td>acute#4 ‘of an angle; less than 90 degrees’</td><td class="mono">0</td><td class="mono">0</td><td class="mono">1</td></tr>
+    <tr><td>acute#1 ‘having or experiencing a rapid onset and short but severe course’</td><td class="mono">0</td><td class="mono">0.5</td><td class="mono">0.5</td></tr>
+  </table></div>
+  <p>لاحظ الفرق بين معاني الكلمة الواحدة: estimable#3 محايدة تماماً وestimable#2 موجبة؛ وacute موجبة (#6) وسالبة (#1) ومحايدة (#4). وخلاصة الطرق شبه الإشرافية: بذور بشرية لقطبي البعد، ومقاييس تشابه (جيب تمام التضمينات، والعطف، والصرف، وبنية المعجم) لتقدير قرب كل كلمة من البذور الموجبة وبعدها عن السالبة.</p>
+</section>
+
+<!-- ============ 23.5 ============ -->
+<section class="sec" id="s23-5">
+  <header><div class="kicker">القسم ٢٣٫٥ <span class="pg">p. 528</span></div><h2>التعلّم الإشرافي لمشاعر الكلمات</h2></header>
+  <div class="brief"><b>باختصار</b>إشارة إشراف جاهزة في العالم: نجوم المراجعات. فالكلمة الموجبة أرجح في مراجعات الخمس نجوم. ونمثّل مشاعر الكلمة توزيعاً على النجوم: P(w|c) مطبَّعاً (درجة بوتس)، ومنه <b>مخططات بوتس</b>: J للموجب القوي، وJ معكوسة للسالب القوي، وسنام للضعيف، وU لبعض المؤكِّدات. ولمقارنة كلمات فئتين (نجمة / خمس نجوم): <b>نسبة الأرجحية اللوغاريتمية بأولية ديريكليه</b> (مونرو وزملاؤه ٢٠٠٨) تضيف عدّاً من مدوّنة خلفية وتحسب درجة z، فلا تبالغ في الكلمات النادرة.</div>
+  <div class="terms"><span>درجة بوتس <i>Potts score</i></span><span>مخطط بوتس <i>Potts diagram</i></span><span>نسبة الأرجحية اللوغاريتمية <i>log odds ratio</i></span><span>نسبة الإمكان اللوغاريتمية <i>log likelihood ratio</i></span><span>أولية ديريكليه المعلِّمة <i>informative Dirichlet prior</i></span><span>درجة z <i>z-score</i></span></div>
+  <p>الطرق شبه الإشرافية تحتاج إشرافاً بشرياً قليلاً (البذور). لكن أحياناً توجد إشارة إشراف في العالم: درجات <b>المراجعات</b> على الويب (مطاعم وأفلام وكتب ومنتجات)، من ١ إلى ٥ نجوم أو من ١ إلى ١٠. مثلاً (الشكل ٢٣٫٩):</p>
+  <div class="quote" dir="ltr"><b>IMDb 10</b> A great movie. This film is just a wonderful experience. It’s surreal, zany, witty and slapstick all at the same time. And terrific performances too.<br><b>IMDb 1</b> This was probably the worst movie I have ever seen. The story went nowhere even though they could have done some interesting stuff with it.<br><b>Yelp 2</b> ...it took a while to get our waters, we got our entree before our starter, and we never received silverware or napkins until we requested them...<br><b>Amazon 1</b> I hate this blender... It is nearly impossible to get frozen fruit and ice to turn into a smoothie... You have to add a TON of liquid. I also wish it had a spout ...</div>
+  <p>فالكلمات الموجبة أرجح في مراجعات الخمس نجوم والسالبة في النجمة الواحدة. وبدل قطبية ثنائية نمثّل الكلمة بتوزيعها على النجوم: في نظام العشر نجوم، صف من ١٠ أرقام لارتباط الكلمة بكل مستوى: عدّ خام، أو إمكان P(w|c)، أو دالة أخرى. مثلاً في IMDb ظهرت disappoint(ed/ing) في مراجعات النجمة ٨٥٥٧ مرة من أصل ٢٥٬٣٩٥٬٢١٤ كلمة، فـ P(disappointing|1) ≈ ٠٫٠٠٠٣. و<b>الإمكان المطبَّع</b> (بوتس ٢٠١١) أداة عرض كاشفة:</p>
+  <div class="eq" dir="ltr">P(w|c) = count(w,c) / Σ<sub>w∈C</sub> count(w,c) &nbsp;&nbsp;&nbsp; PottsScore(w) = P(w|c) / Σ<sub>c</sub> P(w|c) &nbsp;&nbsp; (23.6)</div>
+  <div class="w" id="poBox"><div class="cap">الشكلان ٢٣٫١٠ و٢٣٫١١: مخططات بوتس (اختر كلمة)</div>
+    <div class="row"><span class="seg" id="poW" dir="ltr" style="flex-wrap:wrap"><button data-w="disappointing" class="on">disappointing</button><button data-w="good">good</button><button data-w="great">great</button><button data-w="excellent">excellent</button><button data-w="bad">bad</button><button data-w="terrible">terrible</button><button data-w="absolutely">absolutely</button><button data-w="somewhat">somewhat</button></span></div>
+    <div id="poSvg" style="margin-top:8px"></div><div class="calc" id="poCalc"></div></div>
+  <p class="note">قيم disappointing من نص الكتاب حرفياً. أما بقية الكلمات فأشكال تقريبية من عندنا تحاكي أشكال الشكلين ٢٣٫١٠ و٢٣٫١١ لا قيمهما الدقيقة.</p>
+  <p>فالموجب القوي على شكل حرف <b>J</b>، والسالب القوي <b>J معكوسة</b>، والضعيف <b>سنام</b> قمته تحت المتوسط (السالب الضعيف كـ disappointing) أو فوقه (الموجب الضعيف كـ good). والمؤكِّدات (totally، absolutely، utterly) J أو <b>U</b> (أرجح في الطرفين القويين)، والمخفِّفات (somewhat، fairly، pretty) سنام دائماً: تبرز الوسط وتخفف الطرفين. وتصلح المخططات تصنيفاً للمشاعر المعجمية ولنمذجة تركيب المشاعر. وإلى جانب P(c|w) وP(w|c) والإمكان المطبَّع، استُعملت دوال أخرى كثيرة (القسم ٢٣٫٧).</p>
+  <h3>٢٣٫٥٫١ · نسبة الأرجحية اللوغاريتمية بأولية ديريكليه المعلِّمة</h3>
+  <p>كثيراً ما نريد الكلمات الأرجح في فئة نصوص منها في أخرى: مراجعات النجمة مقابل الخمس نجوم، أو كلمات الديمقراطيين مقابل الجمهوريين في الكونغرس، أو قوائم المطاعم الغالية مقابل الرخيصة. يمكن الفرق في التكرار، أو النسبة، أو <b>نسبة الأرجحية اللوغاريتمية</b>، ثم ترتيب الكلمات. لكن الطرق البسيطة تبالغ في فروق الكلمات النادرة جداً (عدّ صغير يتذبذب، أو صفر في مدوّنة وغير صفر في الأخرى)، والشائعة جداً أيضاً. والحل: طريقة مونرو وزملائه (٢٠٠٨): مدوّنة خلفية كبيرة تعطي تقديراً مسبقاً لتكرار كل كلمة. نبدأ بـ horrible في المدوّنتين i وj:</p>
+  <div class="eq" dir="ltr">llr(horrible) = log( P<sup>i</sup>(horrible) / P<sup>j</sup>(horrible) ) = log( f<sup>i</sup>(horrible)/n<sup>i</sup> ) − log( f<sup>j</sup>(horrible)/n<sup>j</sup> ) &nbsp;&nbsp;(23.7)<br>lor(horrible) = log( f<sup>i</sup> / (n<sup>i</sup> − f<sup>i</sup>) ) − log( f<sup>j</sup> / (n<sup>j</sup> − f<sup>j</sup>) ) &nbsp;&nbsp;(23.8)<br>δ<sub>w</sub><sup>(i−j)</sup> = log( (f<sub>w</sub><sup>i</sup> + α<sub>w</sub>) / (n<sup>i</sup> + α<sub>0</sub> − (f<sub>w</sub><sup>i</sup> + α<sub>w</sub>)) ) − log( (f<sub>w</sub><sup>j</sup> + α<sub>w</sub>) / (n<sup>j</sup> + α<sub>0</sub> − (f<sub>w</sub><sup>j</sup> + α<sub>w</sub>)) ) &nbsp;&nbsp;(23.9)<br>σ²(δ̂<sub>w</sub><sup>(i−j)</sup>) ≈ 1/(f<sub>w</sub><sup>i</sup> + α<sub>w</sub>) + 1/(f<sub>w</sub><sup>j</sup> + α<sub>w</sub>) &nbsp;&nbsp;(23.10) &nbsp;&nbsp;&nbsp; z = δ̂<sub>w</sub><sup>(i−j)</sup> / √σ²(δ̂<sub>w</sub><sup>(i−j)</sup>) &nbsp;&nbsp;(23.11)</div>
+  <p>حيث n<sup>i</sup> حجم المدوّنة i، وf<sub>w</sub><sup>i</sup> عدد w فيها، وα<sub>0</sub> الحجم المقيَّس للمدوّنة الخلفية، وα<sub>w</sub> العدد المقيَّس لـ w فيها. فالطريقة تعدّل نسبة الأرجحية بأمرين: تقلّص الأعداد نحو التقدير المسبق (إضافة أعداد الخلفية إلى البسط والمقام)، وتستعمل درجة z لتراعي تباين تكرار الكلمة.</p>
+  <div class="math"><div class="mh"><span class="sym">odds</span>مفهوم رياضي · الأرجحية واللوغاريتم ودرجة z</div><div class="mb">
+    <p><b>الأرجحية</b> (<i>odds</i>) = احتمال الحدوث ÷ احتمال عدم الحدوث. إذا كانت الكلمة ١ من كل ١٠٠ كلمة فاحتمالها ٠٫٠١ وأرجحيتها ٠٫٠١ ÷ ٠٫٩٩ ≈ ٠٫٠١٠١. و<b>نسبة الأرجحية</b> تقسم أرجحية المدوّنة i على أرجحية j، و<b>لوغاريتمها</b> يجعل التساوي صفراً، والزيادة في i موجبة، والزيادة في j سالبة، بشكل متماثل.</p>
+    <p>المشكلة: كلمة ظهرت ٣ مرات في i و٠ في j لها لوغاريتم لانهائي! والأولية تضيف إلى العدّين عدداً «متوقعاً» α<sub>w</sub> من مدوّنة خلفية، فيصيران ٣ + α و٠ + α، ويصير الفرق معقولاً. و<b>درجة z</b> تقسم الفرق على «انحرافه المعياري المتوقع» (الجذر التربيعي للتباين): الفرق نفسه في كلمة نادرة (تباين كبير، أي غير مؤكد) يعطي z صغيرة، وفي كلمة متكررة (تباين صغير) يعطي z كبيرة. وعادةً |z| > ١٫٩٦ تعني فرقاً ذا دلالة.</p>
+  </div></div>
+  <div class="w" id="loBox"><div class="cap">حاسبة مونرو وزملائه (اختر كلمة؛ الأعداد من صنعنا: i = مراجعات النجمة، j = الخمس نجوم)</div>
+    <div class="row"><span class="seg" id="loW" dir="ltr" style="flex-wrap:wrap"><button data-i="0" class="on">horrible</button><button data-i="1">great</button><button data-i="2">the</button><button data-i="3">rare word</button><button data-i="4">manager</button></span></div>
+    <div class="row" style="margin-top:6px"><label class="note">قوة الأولية (مضاعف α) = <b class="mono" id="loAo"></b><br><input type="range" id="loA" min="0" max="3" step="0.05" value="1"></label></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="loTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="loCalc"></div></div>
+  <p>والشكل ٢٣٫١٢ يطبّق الطريقة على ٩٠٠ ألف مراجعة مطاعم من Yelp (جورافسكي وزملاؤه ٢٠١٤). أكبر الفروق كلمات مشاعر واضحة (worse، bad، awful مقابل great، best، amazing)، لكن هناك فروق كاشفة أخرى:</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>Class</th><th>Words in 1-star reviews</th><th>Class</th><th>Words in 5-star reviews</th></tr>
+    <tr><td>Negative</td><td>worst, rude, terrible, horrible, bad, awful, disgusting, bland, tasteless, gross, mediocre, overpriced, worse, poor</td><td>Positive</td><td>great, best, love(d), delicious, amazing, favorite, perfect, excellent, awesome, friendly, fantastic, fresh, wonderful, incredible, sweet, yum(my)</td></tr>
+    <tr><td>Negation</td><td>no, not</td><td>Emphatics/universals</td><td>very, highly, perfectly, definitely, absolutely, everything, every, always</td></tr>
+    <tr><td>1Pl pro</td><td>we, us, our</td><td>2 pro</td><td>you</td></tr>
+    <tr><td>3 pro</td><td>she, he, her, him</td><td>Articles</td><td>a, the</td></tr>
+    <tr><td>Past verb</td><td>was, were, asked, told, said, did, charged, waited, left, took</td><td>Advice</td><td>try, recommend</td></tr>
+    <tr><td>Sequencers</td><td>after, then</td><td>Conjunct</td><td>also, as, well, with, and</td></tr>
+    <tr><td>Nouns</td><td>manager, waitress, waiter, customer, customers, attitude, waste, poisoning, money, bill, minutes</td><td>Nouns</td><td>atmosphere, dessert, chocolate, wine, course, menu</td></tr>
+    <tr><td>Irrealis modals</td><td>would, should</td><td>Auxiliaries</td><td>is/’s, can, ’ve, are</td></tr>
+    <tr><td>Comp</td><td>to, that</td><td>Prep, other</td><td>in, of, die, city, mouth</td></tr>
+  </table></div>
+  <p>مراجعات النجمة تستعمل النفي المنطقي (no، not) وضمائر المتكلمين (we، us، our) وتتحدث عن أشخاص (manager، waiter، customer)، والخمس نجوم تستعمل المؤكِّدات والتعميم (very، highly، every، always) وضمير المخاطب، وتتحدث عن الحلوى وخصائص المطاعم الغالية (courses، atmosphere).</p>
+</section>
+
+<!-- ============ 23.6 ============ -->
+<section class="sec" id="s23-6">
+  <header><div class="kicker">القسم ٢٣٫٦ <span class="pg">p. 533</span></div><h2>المعاجم لتعرّف المشاعر</h2></header>
+  <div class="brief"><b>باختصار</b>إذا لم تكفِ بيانات التدريب: خوارزمية قواعد. اجمع أوزان الكلمات الموجبة f<sup>+</sup> والسالبة f<sup>−</sup>، فالوثيقة موجبة إذا f<sup>+</sup>/f<sup>−</sup> > λ، وسالبة إذا f<sup>−</sup>/f<sup>+</sup> > λ، وإلا محايدة. وإذا توفرت بيانات موسومة، تصير أعداد المعاجم خصائص في مصنّف.</div>
+  <div class="terms"><span>مصنّف بالقواعد <i>rule-based classifier</i></span><span>العتبة <i>threshold λ</i></span></div>
+  <p>وسم كل وثيقة بشرياً لتدريب مصنّف إشرافي قد يكون مكلفاً. فيمكن استعمال المعاجم في خوارزمية قواعد. أبسطها نسبة الكلمات الموجبة إلى السالبة، مع عتبة λ، وأوزان θ<sub>w</sub><sup>+</sup> وθ<sub>w</sub><sup>−</sup> إن كانت في المعجم:</p>
+  <div class="eq" dir="ltr">f<sup>+</sup> = Σ<sub>w ∈ positive lexicon</sub> θ<sub>w</sub><sup>+</sup> count(w) &nbsp;&nbsp; f<sup>−</sup> = Σ<sub>w ∈ negative lexicon</sub> θ<sub>w</sub><sup>−</sup> count(w) &nbsp;&nbsp;&nbsp; sentiment = + if f<sup>+</sup>/f<sup>−</sup> &gt; λ ; − if f<sup>−</sup>/f<sup>+</sup> &gt; λ ; 0 otherwise &nbsp;&nbsp;(23.12)</div>
+  <div class="w" id="rbBox"><div class="cap">مصنّف (23.12) بمعجم الشكل ٢٣٫٣ ومعجمَي الانفعال في LIWC (الشكل ٢٣٫٦)، بأوزان ١</div>
+    <div class="row" id="rbBtns" style="flex-wrap:wrap"></div>
+    <textarea id="rbIn" dir="ltr" rows="3" style="width:100%;margin-top:6px;font-family:var(--f-mono);font-size:14px"></textarea>
+    <div class="row"><label class="note">λ = <b class="mono" id="rbLo"></b><br><input type="range" id="rbL" min="1" max="4" step="0.1" value="1.5"></label></div>
+    <div id="rbOut" dir="ltr" style="margin-top:8px;line-height:2"></div><div class="calc" id="rbCalc"></div></div>
+  <p class="note">الكتاب لا يحدد ما يحدث إذا كان f<sup>−</sup> = ٠ (القسمة على صفر)؛ في أداتنا نعدّ النسبة لانهائية إذا وُجدت كلمات في جانب واحد فقط.</p>
+  <p>وإذا توفرت بيانات تدريب، تصير هذه الأعداد (موزونة أو مطبَّعة) خصائص في مصنّف مع خصائص أخرى (القسم التالي).</p>
+</section>
+
+<!-- ============ 23.7 ============ -->
+<section class="sec" id="s23-7">
+  <header><div class="kicker">القسم ٢٣٫٧ <span class="pg">p. 534</span></div><h2>المعاجم لتعرّف الانفعال</h2></header>
+  <div class="brief"><b>باختصار</b>تعميم خوارزميات المشاعر. مع بيانات كبيرة مشابهة للاختبار: كل الكلمات أو الثنائيات خصائص في انحدار لوجستي أو SVM، ويصعب التفوق عليه. ومع البيانات الضخمة جداً: انتقاء n-grams (دراسة شوارتز ٢٠١٣ على ٧٠٠ مليون كلمة فيسبوك: عبارة يستعملها ١٪ من الأشخاص على الأقل، وPMI > ٢ × طولها) وتطبيع بكل كاتب. ومع بيانات قليلة: خصائص المعاجم (مؤشر، أو عدد، أو عدد موزون).</div>
+  <div class="terms"><span>PMI للعبارة <i>phrase PMI</i></span><span>خاصية المعجم <i>lexicon feature</i></span><span>التطبيع لكل كاتب <i>per-writer normalization</i></span></div>
+  <p>أشهر الخوارزميات تصنيف إشرافي: مجموعة تدريب موسومة بالمعنى الوجداني المطلوب، ومصنّف بخصائص منها. وكما في المشاعر، إذا كبرت البيانات وشابهت الاختبار، فاستعمال كل الكلمات أو الثنائيات خصائص في مصنّف قوي ممتاز ويصعب التفوق عليه، فيصير تصنيف المعنى الوجداني تصنيفَ وثائق عادياً.</p>
+  <p>لكن البيانات الضخمة تحتاج تعديلات. فدراسة شوارتز وزملائه (٢٠١٣) للشخصية والجنس والعمر على ٧٠٠ مليون كلمة من منشورات فيسبوك استعملت جزءاً من n-grams بطول ١–٣: الكلمات والعبارات التي يستعملها ١٪ من الأشخاص على الأقل، والثنائيات والثلاثيات فقط إذا كان PMI لها أكبر من ٢ × طولها:</p>
+  <div class="eq" dir="ltr">pmi(phrase) = log( p(phrase) / Π<sub>w∈phrase</sub> p(w) ) &nbsp;&nbsp;(23.13) &nbsp;&nbsp;&nbsp;&nbsp; p(phrase|subject) = freq(phrase, subject) / Σ<sub>phrase′∈vocab(subject)</sub> freq(phrase′, subject) &nbsp;&nbsp;(23.14)</div>
+  <div class="w" id="pmBox"><div class="cap">مرشِّح PMI للعبارات (الاحتمالات من صنعنا؛ log بالأساس الطبيعي)</div>
+    <div class="row"><span class="seg" id="pmP" dir="ltr" style="flex-wrap:wrap"><button data-i="0" class="on">new york</button><button data-i="1">of the</button><button data-i="2">so excited</button><button data-i="3">i am so</button></span></div>
+    <div class="calc" id="pmCalc"></div></div>
+  <p class="note">الكتاب لا يذكر أساس اللوغاريتم في عتبة شوارتز؛ اخترنا الطبيعي للتوضيح فقط.</p>
+  <p>ومع بيانات أقل أو أبعد عن الاختبار، تفيد المعاجم وحدها أو مع الكلمات. وقيم خاصية المعجم L: أبسطها <b>مؤشر</b>: f<sub>L</sub>(c, x) = ١ إذا وُجدت في الوثيقة x كلمة من L والصنف c، وإلا ٠. أو <b>عدد</b> كلمات الوثيقة الموجودة في L: f<sub>L</sub> = Σ<sub>w∈L</sub> count(w). أو عدد <b>موزون</b>: f<sub>L</sub> = Σ<sub>w∈L</sub> θ<sub>w</sub><sup>L</sup> count(w). ويمكن أخذ لوغاريتم الأعداد أو تطبيعها لكل كاتب كـ (23.14). ثم تدخل في مصنّف إشرافي؛ وبعد التدريب نرى أي خصائص المعاجم ترتبط بأي صنف (في الانحدار اللوجستي: وزن الخاصية).</p>
+</section>
+
+<!-- ============ 23.8 ============ -->
+<section class="sec" id="s23-8">
+  <header><div class="kicker">القسم ٢٣٫٨ <span class="pg">p. 535</span></div><h2>الانفعال نحو كيان</h2></header>
+  <div class="brief"><b>باختصار</b>طريقة فيلد وتسفيتكوف (٢٠١٩): للأشخاص يصير VAD «مشاعر/فاعلية/قوة» (S/A/P). التدريب: لكل كلمة في معجم NRC VAD، متوسط تضميناتها السياقية من BERT (بلا ضبط)، ثم ثلاثة نماذج انحدار من التضمين إلى الدرجات. الاستعمال: تضمين ذكر الكيان في سياقه ← الانحدارات ← (S, A, P)، ثم المتوسط على كل إشاراته بحلّ الإحالة.</div>
+  <div class="terms"><span>الانفعال المتمركز حول الكيان <i>entity-centric affect</i></span><span>مشاعر / فاعلية / قوة <i>sentiment / agency / power</i></span><span>انحدار <i>regression</i></span></div>
+  <p>ماذا لو أردنا درجة انفعال لا للوثيقة كلها بل لكيان بعينه فيها؟ طريقة فيلد وتسفيتكوف (٢٠١٩) تجمع المعاجم الوجدانية والتضمينات السياقية. وفي سياق الحديث عن الأشخاص، يعيدون تسمية أبعاد VAD: المشاعر (Sentiment) والفاعلية (Agency) والقوة (Power). <b>التدريب:</b> (١) لكل كلمة w في مدوّنة التدريب: (أ) مرمِّز مسبق التدريب (مثل BERT) يعطي تضميناً سياقياً لكل ورود للكلمة، بلا ضبط إضافي؛ (ب) متوسط هذه التضمينات = نقطة تدريب واحدة؛ (ج) درجات S وA وP من معجم NRC VAD. (٢) ثلاثة نماذج انحدار تتنبأ بالدرجات من متوسط التضمين. <b>الاستعمال:</b> لذكر كيان m في نص: تضمينه السياقي من النموذج نفسه، ثم الانحدارات الثلاثة. وللكيان في الوثيقة كلها: حلّ الإحالة (الفصل ٢٤) ومتوسط درجات كل إشاراته. وهذه نتائجهم لشخصيات فيلم The Dark Knight من ملخص حبكته في ويكيبيديا (بإحالة ذهبية):</p>
+  <div class="w" id="dkBox"><div class="cap">الشكل ٢٣٫١٣: الشخصيات على الأبعاد الثلاثة (الترتيب من الشكل؛ المواقع تقريبية)</div>
+    <div id="dkSvg"></div><div class="calc" id="dkCalc"></div></div>
+  <p>البطل (Batman) والخصم (Joker) لهما قوة وفاعلية عاليتان لكنهما يختلفان في المشاعر، والحبيبة Rachel قوتها وفاعليتها منخفضتان ومشاعرها عالية.</p>
+  <p class="note">الشكل يكتب «Gordan»، والصواب Gordon (المفوض جيم غوردون).</p>
+</section>
+
+<!-- ============ 23.9 ============ -->
+<section class="sec" id="s23-9">
+  <header><div class="kicker">القسم ٢٣٫٩ <span class="pg">p. 535</span></div><h2>أطر الإيحاء</h2></header>
+  <div class="brief"><b>باختصار</b>المعاجم السابقة تجعل الكلمة نقطة في فضاء وجداني. أما <b>إطار الإيحاء</b> فيجمع المعاجم الوجدانية بأطر الفصل ٢٢: الفعل يحمل إيحاءات عن معمولاته. violate: الكاتب يتعاطف مع المفعول (ضحية) ويعادي الفاعل. survive: الفاعل محل تعاطف، والمفعول تجربة سيئة. وأبعاد أخرى: الأثر، والقيمة، والحالة الذهنية، وفارق <b>القوة</b> (implore: الفاعل أضعف)، و<b>الفاعلية</b> (wait: فاعلية منخفضة).</div>
+  <div class="terms"><span>إطار الإيحاء <i>connotation frame</i></span><span>فارق القوة <i>power differential</i></span><span>الفاعلية <i>agency</i></span></div>
+  <p>خذ: «Country A violated the sovereignty of Country B» (23.15) و«the teenager ... survived the Boston Marathon bombing» (23.16). باستعمال violate يعبّر الكاتب عن تعاطفه مع الدولة B، مصوّراً إياها ضحية، وعن عدائه للفاعل A. وباستعمال survive يعبّر عن أن التفجير تجربة سيئة، وأن الفاعل (المراهق) شخصية تستحق التعاطف. وهذه الإيحاءات كامنة في معنى الفعلين (راشكين وزملاؤها ٢٠١٦، ٢٠١٧):</p>
+  <div class="w" id="cfBox"><div class="cap">الشكلان ٢٣٫١٤ و٢٣٫١٥: أطر الإيحاء (اختر فعلاً)</div>
+    <div class="row"><span class="seg" id="cfV" dir="ltr" style="flex-wrap:wrap"><button data-v="survive" class="on">survive</button><button data-v="violate">violate</button><button data-v="implore">implore</button><button data-v="demand">demand</button><button data-v="wait">wait</button></span></div>
+    <div id="cfSvg" style="margin-top:8px"></div><div class="calc" id="cfCalc"></div></div>
+  <p>وتعبّر معاجم راشكين وزملائها أيضاً عن جوانب أخرى للمحمول نحو كل معمول: <b>الأثر</b> (حدث شيء سيئ لـ x)، و<b>القيمة</b> (x ذو قيمة)، و<b>الحالة الذهنية</b> (x متضايق من الحدث). ويمكن أن تسم <b>فارق القوة</b> بين المعمولين (implore: المفعول أقوى من الفاعل، بخلاف demanded)، و<b>فاعلية</b> كل معمول (waited: فاعلية منخفضة)، كما في أطر ساپ وزملائه (٢٠١٧). وتُبنى أطر الإيحاء يدوياً (ساپ وزملاؤه ٢٠١٧) أو بالتعلّم الإشرافي (راشكين وزملاؤها ٢٠١٦): بيانات موسومة يدوياً تدرّب مصنّفاً لكل علاقة (هل S(writer → Role1) موجب أم سالب؟)، ثم تحسين الدقة بقيود عامة على كل العلاقات معاً.</p>
+</section>
+
+<!-- ============ EXERCISES ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وتمارينه <span class="pg">pp. 537–538</span></div><h2>الخلاصة والتمارين</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>يمكن تمييز حالات وجدانية كثيرة: الانفعالات، والأمزجة، والاتجاهات (ومنها المشاعر)، والمواقف من الآخرين، والشخصية.</li>
+    <li>الانفعال يُمثَّل بوحدات ذرية ثابتة (الانفعالات الأساسية) أو نقاطاً في فضاء أبعاده كالتكافؤ والإثارة.</li>
+    <li>للكلمات جوانب إيحائية متعلقة بهذه الحالات، تمثَّل في معاجم.</li>
+    <li>تُبنى المعاجم يدوياً بالتعهيد الجماعي، أو شبه إشرافياً بالإقلاع من بذور ومقاييس تشابه كجيب تمام التضمينات، أو إشرافياً بالكامل حين توجد إشارة تدريب في العالم كتقييمات المراجعات.</li>
+    <li>تُعطى الكلمات أوزاناً بدوال أعداد ومقاييس نسبة كنسبة الأرجحية اللوغاريتمية بأولية ديريكليه المعلِّمة.</li>
+    <li>يُكتشف الانفعال كالمشاعر: تصنيف نصوص إشرافي بكل الكلمات أو الثنائيات، مع خصائص من أعداد كلمات المعاجم؛ أو مصنّف قواعد بالأغلبية البسيطة.</li>
+    <li>أطر الإيحاء تعبّر عن علاقات وجدانية أغنى يحملها المحمول عن معمولاته.</li>
+  </ul>
+  <h3>من الحواشي التاريخية</h3>
+  <p>بدأ التمثيل الصوري للمعنى الذاتي مع أوسغود وزملائه (١٩٥٧)، الدراسة نفسها التي اقترحت أول نموذج فضاء متجهات للمعنى (الفصل ٥): قيّم المشاركون كلمات على مقاييس، وأظهر التحليل العاملي أن أهم عامل هو <b>البعد التقييمي</b> (جيد/سيئ، قيّم/عديم القيمة، ممتع/منفّر)، فأثّر في معاجم تحليل المحتوى الأولى (ستون وزملاؤه ١٩٦٦). وبدأت وايبي (١٩٩٤) خطاً مؤثراً في اكتشاف الذاتية. ومصطلح «المشاعر» (sentiment) أدخله داس وتشن (٢٠٠١) لقياس مشاعر السوق من منتديات تداول الأسهم، واقترحا معجماً يدوياً بأوزان تميّز (شراء/بيع)، ثم انتشر بسرعة (ترني ٢٠٠٢). وبيّن بانغ وزملاؤه (٢٠٠٢) قوة استعمال كل الكلمات بلا معجم. ومعظم الطرق شبه الإشرافية تستند إلى أن المترادفات والمتضادات تتواجد في الجملة نفسها، والخوارزميات البيانية اقترحها هاتزيفاسيلوغلو وماكيون (١٩٩٧) ثم صار النشر على الرسوم طريقة قياسية. ومن الأعمال الحديثة تعلّم تضمينات تشفّر المشاعر مباشرة، كـ DENSIFIER (روته وزملاؤه ٢٠١٦).</p>
+  <h3>تمارين الفصل</h3>
+  <ol class="clean">
+    <li><b>٢٣٫١</b> بيّن أن العلاقة بين الكلمة w والفئة c في درجة بوتس (23.6) صيغة من PMI(w, c) بلا لوغاريتم. <details><summary>الحل (من عندنا)</summary>PMI(w, c) = log P(w, c)/(P(w)P(c)) = log P(w|c)/P(w). وإذا كانت الفئات C متساوية الاحتمال (P(c) = 1/C) فإن P(w) = Σ<sub>c</sub> P(w|c)P(c) = (1/C) Σ<sub>c</sub> P(w|c). إذن PottsScore = P(w|c) / Σ<sub>c</sub> P(w|c) = P(w|c) / (C · P(w)) = (1/C) · e<sup>PMI(w,c)</sup>: أي نسبة PMI قبل أخذ اللوغاريتم، مقسومة على ثابت.</details></li>
+  </ol>
+  <h3>أسئلة للمراجعة</h3>
+  <ol class="clean">
+    <li>ضع في تصنيف شيرر: «كان متوتراً طوال حياته»، «غضب حين رأى الفاتورة»، «كان بارداً معي في الاجتماع».</li>
+    <li>لماذا يطرح المحور الدلالي مركز السالب من مركز الموجب بدل الاكتفاء بالقرب من good؟</li>
+    <li>ما شكل مخطط بوتس المتوقع لـ «fine»؟ ولـ «worst»؟</li>
+    <li>لماذا تقسم طريقة مونرو على الانحراف المعياري؟ وما أثر α<sub>w</sub> على كلمة نادرة؟</li>
+    <li>ما إطار الإيحاء الذي تتوقعه للفعل «rescued» (X rescued Y)؟</li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="22-semantic-role-labeling.html">→ الفصل السابق: وسم الأدوار الدلالية</a><span>الفصل التالي: حلّ الإحالة وربط الكيانات (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch23.js"></script>
+</body>
+</html>
