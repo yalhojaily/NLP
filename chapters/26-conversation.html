@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٢٦ · المحادثة وبنيتها | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل السادس والعشرين من كتاب Speech and Language Processing: الأدوار وتحديد نهاية الكلام، وأفعال الكلام، والتأسيس والأرضية المشتركة، والأزواج المتجاورة والحوارات الجانبية، والمبادرة، والاستلزام الحواري، ووسوم أفعال الحوار (Verbmobil وHIS وDAMSL).">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="25-discourse-coherence.html" style="text-decoration:none">→ الفصل ٢٥</a><b>الفصل ٢٦ من ٢٦</b><a class="pill" href="../" style="text-decoration:none">الفهرس ←</a></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الثالث · وسم البنية اللغوية · الفصل السادس والعشرون (الأخير)</div>
+  <h1>المحادثة وبنيتها</h1>
+  <div class="sub en" style="font-size:16px">Chapter 26 · Conversation and its Structure · pp. 591–598</div>
+  <p class="epi">المحادثة نشاط مشترك معقد، ولها بنية، سواء كانت بين بشر أو بين بشر ونماذج لغوية. وفهم بنية المحادثة البشرية مهمة لسانية واجتماعية مهمة، ومفاهيمها أداة مفيدة لتحليل المحادثات مع النماذج اللغوية الكبيرة أيضاً.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<p class="note">هذا الفصل في المسودة «بذرة أولية» (كما يقول الكتاب نفسه): قسمان فقط، بلا ملخص ولا تمارين، وسيتوسع لاحقاً ليقدم أنواع البنية الحوارية وطرق وسمها حاسوبياً.</p>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>المحادثة سلسلة <b>أدوار</b>، والنظام يجب أن يعرف متى يتوقف ومتى يبدأ: «تحديد نهاية الكلام» صعب بسبب الضوضاء والتوقفات داخل الدور.</li>
+    <li>كل قول <b>فعل كلام</b>: إخباري، أو توجيهي (الأسئلة منها)، أو إلزامي، أو تسليمي (الشكر والتحية والاعتذار).</li>
+    <li>الحوار فعل جماعي يبني <b>أرضية مشتركة</b> بـ «التأسيس»: من مجرد الانتباه إلى قول «أها» إلى تكرار كلام الآخر حرفياً.</li>
+    <li>للمحادثة بنية: <b>أزواج متجاورة</b> (سؤال/جواب، اقتراح/قبول) قد تفصلها <b>حوارات جانبية</b> (تصحيح، أو استيضاح)، و<b>مسبِّقات</b>. و<b>المبادرة</b> قد تكون لطرف واحد أو مختلطة. والسامع يستنتج أكثر مما قيل: <b>الاستلزام</b> بقاعدة «الصلة» عند غرايس.</li>
+    <li><b>أفعال الحوار</b> تجمع أفعال الكلام والتأسيس في وسم واحد: مجموعات خاصة بمجال (Verbmobil للمواعيد، وHIS للمطاعم بخاناتها) وعامة (DAMSL بوظائف أمامية وخلفية).</li>
+  </ol>
+</div>
+
+<!-- ============ 26.1 ============ -->
+<section class="sec" id="s26-1">
+  <header><div class="kicker">القسم ٢٦٫١ <span class="pg">p. 591</span></div><h2>خصائص المحادثة البشرية</h2></header>
+  <div class="brief"><b>باختصار</b>نستعمل محادثة هاتفية بين وكيل سفر وعميل (الشكل ٢٦٫١) لنرى ست ظواهر: الأدوار وتحديد نهاية الكلام، وأفعال الكلام، والتأسيس، والبنية (الأزواج المتجاورة والحوارات الجانبية)، والمبادرة، والاستلزام. وهذه الخصائص الدقيقة من أسباب صعوبة بناء أنظمة تحاور البشر بطبيعية.</div>
+  <div class="terms"><span>الدور <i>turn</i></span><span>تحديد نهاية الكلام <i>endpointing</i></span><span>فعل الكلام <i>speech act</i></span><span>الأرضية المشتركة <i>common ground</i></span><span>التأسيس <i>grounding</i></span><span>الزوج المتجاور <i>adjacency pair</i></span><span>المبادرة <i>initiative</i></span><span>الاستلزام <i>implicature</i></span></div>
+  <p>ما الظواهر التي تحدث حين يتحادث البشر؟ وهل تختلف محادثة البشر والآلات؟ انظر إلى هذا المقطع بين وكيل سفر (A) وعميل (C)، واختر عدسة:</p>
+  <div class="w" id="cvBox"><div class="cap">الشكل ٢٦٫١ بعدسات الفصل (اختر عدسة ثم اضغط دوراً)</div>
+    <div class="row"><span class="seg" id="cvL" style="flex-wrap:wrap"><button data-l="turn" class="on">الأدوار</button><button data-l="act">أفعال الكلام</button><button data-l="gr">التأسيس</button><button data-l="damsl">DAMSL</button></span></div>
+    <div id="cvOut" dir="ltr" style="margin-top:8px;line-height:1.75;font-size:15.5px"></div><div class="calc" id="cvCalc"></div></div>
+  <p class="note">علامتا # في A16 وC17 تحيطان بالكلام المتداخل. وتصنيف أفعال الكلام لكل دور في عدسة «أفعال الكلام» من عندنا إلا ما ذكره الكتاب (C1 إخباري، A2 توجيهي).</p>
+
+  <h3>٢٦٫١٫١ · الأدوار</h3>
+  <p>الحوار سلسلة <span class="t">أدوار <i>turns</i></span> (C1، A2، C3…)، كل دور مساهمة واحدة من متكلم واحد (كما في لعبة: دوري، ثم دورك، ثم دوري). وفي الشكل ٢٦٫١ عشرون دوراً. والدور قد يكون جملة (C1)، أو كلمة واحدة (C13)، أو جملاً عدة (A10). ولبنية الأدوار أثر مهم في الحوار المنطوق: على الإنسان أن يعرف متى يتوقف عن الكلام؛ فالعميل يقاطع (A16 وC17)، والنظام في دور الوكيل يجب أن يعرف أن يتوقف (وأن المستخدم ربما يصحح). وعلى النظام أيضاً أن يعرف متى <b>يبدأ</b>: فمعظم الوقت يبدأ المتكلمون أدوارهم فوراً تقريباً بعد انتهاء الآخر، بلا توقف طويل، لأن الناس يتوقعون عادةً متى يوشك الآخر على الانتهاء. ويجب على النماذج اللغوية المنطوقة أن تكتشف هل انتهى المستخدم لتعالج قوله وترد؛ وهذه مهمة <span class="t">تحديد نهاية الكلام <i>endpointing</i></span>، وهي صعبة بسبب الضوضاء، ولأن الناس كثيراً ما يتوقفون وسط أدوارهم:</p>
+  <div class="w" id="epBox"><div class="cap">تحديد نهاية الكلام بعتبة صمت (خط زمني من صنعنا: كلام المستخدم بتوقفات داخلية)</div>
+    <div class="row"><label class="note">عتبة الصمت = <b class="mono" id="epTo"></b><br><input type="range" id="epT" min="100" max="1500" step="50" value="500"></label></div>
+    <div id="epSvg" style="margin-top:8px"></div><div class="calc" id="epCalc"></div></div>
+
+  <h3>٢٦٫١٫٢ · أفعال الكلام</h3>
+  <p>من أهم الأفكار عن المحادثة (بدأها الفيلسوف فتغنشتاين ١٩٥٣ وفصّلها أوستن ١٩٦٢): كل قول في الحوار <b>فعل</b> يؤديه المتكلم. وتسمى هذه الأفعال <span class="t">أفعال الكلام <i>speech acts</i></span> أو أفعال الحوار. ومن تصنيفاتها أربعة أصناف كبرى (باخ وهارنيش ١٩٧٩):</p>
+  <div class="w" id="saBox"><div class="cap">أصناف أفعال الكلام الأربعة (اضغط صنفاً، ثم صنّف الأقوال)</div>
+    <div class="row" id="saBtns" style="flex-wrap:wrap"></div>
+    <div class="calc" id="saCalc"></div>
+    <div class="row" style="margin-top:8px"><span class="note">صنّف: </span><b id="saQ" dir="ltr" class="mono"></b></div>
+    <div class="row" id="saAns" style="flex-wrap:wrap;margin-top:6px"></div><div class="calc" id="saRes"></div></div>
+  <p>فطلب المستخدم من شخص أو نظام أن يفعل شيئاً («Turn up the music») <b>توجيهي</b>. والسؤال الذي يتطلب جواباً توجيهي أيضاً: حين يقول النظام (A2) «what day in May did you want to travel?» فكأنه يأمر المستخدم (بأدب شديد) أن يجيب. أما ذكر المستخدم قيداً (C1 «I need to travel in May») فـ<b>إخباري</b>. وشكره للنظام <b>تسليمي</b>. وفعل الكلام مكون مهم من نية المتكلم أو الكاتب.</p>
+
+  <h3>٢٦٫١٫٣ · التأسيس</h3>
+  <p>الحوار ليس سلسلة أفعال مستقلة، بل فعل جماعي للمتكلم والسامع. وككل فعل جماعي، يجب أن يثبّت المشاركون ما يتفقان عليه: <span class="t">الأرضية المشتركة <i>common ground</i></span> (ستالناكر ١٩٧٨). ويفعلون ذلك بـ<span class="t">تأسيس <i>grounding</i></span> أقوال بعضهم: إقرار السامع بأنه فهم (كلارك ١٩٩٦). (ونحتاج التأسيس للأفعال غير اللغوية أيضاً: زر المصعد يضيء حين تضغطه ليُقرّ بأن المصعد طُلب فعلاً، فيؤسس فعلك (نورمان ١٩٨٨).) والتأسيس مهم أيضاً حين لم ينجح المتكلم: إن واجه السامع مشكلة في الفهم فعليه أن يبيّنها، ليتحقق الفهم المتبادل في النهاية.</p>
+  <p>وكيف يُغلق التبادل؟ عند كلارك وشيفر (١٩٨٩) لكل <b>مساهمة</b> مشتركة مرحلتان: <b>العرض</b> (يقدّم المتكلم قولاً، مؤدياً فعل كلام) و<b>القبول</b> (يؤسس السامع القول، مبيّناً هل تحقق الفهم). وطرق السامع B لتأسيس قول A متصلة من الأضعف إلى الأقوى:</p>
+  <div class="w" id="grBox"><div class="cap">متصل التأسيس عند كلارك وشيفر (من الأضعف إلى الأقوى)</div>
+    <div id="grBars" style="margin-top:4px"></div><div class="calc" id="grCalc"></div></div>
+  <p>وفي محادثة الوكيل أمثلة: التأسيس بقول «OK» صراحةً، أو بتكرار كلام الآخر (في A2 يكرر الوكيل «in May» فيُظهر فهمه)، أو ببدء السؤال التالي بـ «And»: فـ «And» تعني أن السؤال الجديد «إضافة» إلى السابق، فتدل العميل على أن الوكيل فهم جوابه. وليس في المقطع مثال للإقرار، لكنه في مقطع آخر: «C: He wants to fly from Boston to Baltimore / A: Uh huh». فـ uh-huh هنا <span class="t">مواصِل <i>continuer</i></span>، ويسمى أيضاً رمز إقرار أو <b>قناة خلفية</b> (<i>backchannel</i>): قول قصير اختياري يُقرّ بمحتوى قول الآخر ولا يتطلب منه إقراراً (ينغفي ١٩٧٠، وجيفرسون ١٩٨٤، وشيغلوف ١٩٨٢).</p>
+  <p class="note">يقول الكتاب إن الوكيل يؤسس بـ «OK» صراحةً «في A8 أو A10»، لكن A8 يبدأ بـ «Right» وA10 بلا OK؛ وOK الوكيل في A12 وA16 وA20.</p>
+
+  <h3>٢٦٫١٫٤ · الحوارات الفرعية وبنية الحوار</h3>
+  <p>للمحادثة بنية. فـ<b>تحليل المحادثة</b> (ساكس وزملاؤه ١٩٧٤) يدرس البنية المحلية بين أفعال الكلام: السؤال يُنشئ توقعاً لجواب، والاقتراح يتبعه قبول (أو رفض)، والمديح («Nice jacket!») يستدعي تهويناً («Oh, this old thing?»). وهذه <span class="t">الأزواج المتجاورة <i>adjacency pairs</i></span> تتكون من جزء أول وجزء ثانٍ (شيغلوف ١٩٦٨)، وتوقعاتها تساعد النظام على تقرير أفعاله. لكن الجزء الثاني لا يلي الأول دائماً فوراً: قد يفصلهما <span class="t">تسلسل جانبي <i>side sequence</i></span> أو <b>حوار فرعي</b>:</p>
+  <div class="w" id="ssBox"><div class="cap">التسلسلات الجانبية والمسبِّقات (اختر مثالاً)</div>
+    <div class="row"><span class="seg" id="ssS" style="flex-wrap:wrap"><button data-i="0" class="on">تصحيح (C17–A20)</button><button data-i="1">استيضاح</button><button data-i="2">مسبِّق</button><button data-i="3">أزواج متجاورة</button></span></div>
+    <div id="ssOut" dir="ltr" style="margin-top:8px;line-height:1.9;font-size:15.5px"></div><div class="calc" id="ssCalc"></div></div>
+  <p>ففي <b>حوار التصحيح</b> (ليتمان ١٩٨٥): سؤال C17 يقاطع الخطاب السابق (كان الوكيل يبحث عن رحلة عودة في ١٥ مايو)، فعلى الوكيل أن يجيب، وأن يدرك أن «I would consider staying… til Sunday» تعني أن العميل يريد على الأرجح تغيير خطته، والعودة إلى البحث عن رحلات عودة، لكن في ١٧ مايو. و<b>سؤال الاستيضاح</b> تسلسل جانبي بين طلب وجواب، شائع في الأنظمة حين تُلجئها أخطاء التعرّف على الكلام إلى طلب التوضيح أو الإعادة. و<b>المسبِّقات</b> (<i>presequences</i>): سؤال عن قدرات النظام («Can you make train reservations?») قبل الطلب الفعلي.</p>
+
+  <h3>٢٦٫١٫٥ · المبادرة</h3>
+  <p>أحياناً يتحكم طرف واحد في المحادثة كلها: الصحفي الذي يحاور طاهياً يسأل والطاهي يجيب؛ فللصحفي <span class="t">المبادرة <i>initiative</i></span> الحوارية (كاربونيل ١٩٧٠). لكن في الحوار البشري الطبيعي تتنقل المبادرة ذهاباً وإياباً: يجيبون أحياناً ويسألون أحياناً، ويأخذون المحادثة في اتجاهات جديدة أحياناً. وهذه <b>المبادرة المختلطة</b>. وهي القاعدة بين البشر، لكنها صعبة على الأنظمة. فأبسط الأنظمة تستعمل <b>مبادرة النظام</b> (يسأل النظام، ولا يستطيع المستخدم شيئاً حتى يجيب) أو <b>مبادرة المستخدم</b> (كمحركات البحث البسيطة: يكتب المستخدم استعلاماً ويستجيب النظام سلبياً). وحتى الأنظمة الحديثة القائمة على النماذج اللغوية الكبيرة، الأقرب كثيراً إلى المبادرة المختلطة الكاملة، كثيراً ما لا يكون تبديل المبادرة فيها طبيعياً تماماً؛ وإتقانه هدف مهم.</p>
+
+  <h3>٢٦٫١٫٦ · الاستدلال والاستلزام</h3>
+  <p>الاستدلال مهم أيضاً لفهم الحوار. ففي C3 لا يجيب العميل سؤال الوكيل فعلاً؛ يذكر اجتماعاً في وقت معين فقط. فما الذي يسوّغ للوكيل أن يستنتج أنه يذكر الاجتماع ليخبره بتواريخ السفر؟ المتكلم يتوقع من السامع استنتاجات: ينقل معلومات أكثر مما في الكلمات. وهذا ما بيّنه غرايس (١٩٧٥، ١٩٧٨) في نظريته عن <span class="t">الاستلزام الحواري <i>conversational implicature</i></span>: صنف من الاستنتاجات المسوَّغة. واقترح أن ما يمكّن السامع منها أن المحادثة تحكمها <b>قواعد</b> (<i>maxims</i>)، موجِّهات عامة للتفسير، منها <b>قاعدة الصلة</b>: المتكلمون يحاولون أن يكونوا ذوي صلة، لا ينطقون أفعال كلام عشوائية:</p>
+  <div class="w" id="imBox"><div class="cap">استدلال الوكيل من C3 بقاعدة الصلة (اضغط «الخطوة التالية»)</div>
+    <div class="row"><button class="btn pri" id="imNext">الخطوة التالية</button><button class="btn" id="imReset">من جديد</button></div>
+    <div id="imOut" style="margin-top:8px"></div></div>
+  <p>هذه الخصائص الدقيقة (الأدوار، وأفعال الكلام، والتأسيس، وبنية الحوار، والمبادرة، والاستلزام) من أسباب صعوبة بناء أنظمة تحاور البشر بطبيعية، وكثير منها مجالات بحث نشطة.</p>
+</section>
+
+<!-- ============ 26.2 ============ -->
+<section class="sec" id="s26-2">
+  <header><div class="kicker">القسم ٢٦٫٢ <span class="pg">p. 595</span></div><h2>أفعال الحوار ومدوّناتها</h2></header>
+  <div class="brief"><b>باختصار</b><b>فعل الحوار</b> وسم يجمع فعل الكلام والتأسيس: الوظيفة التفاعلية للجملة. ويتأثر تصميم مجموعة الوسوم بطبيعة المشاركين ونوع الحوار. أمثلة: Verbmobil (١٨ فعلاً لجدولة المواعيد: SUGGEST وACCEPT وREJECT وCLARIFY…)، وHIS للمطاعم (أفعال بخانات وقيمها: inform(food = Italian)، وأيها صالح للنظام أو المستخدم)، وDAMSL العام: لكل قول وظائف <b>أمامية</b> (كأفعال الكلام) و<b>خلفية</b> (القبول والإجابة والفهم) تنظر إلى قول المحاور السابق.</div>
+  <div class="terms"><span>فعل الحوار <i>dialogue act</i></span><span>Verbmobil</span><span>HIS</span><span>الخانة / القيمة <i>slot / filler</i></span><span>DAMSL</span><span>الوظيفة الأمامية / الخلفية <i>forward- / backward-looking function</i></span></div>
+  <p>تجتمع فكرتا أفعال الكلام والتأسيس في فعل واحد: <span class="t">فعل الحوار <i>dialogue act</i></span>، وسم يمثل الوظيفة التفاعلية للجملة. ويصلح لتحليل محادثات البشر ومحادثات البشر مع النماذج اللغوية. وطبيعة المشاركين ونوع الحوار (مهمة محددة أم لا) يؤثران في تصميم مجموعات الوسوم. فهذه مجموعة خاصة بمجال جدولة اجتماع بين شخصين (Verbmobil-1، جيكات وزملاؤه ١٩٩٥): وسوم خاصة بالمجال كـ SUGGEST (اقتراح تاريخ) وACCEPT وREJECT، ووسوم أعم كـ CLARIFY:</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr" id="vbTab"></table></div>
+  <p>ومجموعة نظام توصية المطاعم HIS (يونغ وزملاؤه ٢٠١٠)، مع محتوى كل فعل: الخانات وقيمها المنقولة:</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>Tag</th><th>Sys</th><th>User</th><th>Description</th></tr>
+    <tr><td class="mono">HELLO (a = x, b = y, ...)</td><td>✓</td><td>✓</td><td>Open a dialogue and give info a = x, b = y, ...</td></tr>
+    <tr><td class="mono">INFORM (a = x, b = y, ...)</td><td>✓</td><td>✓</td><td>Give info a = x, b = y, ...</td></tr>
+    <tr><td class="mono">REQUEST (a, b = x, ...)</td><td>✓</td><td>✓</td><td>Request value for a given b = x, ...</td></tr>
+    <tr><td class="mono">REQALTS (a = x, ...)</td><td>χ</td><td>✓</td><td>Request alternative with a = x, ...</td></tr>
+    <tr><td class="mono">CONFIRM (a = x, b = y, ...)</td><td>✓</td><td>✓</td><td>Explicitly confirm a = x, b = y, ...</td></tr>
+    <tr><td class="mono">CONFREQ (a = x, ..., d)</td><td>✓</td><td>χ</td><td>Implicitly confirm a = x, ... and request value of d</td></tr>
+    <tr><td class="mono">SELECT (a = x, a = y)</td><td>✓</td><td>χ</td><td>Implicitly confirm a = x, ... and request value of d</td></tr>
+    <tr><td class="mono">AFFIRM (a = x, b = y, ...)</td><td>✓</td><td>✓</td><td>Affirm and give further info a = x, b = y, ...</td></tr>
+    <tr><td class="mono">NEGATE (a = x)</td><td>χ</td><td>✓</td><td>Negate and give corrected value a = x</td></tr>
+    <tr><td class="mono">DENY (a = x)</td><td>χ</td><td>✓</td><td>Deny that a = x</td></tr>
+    <tr><td class="mono">BYE ()</td><td>✓</td><td>✓</td><td>Close a dialogue</td></tr>
+  </table></div>
+  <p class="note">وصف SELECT في الشكل ٢٦٫٣ منسوخ من CONFREQ؛ ومعناه في نظام HIS على الأرجح «اطلب من المستخدم الاختيار بين a = x وa = y».</p>
+  <div class="w" id="hsBox"><div class="cap">الشكل ٢٦٫٤: حوار HIS بأفعاله (اضغط قولاً)</div>
+    <div class="scroll" dir="ltr"><table class="tb" id="hsTab" dir="ltr"></table></div>
+    <div class="calc" id="hsCalc"></div></div>
+  <p>ومن المجموعات العامة المستقلة عن المجال: <b>DAMSL</b> (Dialogue Act Markup in Several Layers)، المستلهمة من كلارك وشيفر (١٩٨٩) وآلوود (١٩٩٢، ١٩٩٥): يُوسم كل قول بنوعين من الوظائف: <b>أمامية</b> كوظائف أفعال الكلام، و<b>خلفية</b> كالتأسيس والإجابة، «تنظر إلى الخلف» إلى قول المحاور السابق (ألين وكور ١٩٩٧):</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th colspan="2">Forward Looking Function</th></tr>
+    <tr><td class="mono">STATEMENT</td><td>a claim made by the speaker</td></tr>
+    <tr><td class="mono">INFO-REQUEST</td><td>a question by the speaker</td></tr>
+    <tr><td class="mono">CHECK</td><td>a question for confirming information</td></tr>
+    <tr><td class="mono">INFLUENCE-ON-ADDRESSEE</td><td>(=Bach’s directives)</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;OPEN-OPTION</td><td>a weak suggestion or listing of options</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;ACTION-DIRECTIVE</td><td>an actual command</td></tr>
+    <tr><td class="mono">INFLUENCE-ON-SPEAKER</td><td>(=Austin’s commissives)</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;OFFER</td><td>speaker offers to do something, (subject to confirmation)</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;COMMIT</td><td>speaker is committed to doing something</td></tr>
+    <tr><td class="mono">CONVENTIONAL</td><td>other</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;OPENING</td><td>greetings</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;CLOSING</td><td>farewells</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;THANKING</td><td>thanking and responding to thanks</td></tr>
+    <tr><th colspan="2">Backward Looking Function</th></tr>
+    <tr><td class="mono">AGREEMENT</td><td>speaker’s response to previous proposal</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;ACCEPT</td><td>accepting the proposal</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;ACCEPT-PART</td><td>accepting some part of the proposal</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;MAYBE</td><td>neither accepting nor rejecting the proposal</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;REJECT-PART</td><td>rejecting some part of the proposal</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;REJECT</td><td>rejecting the proposal</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;HOLD</td><td>putting off response, usually via subdialogue</td></tr>
+    <tr><td class="mono">ANSWER</td><td>answering a question</td></tr>
+    <tr><td class="mono">UNDERSTANDING</td><td>whether speaker understood previous</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;SIGNAL-NON-UNDER.</td><td>speaker didn’t understand</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;SIGNAL-UNDER.</td><td>speaker did understand</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;&nbsp;&nbsp;ACK</td><td>demonstrated via continuer or assessment</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;&nbsp;&nbsp;REPEAT-REPHRASE</td><td>demonstrated via repetition or reformulation</td></tr>
+    <tr><td class="mono">&nbsp;&nbsp;&nbsp;&nbsp;COMPLETION</td><td>demonstrated via collaborative completion</td></tr>
+  </table></div>
+  <p>والوظائف الخلفية تركز على علاقة القول بأقوال المتكلم الآخر السابقة: قبول الاقتراحات ورفضها (لأن DAMSL موجّه لحوار المهام)، والتأسيس والإصلاح. والشكل ٢٦٫٥ وسم محتمل لبداية محادثتنا بالوظائف الأمامية والخلفية (اختر عدسة «DAMSL» في الأداة أعلى القسم ٢٦٫١).</p>
+  <p class="note">ترقيم الأدوار في الشكل ٢٦٫٥ يختلف عن الشكل ٢٦٫١ بعد C7 (A7، C8، A9… بدل A8، C9، A10…)، ودور A8 مقسوم وسمين. الأداة تستعمل ترقيم الشكل ٢٦٫١.</p>
+</section>
+
+<!-- ============ END ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">خاتمة الفصل والكتاب</div><h2>للمراجعة</h2></header>
+  <p>الفصل في المسودة بلا ملخص ولا حواشٍ تاريخية ولا تمارين. فهذه أسئلة مراجعة من عندنا:</p>
+  <ol class="clean">
+    <li>لماذا يصعب تحديد نهاية الكلام بعتبة صمت ثابتة؟ وما الذي يستعمله البشر بدلاً منها؟ <details><summary>تلميح (من عندنا)</summary>العتبة القصيرة تقاطع المستخدم في توقفاته الداخلية، والطويلة تبطئ الرد. والبشر «يتوقعون» نهاية الدور من النحو والتنغيم والمعنى، فيبدؤون فوراً تقريباً.</details></li>
+    <li>صنّف: «Can you pass the salt?»؛ هل هو سؤال عن القدرة أم طلب؟ وأي صنف عند باخ وهارنيش؟ <details><summary>تلميح (من عندنا)</summary>شكله سؤال، ووظيفته طلب: توجيهي (فعل كلام غير مباشر). ومثله المسبِّق «Can you make train reservations?».</details></li>
+    <li>رتّب طرق التأسيس في حوار عربي: «أريد السفر يوم الخميس» ← «الخميس، تمام» / «أها» / «وفي أي ساعة؟».</li>
+    <li>لماذا الأزواج المتجاورة مفيدة للنظام؟ وما الذي يعقّدها؟</li>
+    <li>اكتب وسوم HIS لقول المستخدم: «لا، أريد مطعماً صينياً لا إيطالياً». <details><summary>تلميح (من عندنا)</summary>negate(food = Chinese): نفي مع القيمة المصحَّحة.</details></li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+  <p style="margin-top:18px">بهذا يكتمل شرح الفصول الستة والعشرين من مسودة الطبعة الثالثة. عُد إلى <a href="../">الفهرس</a> لتختار فصلاً آخر.</p>
+</section>
+
+<div class="foot"><a href="25-discourse-coherence.html">→ الفصل السابق: تماسك الخطاب</a><a href="../">الفهرس ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch26.js"></script>
+</body>
+</html>
