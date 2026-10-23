@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٢٢ · وسم الأدوار الدلالية | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل الثاني والعشرين من كتاب Speech and Language Processing: الأدوار الدلالية، والتناوبات، والأدوار الأولية، وPropBank وFrameNet، ووسم الأدوار الدلالية بالخصائص وبالشبكات العصبية، والقيود الانتقائية والتفضيلات الانتقائية (رزنك)، والتفكيك إلى أوليات.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="21-information-extraction.html" style="text-decoration:none">→ الفصل ٢١</a><b>الفصل ٢٢ من ٢٦</b><span class="pill">الفصل ٢٣ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الثالث · وسم البنية اللغوية · الفصل الثاني والعشرون</div>
+  <h1>وسم الأدوار الدلالية: من فعل ماذا بمن؟</h1>
+  <div class="sub en" style="font-size:16px">Chapter 22 · Semantic Role Labeling · pp. 499–518</div>
+  <p class="epi">«مَن، وماذا، وأين، ومتى، وبماذا، ولماذا، وكيف» — الظروف السبعة المنسوبة إلى هرماغوراس وأرسطو. وقبل ذلك كله، بين القرنين السابع والرابع قبل الميلاد، وصف النحوي الهندي پانيني في «الكتب الثمانية» (٣٩٥٩ قاعدة موجزة تُحفظ عن ظهر قلب) <i>الكاراكا</i>: علاقات دلالية بين الفعل وأسمائه، كالفاعل والآلة والمقصد. وهي أقدم نمذجة نعرفها لكيف تُعبّر اللغة عن الأحداث والمشاركين فيها.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>الحدث الواحد (شراء أسهم) يُقال بصيغ سطحية كثيرة: فاعل bought، أو مجرور بعد sold to، أو مضاف للاسم purchase. و<b>الأدوار الدلالية</b> تمثيل «ضحل» يلتقط المشترك: هناك شراء، والمشتري XYZ، والمشترى الأسهم.</li>
+    <li>الأدوار الموضوعية (الفاعل المريد AGENT، والمتأثر THEME، والآلة INSTRUMENT…) قديمة، لكن لا قائمة متفق عليها ولا تعريف دقيق لها. فالبدائل: أدوار <b>أعمّ</b> (الفاعل الأوّلي والمفعول الأوّلي) أو أدوار <b>أخصّ</b> (لكل فعل أو لكل «إطار»).</li>
+    <li><b>PropBank</b> يرقّم أدوار كل معنى فعل (Arg0 للفاعل الأوّلي، وArg1 للمفعول الأوّلي…) مع أدوار ثانوية عامة ArgM (الزمان، والمكان…). و<b>FrameNet</b> يعرّف أدواراً خاصة بكل «إطار» تشترك فيه أفعال وأسماء (rise وfall وincrease والاسم rise…).</li>
+    <li><b>وسم الأدوار الدلالية</b> (SRL): لكل محمول في الجملة، أعط كل مقطع دوره. قديماً: حلّل الجملة نحوياً، وصنّف كل عقدة بخصائص مثل «المسار» في الشجرة. وحديثاً: وسم تسلسلي بـ BIO فوق مرمِّز كـ BERT.</li>
+    <li><b>القيود الانتقائية</b>: الفعل يفضّل أنواعاً من المعمولات (مفعول eat شيء يؤكل). نمثّلها بفئات WordNet، أو تفضيلات احتمالية (ارتباط رزنك الانتقائي، والاحتمال الشرطي). وأخيراً: تفكيك المحمولات إلى أوليات (kill = CAUSE + BECOME + NOT ALIVE).</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 499</span></div><h2>شراء واحد بخمس صيغ</h2></header>
+  <div class="brief"><b>باختصار</b>فهم «من فعل ماذا بمن» (ومتى وأين) سؤال مركزي في معالجة اللغة. والحدث الواحد يأتي في صيغ سطحية مختلفة جداً، والأدوار الدلالية تمثيل يجمع ما بينها. ونتعلم في الفصل: الأدوار، وقواعد بياناتها (PropBank وFrameNet)، ووسمها آلياً، والقيود الانتقائية.</div>
+  <div class="terms"><span>الأدوار الدلالية <i>semantic roles</i></span><span>وسم الأدوار الدلالية <i>semantic role labeling, SRL</i></span><span>القيود الانتقائية <i>selectional restrictions</i></span><span>المحمول <i>predicate</i></span><span>المعمول / الموضوع <i>argument</i></span></div>
+  <p>لننتقل ألفين ونصف ألف سنة إلى هدف عادي جداً: فهم نصوص عن شراء شركة XYZ لأسهم. هذا الحدث ومشاركوه يُوصفون بصيغ سطحية كثيرة: بفعل (sold، bought) أو باسم (purchase)، وXYZ قد تكون فاعلاً نحوياً (لـ bought)، أو مفعولاً غير مباشر (لـ sold)، أو مضافاً إليه للاسم purchase، مع أن دورها <b>في الحدث</b> واحد:</p>
+  <div class="w" id="byBox"><div class="cap">خمس صيغ لحدث واحد (اضغط صيغة؛ الألوان: المشتري والمشترى)</div>
+    <div class="row" id="byBtns" style="flex-wrap:wrap"></div>
+    <div id="byOut" dir="ltr" style="margin-top:8px;line-height:2.3;font-size:17px"></div><div class="calc" id="byCalc"></div></div>
+  <p>هذا التمثيل الضحل هو <span class="t">الأدوار الدلالية <i>semantic roles</i></span>: الدور الذي يأخذه كل معمول (<i>argument</i>) في الحدث الذي يعبّر عنه المحمول (<i>predicate</i>)، وتجمعه قواعد بيانات مثل PropBank وFrameNet. و<b>وسم الأدوار الدلالية</b> مهمة إسناد الأدوار إلى مقاطع الجملة، و<b>القيود الانتقائية</b> تفضيلات المحمول لأنواع معمولاته (المتأثَّر بـ eat يكون عادةً شيئاً يؤكل).</p>
+</section>
+
+<!-- ============ 22.1 ============ -->
+<section class="sec" id="s22-1">
+  <header><div class="kicker">القسم ٢٢٫١ <span class="pg">p. 500</span></div><h2>الأدوار الدلالية</h2></header>
+  <div class="brief"><b>باختصار</b>في «Sasha broke the window» و«Pat opened the door»، الفاعلان كلاهما «فاعل مريد» (AGENT): متعمِّد، حيّ غالباً، ومسؤول سببياً عن الحدث. والمفعولان كلاهما «متأثر» (THEME): جماد يتأثر بالفعل. وهذه <b>الأدوار الموضوعية</b>، وأشهر قوائمها نحو دزينة أدوار.</div>
+  <div class="terms"><span>الدور الموضوعي <i>thematic role</i></span><span>الفاعل المريد <i>AGENT</i></span><span>المتأثر <i>THEME</i></span><span>المُدرِك <i>EXPERIENCER</i></span><span>القوة <i>FORCE</i></span><span>الآلة <i>INSTRUMENT</i></span><span>المستفيد <i>BENEFICIARY</i></span><span>المصدر / الغاية <i>SOURCE / GOAL</i></span></div>
+  <p>ما المشترك بين Sasha «الكاسر» في حدث كسر النافذة وPat «الفاتح» في حدث فتح الباب؟ كلاهما فاعل مريد، حيّ غالباً، ومسؤول سببياً مباشرة عن حدثه. و<span class="t">الأدوار الموضوعية <i>thematic roles</i></span> طريقة لالتقاط هذا المشترك: نقول إن فاعلَي الفعلين <b>AGENT</b>، وهو الدور الذي يمثل فكرة مجردة كـ «التسبيب المقصود». وكذلك المفعولان (الشيء المكسور والشيء المفتوح): جمادان عادةً، يتأثران بالفعل بطريقة ما، ودورهما <b>THEME</b>. والأدوار الموضوعية من أقدم النماذج اللغوية، وصيغتها الحديثة من فيلمور (١٩٦٨) وغروبر (١٩٦٥). ولا قائمة متفق عليها، لكن هذه أدوار شائعة في الأعمال الحاسوبية:</p>
+  <div class="w" id="trBox"><div class="cap">الشكلان ٢٢٫١ و٢٢٫٢: أدوار موضوعية شائعة بتعريفاتها وأمثلتها (اضغط دوراً)</div>
+    <div class="row" id="trBtns" dir="ltr" style="flex-wrap:wrap"></div>
+    <div id="trOut" dir="ltr" style="margin-top:8px;line-height:2.3;font-size:17px"></div><div class="calc" id="trCalc"></div></div>
+  <p class="note">تحديد المقطع الذي يحمل الدور في كل مثال من قراءتنا للشكل ٢٢٫٢ (الشكل يعطي الجمل دون تعليم المقاطع).</p>
+  <p>ومعظم قوائم الأدوار نحو دزينة، لكننا سنرى قوائم أصغر بأدوار أكثر تجريداً، وقوائم ضخمة بأدوار خاصة بمواقف محددة. ونستعمل مصطلح <b>الأدوار الدلالية</b> لكل هذه القوائم، صغيرها وكبيرها.</p>
+</section>
+
+<!-- ============ 22.2 ============ -->
+<section class="sec" id="s22-2">
+  <header><div class="kicker">القسم ٢٢٫٢ <span class="pg">p. 500</span></div><h2>التناوبات</h2></header>
+  <div class="brief"><b>باختصار</b>الأدوار تعمّم فوق الصيغ السطحية: AGENT فاعل نحوي غالباً، لكن THEME أو INSTRUMENT قد يكونان فاعلاً أيضاً. ومجموعة أدوار الفعل «شبكته الموضوعية». وقدرة الفعل على توزيع أدواره بأكثر من طريقة اسمها <b>التناوب</b>، كتناوب المفعولين في give. وصنّفت ليفن ٣١٠٠ فعل إنجليزي في فئات بحسب تناوباتها، وصار ذلك مورد VerbNet.</div>
+  <div class="terms"><span>الشبكة الموضوعية <i>thematic grid, θ-grid, case frame</i></span><span>التناوب <i>verb / diathesis alternation</i></span><span>تناوب المفعولين <i>dative alternation</i></span><span>VerbNet</span></div>
+  <p>السبب الرئيسي لاستعمال الأنظمة الحاسوبية للأدوار: تمثيل دلالي ضحل يتيح استنتاجات بسيطة لا تتيحها الكلمات السطحية ولا حتى الشجرة النحوية. فإذا قالت وثيقة إن «الشركة A استحوذت على الشركة B»، نريد أن نعرف أنها تجيب سؤال «هل استُحوذ على الشركة B؟» مع اختلاف التركيب تماماً. وقد يكون هذا التمثيل لغة وسيطة مفيدة في الترجمة الآلية. انظر كيف يتوزع AGENT وTHEME وINSTRUMENT للفعل break على مواقع نحوية مختلفة:</p>
+  <div class="w" id="dtBox"><div class="cap">الأمثلة (22.3)–(22.8): الدور ثابت والموقع النحوي يتغير</div>
+    <div class="row"><span class="seg" id="dtS" dir="ltr" style="flex-wrap:wrap"><button data-i="0" class="on">(22.3)</button><button data-i="1">(22.4)</button><button data-i="2">(22.5)</button><button data-i="3">(22.6)</button><button data-i="4">(22.7)</button><button data-i="5">(22.8a)</button><button data-i="6">(22.8b)</button></span></div>
+    <div id="dtOut" dir="ltr" style="margin-top:8px;line-height:2.3;font-size:17px"></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="dtTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="dtCalc"></div></div>
+  <p>فلـ break على الأقل الأدوار AGENT وTHEME وINSTRUMENT، ومجموعة أدوار الفعل تسمّى <span class="t">الشبكة الموضوعية <i>thematic grid, θ-grid, case frame</i></span>. وأفعال كثيرة تسمح بتحقيق أدوارها في مواقع مختلفة: give مثلاً يرتّب THEME وGOAL بطريقتين (Doris gave the book to Cary / Doris gave Cary the book). وهذه الصيغ المتعددة لبنية المعمولات اسمها <span class="t">التناوب <i>verb alternation, diathesis alternation</i></span>. وتناوب give، أي <b>تناوب المفعولين</b> (<i>dative alternation</i>)، يحدث مع فئات دلالية معينة: «أفعال الملك المستقبلي» (advance، allocate، offer، owe)، و«أفعال الإرسال» (forward، hand، mail)، و«أفعال الرمي» (kick، pass، throw). وقد أدرجت ليفن (١٩٩٣) ٣١٠٠ فعل إنجليزي في فئاتها الدلالية (٤٧ فئة عليا مقسمة إلى ١٩٣ فئة أدق) والتناوبات التي تدخلها، ودخلت هذه القوائم مورد <b>VerbNet</b> (كيبر وزملاؤها ٢٠٠٠) الذي يربط كل فعل بمدخلاته في WordNet وFrameNet.</p>
+  <p class="note">ومثال عربي من عندنا: «كسر زيدٌ الزجاجَ» (AGENT فاعل، THEME مفعول) و«انكسر الزجاجُ» (THEME فاعل). فالعربية تعبّر عن هذا التناوب بتغيير وزن الفعل (فعَل ← انفعَل)، والإنجليزية بالفعل نفسه.</p>
+</section>
+
+<!-- ============ 22.3 ============ -->
+<section class="sec" id="s22-3">
+  <header><div class="kicker">القسم ٢٢٫٣ <span class="pg">p. 502</span></div><h2>مشكلات الأدوار الموضوعية</h2></header>
+  <div class="brief"><b>باختصار</b>ثلاث مشكلات: (١) التشظي: كثيراً ما يلزم تقسيم الدور (آلة وسيطة تصلح فاعلاً، وآلة ممكِّنة لا تصلح)؛ (٢) القوائم المنفصلة لا تسمح بالتعميم بين الأدوار؛ (٣) لا تعريف صوري: ليس كل AGENT حياً مريداً واعياً. والحلّان: أدوار <b>أعمّ</b> (الفاعل الأوّلي والمفعول الأوّلي، بخصائص ترجيحية لا شروط لازمة) أو أدوار <b>أخصّ</b> لكل فعل أو إطار.</div>
+  <div class="terms"><span>الفاعل الأوّلي <i>PROTO-AGENT</i></span><span>المفعول الأوّلي <i>PROTO-PATIENT</i></span><span>آلة وسيطة / ممكِّنة <i>intermediary / enabling instrument</i></span></div>
+  <p>التمثيل بالأدوار الموضوعية يبدو مفيداً لمعالجة التناوبات، لكن ثبت أن الاتفاق على قائمة قياسية صعب، وتعريف AGENT أو THEME أو INSTRUMENT صورياً أصعب. فالباحثون يجدون أنفسهم يقسّمون الأدوار. مثلاً (ليفن ورپاپورت حوڤاڤ ٢٠٠٥) هناك نوعان على الأقل من الآلات: <b>وسيطة</b> تصلح فاعلاً، و<b>ممكِّنة</b> لا تصلح:</p>
+  <div class="quote" dir="ltr">(22.9) a. Shelly cut the banana with a knife. &nbsp; b. The knife cut the banana.<br>(22.10) a. Shelly ate the sliced banana with a fork. &nbsp; b. *The fork ate the sliced banana.</div>
+  <p>وإلى جانب التشظي، هناك حالات نريد فيها الاستدلال والتعميم عبر الأدوار، والقوائم المنفصلة المحدودة لا تسمح بذلك. وأخيراً، لا تعريف صوري: معظم حالات AGENT حيّة مريدة واعية مسبِّبة، لكن أي عبارة اسمية بعينها قد لا تحمل كل هذه الخصائص. ولهذا ظهرت نماذج بأدوار أقل بكثير أو أكثر بكثير.</p>
+  <p>الخيار الأول: <b>أدوار دلالية معمّمة</b> فوق الأدوار الموضوعية. فـ <span class="t">الفاعل الأوّلي <i>PROTO-AGENT</i></span> و<span class="t">المفعول الأوّلي <i>PROTO-PATIENT</i></span> دوران يعبّران تقريباً عن معنى «شبيه بالفاعل» و«شبيه بالمفعول»، ولا يُعرَّفان بشروط لازمة كافية، بل بمجموعة خصائص ترجيحية: كلما أظهر المعمول خصائص فاعلية أكثر (مشارك بإرادته، يسبّب حدثاً أو تغيّر حالة في مشارك آخر، واعٍ أو قاصد، متحرك) زاد احتمال وسمه فاعلاً أوّلياً. وكلما أظهر خصائص مفعولية أكثر (يتغير حاله، يتأثر سببياً بمشارك آخر، ثابت نسبةً إلى المشاركين الآخرين) زاد احتمال وسمه مفعولاً أوّلياً:</p>
+  <div class="w" id="ppBox"><div class="cap">عدّاد الخصائص الأوّلية (اختر معمولاً وعدّل خصائصه؛ الإعدادات الأولية من تقديرنا)</div>
+    <div class="row"><span class="seg" id="ppS" dir="ltr" style="flex-wrap:wrap"><button data-i="0" class="on">Sasha (broke)</button><button data-i="1">the window (broke)</button><button data-i="2">The rock (broke)</button><button data-i="3">John (has a headache)</button><button data-i="4">The wind (blows)</button></span></div>
+    <div class="row" id="ppChk" style="flex-wrap:wrap;gap:6px 16px;margin-top:8px"></div>
+    <div class="calc" id="ppCalc"></div></div>
+  <p>الخيار الثاني: أدوار خاصة بفعل معين أو بمجموعة أفعال وأسماء متقاربة دلالياً. والقسمان التاليان عن موردين شهيرين: <b>PropBank</b> يستعمل الأدوار الأولية والأدوار الخاصة بكل فعل معاً، و<b>FrameNet</b> يستعمل أدواراً خاصة بفكرة دلالية عامة اسمها «الإطار».</p>
+</section>
+
+<!-- ============ 22.4 ============ -->
+<section class="sec" id="s22-4">
+  <header><div class="kicker">القسم ٢٢٫٤ <span class="pg">p. 503</span></div><h2>بنك القضايا PropBank</h2></header>
+  <div class="brief"><b>باختصار</b>PropBank جمل موسومة بالأدوار (كل جمل Penn TreeBank بالإنجليزية، وPenn Chinese TreeBank بالصينية). ولصعوبة قائمة عالمية، الأدوار مرقّمة لكل معنى فعل: Arg0 غالباً الفاعل الأوّلي، وArg1 المفعول الأوّلي، والبقية تختلف من فعل لآخر. ومدخل الفعل اسمه «ملف إطار». وأدوار ثانوية عامة ArgM (TMP، LOC…) لا تُكتب في كل ملف. وNomBank يفعل الشيء نفسه للأسماء.</div>
+  <div class="terms"><span>PropBank</span><span>ملف الإطار <i>frame file</i></span><span>Arg0 … Arg5</span><span>ArgM</span><span>NomBank</span></div>
+  <p>في <span class="t">PropBank</span> لكل معنى من معاني كل فعل أدوار خاصة، أسماؤها أرقام: Arg0، Arg1، Arg2… وعموماً Arg0 هو <b>الفاعل الأوّلي</b>، وArg1 <b>المفعول الأوّلي</b>، والبقية أقل اتساقاً، لكن فيها تعميمات: Arg2 كثيراً ما يكون المستفيد أو الآلة أو الصفة أو الحالة النهائية، وArg3 نقطة البداية أو المستفيد أو الآلة أو الصفة، وArg4 نقطة النهاية. ومدخل المعنى اسمه <span class="t">ملف الإطار <i>frame file</i></span>، وتعريفات أدواره («Other entity agreeing»، «Extent, amount fallen») شروح غير صورية للبشر لا تعريفات صورية:</p>
+  <div class="w" id="pbBox"><div class="cap">ملفات إطار PropBank (22.11)–(22.16) (اختر فعلاً ثم مثالاً)</div>
+    <div class="row"><span class="seg" id="pbV" dir="ltr"><button data-v="agree" class="on">agree.01</button><button data-v="fall">fall.01</button><button data-v="increase">increase.01</button></span></div>
+    <div class="calc" id="pbFrame" dir="ltr" style="text-align:left"></div>
+    <div class="row" id="pbEx" style="flex-wrap:wrap;margin-top:6px"></div>
+    <div id="pbOut" dir="ltr" style="margin-top:8px;line-height:2.3;font-size:17px"></div></div>
+  <p>لاحظ أن fall بلا Arg0: فاعله النحوي المعتاد مفعول أوّلي (الشيء الذي يسقط). ومع increase، يتيح وسم PropBank استنتاج أن Big Fruit Co. هو الفاعل وسعر الموز هو المتأثر في (22.14) و(22.15) رغم اختلاف الصيغة.</p>
+  <p>وفي PropBank أيضاً معمولات غير مرقّمة اسمها <b>ArgM</b> (ArgM-TMP، ArgM-LOC…)، تمثل معاني التقييد والفضلة. وهي ثابتة نسبياً عبر المحمولات، فلا تُدرج في كل ملف إطار، وتفيد في تدريب أنظمة تكتشف الزمان والمكان والاتجاه مع أي محمول. منها:</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>ArgM</th><th>meaning</th><th>examples</th></tr>
+    <tr><td class="mono">TMP</td><td>when?</td><td>yesterday evening, now</td></tr>
+    <tr><td class="mono">LOC</td><td>where?</td><td>at the museum, in San Francisco</td></tr>
+    <tr><td class="mono">DIR</td><td>where to/from?</td><td>down, to Bangkok</td></tr>
+    <tr><td class="mono">MNR</td><td>how?</td><td>clearly, with much enthusiasm</td></tr>
+    <tr><td class="mono">PRP/CAU</td><td>why?</td><td>because ... , in response to the ruling</td></tr>
+    <tr><td class="mono">REC</td><td></td><td>themselves, each other</td></tr>
+    <tr><td class="mono">ADV</td><td>miscellaneous</td><td></td></tr>
+    <tr><td class="mono">PRD</td><td>secondary predication</td><td>...ate the meat raw</td></tr>
+  </table></div>
+  <p>ويركز PropBank على الأفعال، أما مشروع <span class="t">NomBank</span> (مايرز وزملاؤه ٢٠٠٤) فيوسم المحمولات الاسمية: في «Apple’s agreement with IBM» يوسم Apple بـ Arg0 وIBM بـ Arg2 للاسم agreement. وهكذا يمكن للأنظمة وسم معمولات المحمولات الفعلية والاسمية معاً.</p>
+</section>
+
+<!-- ============ 22.5 ============ -->
+<section class="sec" id="s22-5">
+  <header><div class="kicker">القسم ٢٢٫٥ <span class="pg">p. 504</span></div><h2>FrameNet</h2></header>
+  <div class="brief"><b>باختصار</b>أدوار PropBank خاصة بالفعل، فلا تربط increase بـ rise ولا الفعل rise بالاسم rise. أما FrameNet فأدواره خاصة بـ «الإطار»: معرفة خلفية متماسكة (كالسفر جواً) تستدعيها كلمات كثيرة. وأدوار الإطار اسمها «عناصر الإطار»، منها جوهرية (خاصة بالإطار) وغير جوهرية (كـ ArgM). والأطر ترتبط بعلاقات كالوراثة والسببية.</div>
+  <div class="terms"><span>الإطار <i>frame</i></span><span>عناصر الإطار <i>frame elements</i></span><span>أدوار جوهرية / غير جوهرية <i>core / non-core roles</i></span><span>الوحدة المعجمية <i>lexical unit</i></span><span>النموذج / السيناريو <i>model / script</i></span></div>
+  <p>الاستنتاج المشترك بين جمل increase مفيد، لكن الأفيد أن نستنتجه في مواقف أكثر بكثير: عبر أفعال مختلفة، وبين الأفعال والأسماء. فنريد أن نعرف أن سعر الموز هو ما ارتفع، وأن ٥٪ مقدار الارتفاع، سواء جاءت 5% مفعولاً للفعل increased أو نعتاً للاسم rise:</p>
+  <div class="quote" dir="ltr">(22.17) [<sub>Arg1</sub> The price of bananas] increased [<sub>Arg2</sub> 5%].<br>(22.18) [<sub>Arg1</sub> The price of bananas] rose [<sub>Arg2</sub> 5%].<br>(22.19) There has been a [<sub>Arg2</sub> 5%] rise [<sub>Arg1</sub> in the price of bananas].</div>
+  <p>ومشروع <span class="t">FrameNet</span> (بيكر وزملاؤه ١٩٩٨، وفيلمور وزملاؤه ٢٠٠٣…) يعالج هذا: أدواره خاصة بـ <span class="t">إطار <i>frame</i></span> لا بفعل. وما الإطار؟ خذ الكلمات: reservation، flight، travel، buy، price، cost، fare، rates، meal، plane. بينها علاقات معجمية كثيرة (اشتمال، وترادف…)، لكنها لا تفسّر وحدها ترابطها؛ فكلها معرّفة نسبةً إلى كتلة متماسكة من المعرفة العامة عن السفر جواً. هذه المعرفة الخلفية الموحِّدة هي الإطار (فيلمور ١٩٨٥)، وتقابلها في الذكاء الاصطناعي والعلوم المعرفية «النموذج» (جونسون-ليرد ١٩٨٣) و«السيناريو» (شانك وأبلسون ١٩٧٧).</p>
+  <p>والإطار في FrameNet بنية معرفة خلفية تعرّف أدواراً خاصة بها اسمها <span class="t">عناصر الإطار <i>frame elements</i></span>، ومجموعة محمولات تستعملها. وكل كلمة تستدعي إطاراً وتُبرز جانباً منه. مثلاً إطار <b>تغيّر الموقع على مقياس</b> (change position on a scale): «كلمات تدل على تغيّر موقع عنصر (ITEM) على مقياس (ATTRIBUTE) من نقطة بداية (INITIAL VALUE) إلى نقطة نهاية (FINAL VALUE)». وعناصره (الشكل ٢٢٫٣) <b>جوهرية</b> خاصة بالإطار، و<b>غير جوهرية</b> أشبه بـ ArgM:</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th colspan="2">Core Roles</th></tr>
+    <tr><td class="mono">ATTRIBUTE</td><td>The ATTRIBUTE is a scalar property that the ITEM possesses.</td></tr>
+    <tr><td class="mono">DIFFERENCE</td><td>The distance by which an ITEM changes its position on the scale.</td></tr>
+    <tr><td class="mono">FINAL STATE</td><td>A description that presents the ITEM’s state after the change in the ATTRIBUTE’s value as an independent predication.</td></tr>
+    <tr><td class="mono">FINAL VALUE</td><td>The position on the scale where the ITEM ends up.</td></tr>
+    <tr><td class="mono">INITIAL STATE</td><td>A description that presents the ITEM’s state before the change in the ATTRIBUTE’s value as an independent predication.</td></tr>
+    <tr><td class="mono">INITIAL VALUE</td><td>The initial position on the scale from which the ITEM moves away.</td></tr>
+    <tr><td class="mono">ITEM</td><td>The entity that has a position on the scale.</td></tr>
+    <tr><td class="mono">VALUE RANGE</td><td>A portion of the scale, typically identified by its end points, along which the values of the ATTRIBUTE fluctuate.</td></tr>
+    <tr><th colspan="2">Some Non-Core Roles</th></tr>
+    <tr><td class="mono">DURATION</td><td>The length of time over which the change takes place.</td></tr>
+    <tr><td class="mono">SPEED</td><td>The rate of change of the VALUE.</td></tr>
+    <tr><td class="mono">GROUP</td><td>The GROUP in which an ITEM changes the value of an ATTRIBUTE in a specified way.</td></tr>
+  </table></div>
+  <div class="w" id="fnBox"><div class="cap">أمثلة الإطار (22.20)–(22.26): أفعال وأسماء مختلفة وعناصر إطار واحدة</div>
+    <div class="row" id="fnBtns" dir="ltr" style="flex-wrap:wrap"></div>
+    <div id="fnOut" dir="ltr" style="margin-top:8px;line-height:2.3;font-size:17px"></div><div class="calc" id="fnCalc"></div></div>
+  <p>فالإطار يضم كلمات هدف مثل rise وfall وincrease، والإطار الكامل يضم: <b>أفعالاً</b> (advance، climb، decline، decrease، diminish، dip، double، drop، dwindle، edge، explode، fall، fluctuate، gain، grow، increase، jump، move، mushroom، plummet، reach، rise، rocket، shift، skyrocket، slide، soar، swell، swing، triple، tumble)، و<b>أسماء</b> (decline، decrease، escalation، explosion، fall، fluctuation، gain، growth، hike، increase، rise، shift، tumble)، و<b>ظرفاً</b> (increasingly).</p>
+  <p class="note">ملاحظة: القائمة أعلاه مرتّبة أبجدياً من عندنا، لأن جدول الكتاب الأصلي في أعمدة متداخلة. وفي FrameNet الحالي قد تختلف القائمة.</p>
+  <p>ويرمّز FrameNet أيضاً <b>علاقات بين الأطر</b>: الوراثة، والسببية (والتعميم بين عناصر أطر مختلفة يُمثَّل بالوراثة أيضاً). فإطار <b>Cause change of position on a scale</b> مرتبط بإطار Change of position on a scale بعلاقة السببية، ويضيف دور AGENT للأمثلة السببية كـ (22.26) أعلاه. ومعاً يتيح الإطاران استخراج الدلالة المشتركة لكل الاستعمالات الفعلية والاسمية، السببية وغير السببية. وطُوّرت FrameNets للإسبانية والألمانية واليابانية والبرتغالية والإيطالية والصينية.</p>
+</section>
+
+<!-- ============ 22.6 ============ -->
+<section class="sec" id="s22-6">
+  <header><div class="kicker">القسم ٢٢٫٦ <span class="pg">p. 506</span></div><h2>وسم الأدوار الدلالية</h2></header>
+  <div class="brief"><b>باختصار</b>SRL: إيجاد دور كل معمول لكل محمول آلياً، بتعلّم إشرافي على PropBank أو FrameNet. <b>بالخصائص</b>: حلّل الجملة، ولكل محمول صنّف كل عقدة في الشجرة (دور أو NONE)، بخصائص كالمحمول ونوع العبارة ورأسها و«المسار» إلى المحمول والبناء للمعلوم أو المجهول والموقع قبل/بعد. ثم تحسين «عام» لأن الأدوار ليست مستقلة. <b>عصبياً</b>: وسم تسلسلي BIO لكل كلمة، مع إعلام النموذج بالمحمول. والتقييم: دقة واستدعاء وF بمطابقة المقطع تماماً.</div>
+  <div class="terms"><span>وسم الأدوار الدلالية <i>SRL</i></span><span>التقليم / التعرّف / التصنيف <i>pruning / identification / classification</i></span><span>المسار <i>path feature</i></span><span>البناء <i>voice</i></span><span>الإطار الفرعي <i>subcategorization</i></span><span>التحسين العام <i>global optimization</i></span><span>البرمجة الخطية الصحيحة <i>ILP</i></span></div>
+  <p><span class="t">وسم الأدوار الدلالية <i>semantic role labeling, SRL</i></span> مهمة إيجاد الأدوار الدلالية لكل معمول لكل محمول في الجملة آلياً. والطرق الحالية تعلّم آلي إشرافي، وFrameNet وPropBank يحددان ما يُعدّ محمولاً، ومجموعة الأدوار، وبيانات التدريب والاختبار. وتذكّر الفرق: FrameNet يستعمل عناصر أطر كثيرة خاصة (22.27)، وPropBank أرقاماً قليلة مع ArgM العامة (22.28):</p>
+  <div class="quote" dir="ltr">(22.27) [<sub>COGNIZER</sub> You] can’t [<sub>TARGET</sub> blame] [<sub>EVALUEE</sub> the program] [<sub>REASON</sub> for being unable to identify it]<br>(22.28) [<sub>ARG0</sub> The San Francisco Examiner] [<sub>TARGET</sub> issued] [<sub>ARG1</sub> a special edition] [<sub>ARGM-TMP</sub> yesterday]</div>
+  <h3>٢٢٫٦٫١ · خوارزمية بالخصائص</h3>
+  <p>من أقدم الأنظمة (سيمونز ١٩٧٣) تبدأ الخوارزميات بالتحليل النحوي بمحلل واسع التغطية، ثم تبحث في الشجرة عن كل كلمة محمول. ولكل محمول تمرّ على كل عقدة، وتستخرج متجه خصائص، ويقرر مصنّف «واحد من N» دورها (N عدد الأدوار + دور NONE للعقد التي ليست معمولات). وأي خوارزمية تصنيف معيارية تصلح:</p>
+  <div class="quote" dir="ltr"><b>function</b> SEMANTICROLELABEL(words) <b>returns</b> labeled tree<br>&nbsp;&nbsp;parse ← PARSE(words)<br>&nbsp;&nbsp;<b>for each</b> predicate <b>in</b> parse <b>do</b><br>&nbsp;&nbsp;&nbsp;&nbsp;<b>for each</b> node <b>in</b> parse <b>do</b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;featurevector ← EXTRACTFEATURES(node, predicate, parse)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CLASSIFYNODE(node, featurevector, parse)</div>
+  <p>وبدل مصنّف واحد، كثيراً ما تُقسَّم المهمة: (١) <b>التقليم</b>: قلة من المكونات معمولات لأي محمول، فتُحذف المكونات المستبعدة بقواعد بسيطة؛ (٢) <b>التعرّف</b>: تصنيف ثنائي لكل عقدة: معمول أم NONE؛ (٣) <b>التصنيف</b>: واحد من N لما عُرّف معمولاً. والفصل بين التعرّف والتصنيف قد يحسّن استعمال الخصائص (خصائص مختلفة تفيد كل مهمة) أو الكفاءة.</p>
+  <p><b>التحسين العام:</b> المصنّف يصنّف كل معمول وحده («محلياً»)، مفترضاً استقلال الأدوار. وهذا خطأ: المكونات في FrameNet وPropBank يجب ألا تتداخل، والأهم أن الأدوار غير مستقلة؛ فـ PropBank لا يسمح بمعمولين متطابقين: لا يُوسم مكونان لفعل واحد كلاهما ARG0. فتضيف الأنظمة خطوة رابعة للاتساق: المصنّفات المحلية تعطي قائمة أدوار محتملة باحتمالاتها لكل مكون، ثم يختار تمرير ثانٍ (فيتربي أو إعادة ترتيب) أفضل توافق. و<b>البرمجة الخطية الصحيحة</b> (ILP) طريقة شائعة أخرى لاختيار حل يحقق القيود.</p>
+  <h3>خصائص الوسم</h3>
+  <p>معظم الأنظمة تعمّم الخصائص الأساسية لغيلدِيا وجورافسكي (٢٠٠٠). وهي هنا على المكون NP-SBJ «The San Francisco Examiner» في الشكل ٢٢٫٥: المحمول الحاكم (issued؛ ضروري لأن الأدوار معرّفة نسبةً إلى محمول)، ونوع العبارة (NP)، ورأس المكون (Examiner؛ بقواعد الرأس من الفصل ١٩؛ فالضمائر مثلاً تقيّد الأدوار كثيراً)، وقسم كلام الرأس (NNP)، و<span class="t">المسار <i>path</i></span> في الشجرة من المكون إلى المحمول (NP↑S↓VP↓VBD؛ ↑ صعود و↓ نزول، وهو تمثيل مدمج لعلاقات نحوية كثيرة)، و<b>البناء</b> (معلوم أو مجهول؛ ربط الأدوار بالصيغة مختلف جداً في المجهول)، والموقع (قبل المحمول أو بعده)، و<b>الإطار الفرعي</b> للمحمول (القاعدة التي توسّع أباه المباشر: VP → VBD NP PP)، ونوع الكيان المسمّى، وأول كلمة وآخر كلمة في المكون. اضغط عقدة:</p>
+  <div class="w" id="ftBox"><div class="cap">الشكل ٢٢٫٥: الشجرة وخاصية المسار ومتجه الخصائص (اضغط مكوناً)</div>
+    <div class="row" id="ftBtns" dir="ltr" style="flex-wrap:wrap"></div>
+    <div class="scroll" dir="ltr" id="ftTree" style="margin-top:8px"></div><div class="calc" id="ftCalc"></div></div>
+  <p class="note">ملاحظتان على المسودة: (١) الجملة (22.28) تنتهي بـ «yesterday» والشجرة في الشكل ٢٢٫٥ بـ «around noon yesterday». (٢) النص يقول إن الإطار الفرعي VP → VBD NP PP، والمتجه المطبوع في الكتاب يكتب «VP → NP PP»؛ واعتمدنا الأول. وقيم الخصائص لغير NP-SBJ من حسابنا بالقواعد نفسها (رأس PP هو حرف الجر بقواعد الرأس).</p>
+  <p>والمتجه الكامل للمكون الأول كما في الكتاب: <span dir="ltr" class="mono">ARG0: [issued, NP, Examiner, NNP, NP↑S↓VP↓VBD, active, before, VP → NP PP, ORG, The, Examiner]</span>. وتذكّر أن معظم العقد قيمتها NONE لا دور. وتُستعمل خصائص إضافية: n-grams داخل المكون، ونسخ أعقد من المسار (نصفه الصاعد أو النازل، أو هل تقع عقد معينة فيه). ويمكن الاعتماد على التحليل الاعتمادي بدل المكوِّني، بمسارات اعتمادية بدل المسارات المكوّنية.</p>
+  <h3>٢٢٫٦٫٢ · خوارزمية عصبية</h3>
+  <p>النهج العصبي البسيط: معاملة SRL كوسم تسلسلي كالتعرّف على الكيانات المسمّاة، بـ <b>BIO</b>. نفترض أن المحمول معطى، والمهمة اكتشاف المقاطع ووسمها: لكل دور وسم بداية ووسم داخل (B-ARG0، I-ARG0؛ B-ARG1، I-ARG1…) ووسم خارج O. والهدف كأي وسّام: ŷ = argmax<sub>y∈T</sub> P(y|w). وفي الشكل ٢٢٫٦ (بعد هي وزملائه ٢٠١٧، وشي ولين ٢٠١٩): الجملة، ثم [SEP] ومدخل إضافي للمحمول، ومخرجات المرمِّز تُلصق بمتغير مؤشر (١ للمحمول و٠ لغيره)، ثم شبكة أمامية وsoftmax لكل كلمة. ولفك الترميز يمكن وضع CRF بدل الطبقة الأخيرة للاستدلال العام، لكنه عملياً لا يفيد كثيراً. والمهم: لكل محمول تمريرة مستقلة بوسوم مختلفة:</p>
+  <div class="w" id="nnBox"><div class="cap">مدخلات ومخرجات الوسم العصبي (الشكل ٢٢٫٦؛ اختر جملة ومحمولاً)</div>
+    <div class="row"><span class="seg" id="nnS" dir="ltr" style="flex-wrap:wrap"><button data-i="0" class="on">the cats love hats</button><button data-i="1">The group agreed …</button><button data-i="2">John broke …</button></span><span class="seg" id="nnP" dir="ltr" style="flex-wrap:wrap"></span></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="nnTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="nnCalc"></div></div>
+  <p class="note">المثال الأول من الشكل ٢٢٫٦. ووسوم agree من (22.11)؛ أما وسوم make وbreak فمن عندنا على طريقة PropBank (في break.01 الدور Arg2 هو الآلة).</p>
+  <h3>٢٢٫٦٫٣ · التقييم</h3>
+  <p>التقييم المعياري: كل وسم دور يجب أن يُسند إلى تسلسل الكلمات (أو المكون) الصحيح <b>تماماً</b>، ثم نحسب الدقة والاستدعاء وF. ويمكن تقييم التعرّف والتصنيف كلٍّ على حدة. ومن مجموعات التقييم الشائعة CoNLL-2005 (كارِراس وماركيز ٢٠٠٥) وCoNLL-2012 (برادان وزملاؤه ٢٠١٣):</p>
+  <div class="w" id="evBox"><div class="cap">تقييم SRL بمطابقة المقاطع تماماً (التنبؤات من صنعنا)</div>
+    <div class="row"><span class="seg" id="evS" style="flex-wrap:wrap"><button data-i="0">تنبؤ مثالي</button><button data-i="1" class="on">خطأ في حدود مقطع</button><button data-i="2">خطأ في التصنيف</button><button data-i="3">معمول مفقود</button></span></div>
+    <div id="evOut" dir="ltr" style="margin-top:8px;line-height:2.3;font-size:16px"></div><div class="calc" id="evCalc"></div></div>
+</section>
+
+<!-- ============ 22.7 ============ -->
+<section class="sec" id="s22-7">
+  <header><div class="kicker">القسم ٢٢٫٧ <span class="pg">p. 510</span></div><h2>القيود الانتقائية</h2></header>
+  <div class="brief"><b>باختصار</b>القيد الانتقائي قيد دلالي يفرضه المحمول على معمولاته (مفعول eat شيء يؤكل)، ويحلّ غموضاً مثل «I want to eat someplace nearby». والقيود مرتبطة بالمعاني لا بالكلمات (serve طعاماً / serve مدينة)، ومجموعة المفاهيم اللازمة مفتوحة. نمثّلها بالمنطق (مكلف)، أو بفئة WordNet: المعمول مقبول إذا كانت الفئة من أسلافه. ثم صارت <b>تفضيلات</b> احتمالية: ارتباط رزنك الانتقائي (بانحراف KL)، أو P(n|v,r) من عدّ مدوّنة، وتُقيَّم بالكلمات الزائفة.</div>
+  <div class="terms"><span>القيد الانتقائي <i>selectional restriction</i></span><span>التفضيل الانتقائي <i>selectional preference</i></span><span>قوة التفضيل <i>selectional preference strength</i></span><span>الارتباط الانتقائي <i>selectional association</i></span><span>الانحراف النسبي / KL <i>relative entropy, KL divergence</i></span><span>الكلمة الزائفة <i>pseudoword</i></span><span>التقدير بالمقدار <i>magnitude estimation</i></span></div>
+  <p>طريقة أخرى لتمثيل العلاقة بين المحمول ومعمولاته: <span class="t">القيد الانتقائي <i>selectional restriction</i></span>، قيد على نوع المفاهيم المسموح بها في أدوار الفعل. خذ «I want to eat someplace nearby» (22.29): لها تحليلان. المعقول: eat لازم، وsomeplace nearby ظرف يحدد مكان الأكل. والعبثي («المتكلم غودزيلا»): eat متعدٍّ، وsomeplace nearby مفعول وTHEME للأكل، مثل Malaysian food في «I want to eat Malaysian food» (22.30). كيف نعرف أنه ليس مفعولاً؟ لأن THEME أحداث الأكل يكون عادةً شيئاً يؤكل. والقيود مرتبطة <b>بالمعاني</b> لا بالكلمات: «The restaurant serves green-lipped mussels» (22.31) معنى «تقديم الطعام» ومتأثره طعام، و«Which airlines serve Denver?» (22.32) معنى «تقديم خدمة تجارية لـ» ومتأثره مكان مناسب.</p>
+  <p>وتتفاوت دقة القيود كثيراً: imagine يقيّد فاعله بشدة (البشر والأحياء) ويكاد لا يقيّد متأثره (22.33: imagine a tennis game). وdiagonalize يقيّد متأثره بشدة: مصفوفة (22.35). والصفة odorless تقيّد موصوفها بما يمكن أن تكون له رائحة (22.34: Radon is an odorless gas). فمجموعة المفاهيم اللازمة مفتوحة (كونه مصفوفة، أو قابلاً للرائحة…)، بخلاف أقسام الكلام المحدودة العدد.</p>
+  <h3>٢٢٫٧٫١ · تمثيل القيود</h3>
+  <p>بتمثيل الأحداث الدافيدسوني الجديد (الملحق H): متغير للحدث، ومحمول لنوعه، وعلاقات لأدواره. فإسهام eat:</p>
+  <div class="eq" dir="ltr">∃e, x, y Eating(e) ∧ Agent(e, x) ∧ Theme(e, y)</div>
+  <p>هنا كل ما نعرفه عن y أنه مرتبط بحدث أكل بعلاقة Theme. ولنشترط أنه يؤكل نضيف حداً: <span dir="ltr" class="mono">∧ EdibleThing(y)</span>. فإذا قابلنا «ate a hamburger» صار التمثيل <span dir="ltr" class="mono">∃e,x,y Eating(e) ∧ Eater(e,x) ∧ Theme(e,y) ∧ EdibleThing(y) ∧ Hamburger(y)</span>، وهو سليم لأن الانتماء إلى Hamburger متسق مع الانتماء إلى EdibleThing. أما «ate a takeoff» فغير سليم، لأن Takeoff فئة أحداث لا تتسق مع EdibleThing. لكن هناك مشكلتان: المنطق من الدرجة الأولى مبالغة لمهمة بسيطة كهذه (صيغ أبسط أرخص بكثير)، ويفترض قاعدة معرفة منطقية ضخمة بالحس المشترك لا توجد بالتغطية الكافية.</p>
+  <p>والأعمل: القيود بفئات <b>WordNet</b> بدل المفاهيم المنطقية. كل محمول يحدد فئة (synset) لكل معمول، والتمثيل سليم إذا كانت كلمة المعمول <b>كلمة خاصة</b> (hyponym) لتلك الفئة، أي أن الفئة من أسلافها. فنضع قيد THEME لـ eat على {food, nutrient} («أي مادة يستقلبها الحيوان لينتج طاقة ويبني أنسجة»)، ولـ imagine على {entity}، ولـ lift على {physical entity}، ولـ diagonalize على {matrix}:</p>
+  <div class="w" id="wnBox"><div class="cap">فحص القيد الانتقائي بسلسلة الكلمات العامة في WordNet</div>
+    <div class="row"><span class="seg" id="wnV" dir="ltr" style="flex-wrap:wrap"><button data-v="eat" class="on">eat</button><button data-v="imagine">imagine</button><button data-v="lift">lift</button><button data-v="diagonalize">diagonalize</button></span><span class="seg" id="wnN" dir="ltr" style="flex-wrap:wrap"><button data-n="hamburger" class="on">hamburger</button><button data-n="takeoff">takeoff</button><button data-n="gold">gold</button><button data-n="matrix">matrix</button><button data-n="someplace">someplace</button></span></div>
+    <div class="calc" id="wnCalc" dir="ltr" style="text-align:left"></div></div>
+  <p class="note">سلسلة hamburger من الشكل ٢٢٫٧ حرفياً. أما بقية السلاسل فمبسَّطة من عندنا (حذفنا مستويات وسيطة من WordNet)، والمهم فيها هل تصل إلى فئة القيد أم لا.</p>
+  <h3>٢٢٫٧٫٢ · التفضيلات الانتقائية</h3>
+  <p>في أقدم التطبيقات كانت القيود صارمة (كاتز وفودور ١٩٦٣): eat يشترط مفعولاً [+FOOD]، واستعملتها أنظمة إزالة غموض المعاني لاستبعاد المعاني المخالفة. لكن سرعان ما اتضح (ويلكس ١٩٧٥) أنها <b>تفضيلات</b> لا قيود: المخالفات تظهر في جمل سليمة، لأنها منفية (22.36: «you can’t eat gold for lunch if you’re hungry»)، أو لأن القيد مبالغ فيه (22.37: «Mr. Kulkarni ate glass on an empty stomach»). فالأنظمة الحديثة تستعمل قيوداً مرنة.</p>
+  <p><b>الارتباط الانتقائي (رزنك ١٩٩٣):</b> <span class="t">قوة التفضيل الانتقائي <i>selectional preference strength</i></span> كمية المعلومات التي يخبرنا بها المحمول عن الفئة الدلالية لمعمولاته. eat يخبرنا الكثير عن مفعوله (يؤكل عادةً)، وbe أقل بكثير. وتُقاس بالفرق بين توزيعين: P(c) (احتمال أن يقع مفعولٌ ما في الفئة c) وP(c|v) (احتمال أن يقع مفعول الفعل v في c). وكلما ابتعد التوزيعان زادت المعلومات. والبعد يقاس بـ<span class="t">انحراف كولباك-لايبلر <i>KL divergence</i></span>:</p>
+  <div class="eq" dir="ltr">D(P‖Q) = Σ<sub>x</sub> P(x) log( P(x) / Q(x) ) &nbsp;&nbsp;(22.38) &nbsp;&nbsp;&nbsp; S<sub>R</sub>(v) = D( P(c|v) ‖ P(c) ) = Σ<sub>c</sub> P(c|v) log( P(c|v) / P(c) ) &nbsp;&nbsp;(22.39)<br>A<sub>R</sub>(v, c) = (1 / S<sub>R</sub>(v)) · P(c|v) log( P(c|v) / P(c) ) &nbsp;&nbsp;(22.40)</div>
+  <div class="math"><div class="mh"><span class="sym">D(P‖Q)</span>مفهوم رياضي · انحراف KL: كم «تفاجئنا» معرفة الفعل؟</div><div class="mb">
+    <p>تخيّل أن ٢٠٪ من كل المفعولات في الإنجليزية طعام. لكن من مفعولات eat، ٨٠٪ طعام. النسبة P(c|v)/P(c) = ٠٫٨/٠٫٢ = ٤: معرفة الفعل جعلت فئة الطعام أرجح بأربعة أضعاف. واللوغاريتم بالأساس ٢ يحوّل النسبة إلى «بِتّات» معلومات: log₂ 4 = ٢ بِت. وإذا كانت النسبة ١ (الفعل لم يغيّر شيئاً) فاللوغاريتم صفر، وإذا قلّل الفعل احتمال الفئة (نسبة أقل من ١) صار اللوغاريتم سالباً.</p>
+    <p>والانحراف KL هو متوسط هذه اللوغاريتمات موزوناً بـ P(c|v): نجمع على كل الفئات «احتمال الفئة مع الفعل × لوغاريتم نسبتها». والنتيجة دائماً ≥ ٠، وتساوي صفراً فقط إذا تطابق التوزيعان. فـ S<sub>R</sub>(v) هي «كم بِتاً يخبرنا الفعل عن فئة مفعوله»، وA<sub>R</sub>(v,c) نصيب الفئة c من هذا المجموع (حدّها مقسوماً على المجموع)، ولذا قد يكون سالباً للفئات التي يبعدها الفعل.</p>
+  </div></div>
+  <div class="w" id="rsBox"><div class="cap">حاسبة رزنك: S<sub>R</sub>(v) وA<sub>R</sub>(v,c) بالبِت (التوزيعات من صنعنا؛ عدّل P(c|v))</div>
+    <div class="row"><span class="seg" id="rsV" dir="ltr"><button data-v="eat" class="on">eat</button><button data-v="read">read</button><button data-v="see">see</button><button data-v="be">be</button></span></div>
+    <div id="rsSl" dir="ltr" style="margin-top:8px"></div>
+    <div id="rsBars" style="margin-top:8px"></div>
+    <div class="calc" id="rsCalc"></div></div>
+  <p>ويقدّر رزنك الاحتمالات بتحليل مدوّنة وعدّ مرات ظهور كل محمول مع كل كلمة معمول، معتبراً كل كلمة ملاحظة جزئية لكل مفاهيم WordNet التي تحويها. ومن جدول رزنك (١٩٩٦) ارتباطات عالية ومنخفضة لمفعولات أفعال:</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>Verb</th><th>High: Semantic Class</th><th>Assoc</th><th>Low: Semantic Class</th><th>Assoc</th></tr>
+    <tr><td>read</td><td>WRITING</td><td class="mono">6.80</td><td>ACTIVITY</td><td class="mono">-.20</td></tr>
+    <tr><td>write</td><td>WRITING</td><td class="mono">7.26</td><td>COMMERCE</td><td class="mono">0</td></tr>
+    <tr><td>see</td><td>ENTITY</td><td class="mono">5.79</td><td>METHOD</td><td class="mono">-0.01</td></tr>
+  </table></div>
+  <p class="note">مجموع A<sub>R</sub>(v,c) على كل الفئات يساوي ١ بالتعريف، فالقيمة الواحدة لا تتجاوز ١ إلا إذا عوّضتها حدود سالبة لفئات أخرى (في حاسبتنا: FOOD ≈ ١٫٢). وقيم الجدول (٦٫٨٠ مثلاً) أكبر بكثير؛ والأرجح أن السبب حساب رزنك على فئات WordNet المتداخلة (الكلمة الواحدة تُعدّ لكل فئاتها)، والكتاب لا يوضح ذلك.</p>
+  <p><b>التفضيل بالاحتمال الشرطي:</b> بديل عن فئات WordNet: احتمال كلمة المعمول بشرط الفعل، يقيس ارتباط فعل واحد باسم واحد مباشرة. نحلّل مدوّنة ضخمة (مليارات الكلمات) ونعدّ: كم مرة ظهر الفعل مع الاسم في علاقة معينة r (كالمفعول). ثم (بروكمان ولاباتا ٢٠٠٣، وكيلر ولاباتا ٢٠٠٣):</p>
+  <div class="eq" dir="ltr">P(n | v, r) = C(n, v, r) / C(v, r) &nbsp; if C(n,v,r) &gt; 0, else 0 &nbsp;&nbsp;&nbsp;&nbsp; P(v | n, r) = C(n, v, r) / C(n, r) &nbsp; if C(n,v,r) &gt; 0, else 0</div>
+  <p>والاحتمال العكسي P(v|n,r) كان أفضل أداءً في بعض الحالات. وأبسط من ذلك: لوغاريتم تكرار التواجد log count(v, n, r)، ويبدو أفضل لتفضيلات الفاعل لا المفعول.</p>
+  <p><b>التقييم بالكلمات الزائفة:</b> <span class="t">الكلمة الزائفة <i>pseudoword</i></span> (غيل وزملاؤه ١٩٩٢، وشوتزه ١٩٩٢) كلمة اصطناعية بدمج كلمة اختبار (banana) بكلمة مموِّهة (door): banana-door، والمطلوب من النظام أن يعرف الأصلية. فلتقييم تفضيلات المفعول نأخذ كل فعل في مدوّنة اختبار (drive)، ومفعوله (car)، ومموِّهاً هو أقرب اسم إليه في التكرار (house)، فنحصل على car/house، ويختار النموذج أيهما المفعول الأفضل لـ drive، ونحسب نسبة اختياره الأصلي (تشيمبرز وجورافسكي ٢٠١٠):</p>
+  <div class="w" id="psBox"><div class="cap">التفضيل بالعدّ والتقييم بالكلمات الزائفة (أعداد من صنعنا)</div>
+    <div class="row"><span class="seg" id="psM"><button data-m="nv" class="on">P(n|v,r)</button><button data-m="vn">P(v|n,r)</button><button data-m="lg">log count</button></span></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="psTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="psCalc"></div></div>
+  <p>ومقياس تقييم آخر: أحكام بشرية على معقولية أزواج فعل-معمول، عادةً بـ<b>التقدير بالمقدار</b> (تقنية من علم النفس الفيزيائي: يقيّم الشخص المعقولية نسبةً إلى مثال مرجعي)، ثم نقيس ارتباط النموذج بأحكام البشر (كيلر ولاباتا ٢٠٠٣).</p>
+</section>
+
+<!-- ============ 22.8 ============ -->
+<section class="sec" id="s22-8">
+  <header><div class="kicker">القسم ٢٢٫٨ <span class="pg">p. 514</span></div><h2>تفكيك المحمولات إلى أوليات</h2></header>
+  <div class="brief"><b>باختصار</b>«التحليل المكوِّني»: تفكيك المعنى إلى عناصر أولية. kill = CAUSE(x, BECOME(NOT(ALIVE(y)))). وهذا يفسّر تناوبات مثل open (فتح زيد الباب / انفتح الباب / الباب مفتوح) بمحمول حالة واحد OPEN مع CAUSE وBECOME. والأكثر جذرية: «الاعتماد المفهومي» (CD) بعشر أوليات فقط (ATRANS، PTRANS…).</div>
+  <div class="terms"><span>التفكيك إلى أوليات / التحليل المكوِّني <i>primitive decomposition / componential analysis</i></span><span>الأوليات الدلالية <i>semantic primitives</i></span><span>الاعتماد المفهومي <i>conceptual dependency, CD</i></span></div>
+  <p>يمكن النظر إلى الأدوار الدلالية في هذا الفصل كتعريف تفكيكي لأدوار المعمولات بقوائم محدودة. وفكرة تفكيك المعنى إلى عناصر أولية، أي <span class="t">التفكيك إلى أوليات <i>primitive decomposition</i></span> أو <b>التحليل المكوِّني</b>، أُخذت أبعد، مع التركيز على المحمولات. ففي «Jim killed his philodendron» (22.41) و«Jim did something to cause his philodendron to become not alive» (22.42) المعنى واحد من منظور شروط الصدق، فنمثّل kill بالأوليات:</p>
+  <div class="w" id="pdBox"><div class="cap">التفكيك إلى أوليات (22.43)–(22.47)</div>
+    <div class="row"><span class="seg" id="pdS" dir="ltr" style="flex-wrap:wrap"><button data-i="0" class="on">kill (22.43)</button><button data-i="1">opened (22.44)</button><button data-i="2">opened (22.45)</button><button data-i="3">is open (22.46)</button><button data-i="4">brought · CD (22.47)</button></span></div>
+    <div class="calc" id="pdCalc" dir="ltr" style="text-align:left"></div></div>
+  <p>وقد استُعملت أوليات كهذه لتفسير التناوبات من القسم ٢٢٫٢ (لايكوف ١٩٦٥، ودوتي ١٩٧٩): محمول حالة واحد (OPEN) وراء الأمثلة (22.44)–(22.46)، والفرق من تركيبه مع CAUSE وBECOME. لكن هذا ما زال يحتاج محمولات كثيرة مثل open. ونهج أكثر جذرية يفككها هي أيضاً: <span class="t">الاعتماد المفهومي <i>conceptual dependency, CD</i></span>، عشر أوليات فقط، أدّت دوراً في أنظمة اللغة الطبيعية المبكرة (الشكل ٢٢٫٨):</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>Primitive</th><th>Definition</th></tr>
+    <tr><td class="mono">ATRANS</td><td>The abstract transfer of possession or control from one entity to another</td></tr>
+    <tr><td class="mono">PTRANS</td><td>The physical transfer of an object from one location to another</td></tr>
+    <tr><td class="mono">MTRANS</td><td>The transfer of mental concepts between entities or within an entity</td></tr>
+    <tr><td class="mono">MBUILD</td><td>The creation of new information within an entity</td></tr>
+    <tr><td class="mono">PROPEL</td><td>The application of physical force to move an object</td></tr>
+    <tr><td class="mono">MOVE</td><td>The integral movement of a body part by an animal</td></tr>
+    <tr><td class="mono">INGEST</td><td>The taking in of a substance by an animal</td></tr>
+    <tr><td class="mono">EXPEL</td><td>The expulsion of something from an animal</td></tr>
+    <tr><td class="mono">SPEAK</td><td>The action of producing a sound</td></tr>
+    <tr><td class="mono">ATTEND</td><td>The action of focusing a sense organ</td></tr>
+  </table></div>
+  <p>ففي «The waiter brought Mary the check» (22.47) يُترجم brought إلى أوليين: ATRANS (نقل السيطرة على الفاتورة إلى ماري) وPTRANS (نقلها فعلياً إليها). ولكل أولي في CD مجموعة أدوار ثابتة (Actor، Object، To…).</p>
+</section>
+
+<!-- ============ EXERCISES ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وتمارينه <span class="pg">pp. 515–518</span></div><h2>الخلاصة والتمارين</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>الأدوار الدلالية نماذج مجردة لدور المعمول في الحدث الذي يصفه المحمول.</li>
+    <li>الأدوار الموضوعية نموذج بقائمة واحدة محدودة. ومن النماذج الأخرى: قوائم أدوار لكل فعل، والفاعل الأوّلي والمفعول الأوّلي (كلاهما في PropBank)، وقوائم لكل إطار (FrameNet).</li>
+    <li>وسم الأدوار الدلالية مهمة إسناد الأدوار إلى مكونات الجملة، وتعالَج بتعلّم إشرافي على PropBank أو FrameNet. الخوارزميات تبدأ عادةً بالتحليل النحوي ثم توسم كل عقدة، والنماذج العصبية تنتقل من الكلمات مباشرة.</li>
+    <li>القيود الانتقائية تتيح للكلمات (المحمولات خاصة) فرض قيود على الخصائص الدلالية لمعمولاتها. ونماذج التفضيل الانتقائي (الارتباط الانتقائي أو الاحتمال الشرطي البسيط) تعطي وزناً أو احتمالاً لارتباط المحمول بكلمة معمول أو فئة.</li>
+  </ul>
+  <h3>من الحواشي التاريخية</h3>
+  <p>أعاد غروبر (١٩٦٥) وفيلمور (١٩٦٦، ١٩٦٨) فكرة الأدوار إلى اللسانيات الحديثة. وكان فيلمور قد اهتم ببنية المعمولات من كتاب تِنيير «عناصر النحو البنيوي» (١٩٥٩) الذي أدخل مصطلح «الاعتماد» وأسس نحو الاعتماديات؛ فسمّى الأدوار أولاً «actants» ثم «حالات» (case)، واقترح قائمة عالمية منها، وتُدرج الأفعال في المعجم بـ «إطار حالاتها». واستُعملت أطر الحالات بسرعة في الترجمة الآلية والإجابة عن الأسئلة والحوار، وكان أول وسّام عام (سيمونز ١٩٧٣) يحلل الجملة بمحلل ATN ثم يطبق قواعد لكل فعل. وفي الثمانينيات اقترح فيلمور «دلالة الأطر»، وفي التسعينيات بدأ مشروع FrameNet، وطوّرت ليفن تصنيف الأفعال، فبُني عليه VerbNet ثم PropBank (بالمر وزملاؤها ٢٠٠٥). وأحيا اجتماع الوسم اللغوي الغني بالمدوّنات الطرقَ الآلية: أولاً على FrameNet (غيلدِيا وجورافسكي ٢٠٠٠) ثم على PropBank. وأدخلت مهمة CoNLL-2008 التحليل الاعتمادي بدل المكوِّني. والنهج العصبي بدأ بكولوبيرت وزملائه (٢٠١١: CRF فوق شبكة التفافية)، ثم biLSTM مكدّس من ٦–٨ طبقات (زو وشو ٢٠١٥)، ثم هي وزملاؤه (٢٠١٧) بشبكات طرق سريعة وفك ترميز A* بقيود عامة. ومن الاتجاهات: <b>المعمولات الضمنية</b> (iSRL): في «This house has a new owner. The sale was finalized 10 days ago» لا Arg1 لـ sale في جملتها، لكن القارئ يستنتج أنه البيت؛ وSRL غير الإشرافي بتجميع المعمولات؛ و«أطر الإيحاء» التي تسم موقف الكاتب من المعمولات (الفصل ٢٣).</p>
+  <h3>تمارين الفصل</h3>
+  <p class="note">قسم «Exercises» فارغ في هذه المسودة من الكتاب؛ فالتمارين التالية من عندنا.</p>
+  <ol class="clean">
+    <li>وسّم بأسلوب PropBank: «[Sales] fell [to $25 million] [from $27 million]»، ثم «The average junk bond fell by 4.2%». <details><summary>الحل (من الكتاب، 22.12)</summary>Arg1 = Sales، Arg4 = to $25 million، Arg3 = from $27 million. وفي الثانية: Arg1 = The average junk bond، Arg2 = by 4.2%. ولا Arg0 لأن fall بلا فاعل مريد.</details></li>
+    <li>احسب خاصية المسار للمكون PP-TMP في الشكل ٢٢٫٥، وموقعه من المحمول. <details><summary>الحل (من عندنا؛ تحقق في الأداة)</summary>PP↑VP↓VBD، وموقعه after.</details></li>
+    <li>في توزيع من فئتين: P(c) = (٠٫٥، ٠٫٥)، وP(c|v) = (١، ٠). احسب S<sub>R</sub>(v) بالبِت. <details><summary>الحل (من عندنا)</summary>١ × log₂(١/٠٫٥) + ٠ = ١ بِت (الحد صفري الاحتمال يُعدّ صفراً). فالفعل يحسم فئة مفعوله تماماً بين فئتين متساويتين: بِت واحد بالضبط.</details></li>
+    <li>فكّك «The door closed» و«Mary closed the door» إلى أوليات على طريقة (22.44)–(22.45). <details><summary>الحل (من عندنا)</summary>BECOME(CLOSED(door))، وCAUSE(Mary, BECOME(CLOSED(door))).</details></li>
+  </ol>
+  <h3>أسئلة للمراجعة</h3>
+  <ol class="clean">
+    <li>لماذا لا تكفي الوظائف النحوية (فاعل، مفعول) لتمثيل «من فعل ماذا بمن»؟ أعط مثالاً من break.</li>
+    <li>ما الفرق بين أدوار PropBank وعناصر إطار FrameNet؟ ومتى يفيد الثاني أكثر؟</li>
+    <li>لماذا يحتاج SRL بالخصائص خطوة «تحسين عام»؟ اذكر قيدين.</li>
+    <li>كيف يعرف الوسّام العصبي أي محمول يوسم معمولاته؟</li>
+    <li>لماذا صارت القيود الانتقائية «تفضيلات»؟ أعط مثالاً من الكتاب.</li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="21-information-extraction.html">→ الفصل السابق: استخراج المعلومات</a><span>الفصل التالي: معاجم المشاعر والانفعال (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch22.js"></script>
+</body>
+</html>

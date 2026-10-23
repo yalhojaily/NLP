@@ -395,3 +395,4 @@ table.cn th{font-size:12px}
 table.we td,table.we th{white-space:nowrap;font-family:var(--f-mono);font-size:13px;padding:4px 6px}
 /* ch18 */
 #bioTab td,#bioTab th,#nfTab td,#nfTab th,#vtA td,#vtB td{white-space:nowrap}
+#nnTab td,#nnTab th{white-space:nowrap}
