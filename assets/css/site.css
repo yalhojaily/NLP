@@ -379,3 +379,9 @@ table.mk td.cut{color:var(--soft);background:var(--tint)}
 table.mk tr.sel th,table.md tr.sel td{background:var(--amber-soft)}
 #qkStp button{width:auto;padding:0 10px;font-family:var(--f-body)}
 #dcBars .br{grid-template-columns:70px minmax(0,1fr) 110px}
+/* ch9 */
+table.bi td,table.bi th{padding:3px 5px;font-size:12px;text-align:center;cursor:pointer}
+table.bi td.ok{background:var(--green-soft);color:var(--green)}
+table.bi td.no{background:var(--tint);color:var(--soft)}
+table.bi tr.sel th,table.bi tr.sel td.ok{background:var(--green);color:var(--paper)}
+table.ml td.sel{background:var(--amber-soft);color:var(--amber);font-weight:600}
