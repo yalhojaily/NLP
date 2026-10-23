@@ -307,3 +307,19 @@ table.dp td .ar{display:block;font-size:10px;color:var(--soft);line-height:1;let
 .align2{font-family:var(--f-mono);direction:ltr;display:inline-grid;grid-auto-flow:column;gap:2px;margin-top:8px;text-align:center}
 .align2 span{display:block;width:24px;line-height:1.6}
 .align2 .op-s{color:var(--amber)}.align2 .op-d{color:var(--rose)}.align2 .op-i{color:var(--green)}
+
+/* ===== chapter 3 widgets ===== */
+.split{display:flex;gap:3px;direction:rtl;border-radius:8px;overflow:hidden;font-family:var(--f-head);font-size:13.5px;font-weight:600}
+.split span{display:flex;flex-direction:column;justify-content:center;padding:8px 10px;min-width:0;line-height:1.5}
+.split small{font-weight:400;font-size:11.5px;opacity:.85}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg button{direction:ltr;unicode-bidi:isolate;border:0;border-inline-start:1px solid var(--rule);background:var(--paper);padding:4px 12px;cursor:pointer;font-family:var(--f-mono);font-size:13px}
+.seg button:first-child{border-inline-start:0}
+.seg button.on{background:var(--green);color:var(--paper)}
+.gen-out{margin-top:10px;min-height:52px}
+table.mat td{position:relative;cursor:pointer;background:color-mix(in srgb,var(--amber) calc(var(--a,0)*55%),var(--paper))}
+table.mat td.zero{color:var(--soft);opacity:.55}
+table.mat td.sel{outline:2px solid var(--ink);outline-offset:-2px}
+table.mat th.corner{font-size:10.5px;font-weight:400;white-space:nowrap;padding:0 6px}
+table.mat tr.uni td{background:var(--tint);cursor:default;color:var(--soft);font-size:12px}
+.btn.pri{color:var(--paper)}

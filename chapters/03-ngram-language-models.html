@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٣ · نماذج N-gram اللغوية | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل الثالث من كتاب Speech and Language Processing: نماذج N-gram، والاحتمال الشرطي، والحيرة، وأخذ العيّنات، والتنعيم، والإنتروبيا.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="02-words-and-tokens.html" style="text-decoration:none">→ الفصل ٢</a><b>الفصل ٣ من ٢٦</b><span class="pill">الفصل ٤ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الأول · النماذج اللغوية الكبيرة · الفصل الثالث</div>
+  <h1>نماذج N-gram اللغوية</h1>
+  <div class="sub en" style="font-size:16px">Chapter 3 · N-gram Language Models · pp. 68–91</div>
+  <p class="epi">أبسط نموذج لغوي ممكن: نعدّ تسلسلات الكلمات في نص، ونحوّل العدّ إلى احتمالات. والمهم أن هذا النموذج البسيط يقدّم كل المفاهيم التي تقوم عليها النماذج الكبيرة لاحقاً: التدريب والاختبار، والحيرة، وأخذ العيّنات، ومعالجة ما لم يُرَ من قبل.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>النموذج اللغوي يعطي احتمالاً للكلمة التالية، وللجملة كلها.</li>
+    <li>حساب احتمال كلمة بشرط كل ما قبلها مستحيل بالعدّ. فنفترض أنها تعتمد على كلمة أو كلمتين قبلها فقط: هذا نموذج N-gram.</li>
+    <li>الاحتمال يُقدَّر بقسمة عدّين: كم مرة جاءت «أريد طعاماً» على كم مرة جاءت «أريد».</li>
+    <li>نقيّم النموذج على نص لم يره، بمقياس اسمه الحيرة: كلما قلّ كان أفضل.</li>
+    <li>توليد جمل عشوائية من النموذج يكشف ما تعلّمه، ويكشف أنه يحفظ نص تدريبه إذا كان صغيراً.</li>
+    <li>التسلسلات التي لم تظهر في التدريب تأخذ احتمال صفر، وهذا يخرّب كل شيء. والحل «التنعيم»: نقتطع قليلاً من الاحتمال ونعطيه لما لم يُرَ.</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 68</span></div><h2>لماذا نتنبأ بالكلمة التالية؟</h2></header>
+  <div class="brief"><b>باختصار</b>النموذج اللغوي يعطي احتمالاً لكل كلمة تالية ممكنة، ولكل جملة كاملة. وهذا مفيد في ذاته (تصحيح الأخطاء، والتعرّف على الكلام، ومساعدة من لا يستطيعون الكلام)، وهو أيضاً الطريقة التي تُدرَّب بها النماذج الكبيرة كلها.</div>
+  <p>يفتتح الفصل بجملة ولّدها نموذج N-gram تدرّب على روايات جين أوستن: <span class="ltr en">"You are uniformly charming!" cried he, with a smile of associating…</span>. تبدو إنجليزية أوستنية، لكنها بلا معنى متماسك. وسنفهم لماذا في القسم ٣٫٥.</p>
+  <p>ما الكلمة التالية في: <span class="ltr en">The water of Walden Pond is so beautifully…</span>؟ ربما blue أو green أو clear، وليس refrigerator ولا this. و<span class="t">النموذج اللغوي <i>language model · LM</i></span> يصوغ هذا الحدس رياضياً: يعطي كل كلمة تالية احتمالاً، أي يعطي <b>توزيعاً احتمالياً</b> على الكلمات التالية. ويستطيع أيضاً أن يعطي احتمالاً لجملة كاملة، فيقول إن الجملة الأولى أرجح بكثير من الثانية:</p>
+  <div class="dlg">all of a sudden I notice three guys standing on the sidewalk<br><span style="color:var(--soft)">on guys all I of notice sidewalk three a sudden standing the</span></div>
+  <p><b>لماذا نريد ذلك؟</b> السبب الأهم أن النماذج الكبيرة تُبنى بتدريبها على التنبؤ بالكلمات فقط. لكن المعرفة الاحتمالية مفيدة مباشرة أيضاً:</p>
+  <ul class="clean">
+    <li><b>تصحيح القواعد والإملاء:</b> <span class="ltr en">There are</span> أرجح من <span class="ltr en">Their are</span>، و<span class="ltr en">has improved</span> أرجح من <span class="ltr en">has improve</span>.</li>
+    <li><b>التعرّف على الكلام:</b> <span class="ltr en">I will be back soonish</span> أرجح من <span class="ltr en">I will be bassoon dish</span> رغم تشابه نطقهما.</li>
+    <li><b>التواصل البديل والمعزِّز (AAC):</b> من لا يستطيع الكلام أو الإشارة يختار الكلمات من قائمة بحركة العين. والتنبؤ يقترح الكلمات الأرجح في القائمة.</li>
+  </ul>
+  <p><span class="t">الـ N-gram <i>n-gram</i></span> تسلسل من n كلمة: الـ <b>bigram</b> كلمتان مثل <span class="ltr en">The water</span>، والـ <b>trigram</b> ثلاث مثل <span class="ltr en">The water of</span>. ونستخدم الكلمة نفسها أيضاً لـ<b>النموذج</b> الذي يقدّر احتمال كلمة بشرط n−1 كلمة قبلها. وهذا الفصل يستخدم نماذج N-gram لأنها بسيطة وواضحة، ليقدّم بها مفاهيم ستتكرر مع النماذج العصبية الكبيرة.</p>
+</section>
+
+<!-- ============ 3.1 ============ -->
+<section class="sec" id="s3-1">
+  <header><div class="kicker">القسم ٣٫١ <span class="pg">p. 69</span></div><h2>الـ N-grams</h2></header>
+  <div class="brief"><b>باختصار</b>احتمال الجملة يساوي حاصل ضرب احتمال كل كلمة بشرط ما قبلها (قاعدة السلسلة). ولأننا لا نستطيع حساب «بشرط كل ما قبلها»، نكتفي بالكلمة السابقة وحدها (افتراض ماركوف). ونقدّر الاحتمال بقسمة عدّ الزوج على عدّ الكلمة الأولى. وعملياً نجمع لوغاريتمات الاحتمالات بدل ضربها.</div>
+  <div class="terms"><span>قاعدة السلسلة <i>chain rule</i></span><span>افتراض ماركوف <i>Markov assumption</i></span><span>bigram / trigram</span><span>تقدير الإمكان الأعظم <i>MLE</i></span><span>التكرار النسبي <i>relative frequency</i></span><span>لوغاريتم الاحتمال <i>log probability</i></span></div>
+
+  <p>نبدأ بحساب <code>P(w|h)</code>: احتمال الكلمة w بشرط التاريخ h (الكلمات السابقة). مثلاً احتمال أن تكون blue بعد <span class="ltr en">The water of Walden Pond is so beautifully</span>. وأبسط طريقة: خذ مدوّنة ضخمة، وعُدّ كم مرة ظهرت العبارة، وكم مرة تبعتها blue:</p>
+  <div class="eq">P(blue | h) = C(h blue) ÷ C(h) &nbsp;&nbsp;&nbsp; (3.2)</div>
+  <div class="math"><div class="mh"><span class="sym">C</span>مفهوم رياضي · التكرار النسبي</div><div class="mb">
+    <p>الحرف <code>C</code> اختصار لـ «العدّ» <span class="en">(count)</span>: <code>C(h)</code> عدد مرات ظهور h في المدوّنة. والمعادلة تجيب عن سؤال: «من بين كل المرات التي رأينا فيها h، كم مرة جاءت بعدها w؟». إذا ظهرت العبارة ٢٠ مرة، وتبعتها blue في ٥ منها، فالاحتمال ٥ ÷ ٢٠ = ٠٫٢٥.</p>
+    <p>هذا اسمه <b>التكرار النسبي</b>: جزء مقسوم على الكل، فيقع دائماً بين ٠ و١.</p>
+  </div></div>
+  <p>المشكلة: حتى الويب كله لا يكفي. اللغة <b>مبدعة</b>، والناس يخترعون جملاً جديدة كل يوم، فأغلب الجمل الطويلة لم تظهر أبداً، وعدّها صفر.</p>
+
+  <h3>الترميز وقاعدة السلسلة</h3>
+  <div class="math"><div class="mh"><span class="sym">w₁:ₙ</span>مفهوم رياضي · الرموز الصغيرة تحت الحروف</div><div class="mb">
+    <ul class="clean">
+      <li><code>w<sub>1</sub></code>، <code>w<sub>2</sub></code>، … الكلمة الأولى، والثانية… الرقم الصغير تحت الحرف اسمه <b>دليل</b> ويدل على الموقع. و<code>w<sub>n</sub></code> الكلمة رقم n، أي الأخيرة.</li>
+      <li><code>w<sub>1:n</sub></code> تعني «الكلمات من الأولى إلى رقم n»، أي الجملة كلها. و<code>w<sub>1:n−1</sub></code> كل الكلمات قبل الأخيرة. ويُكتب ذلك أيضاً <code>w<sub>&lt;n</sub></code>: «كل ما قبل n».</li>
+      <li><code>P(w<sub>1</sub>, w<sub>2</sub>, …, w<sub>n</sub>)</code> <b>الاحتمال المشترك</b>: احتمال أن تأتي هذه الكلمات <b>كلها معاً</b> بهذا الترتيب.</li>
+      <li>ويذكر الكتاب <b>المتغير العشوائي</b> <code>X<sub>i</sub></code>: «خانة» قيمتها غير معروفة مسبقاً، هنا الكلمة في الموقع i. و<code>P(X<sub>i</sub> = "the")</code> احتمال أن تكون the. ويختصرها الكتاب إلى <code>P(the)</code>.</li>
+    </ul>
+  </div></div>
+  <p>كيف نحسب احتمال جملة كاملة؟ بتفكيكها بـ<span class="t">قاعدة السلسلة <i>chain rule</i></span>:</p>
+  <div class="eq">P(w<sub>1:n</sub>) = P(w<sub>1</sub>) · P(w<sub>2</sub>|w<sub>1</sub>) · P(w<sub>3</sub>|w<sub>1:2</sub>) ⋯ P(w<sub>n</sub>|w<sub>1:n−1</sub>) = <span class="c">∏</span><sub>k=1..n</sub> P(w<sub>k</sub>|w<sub>1:k−1</sub>) &nbsp;&nbsp; (3.4)</div>
+  <div class="math"><div class="mh"><span class="sym">∏</span>مفهوم رياضي · قاعدة السلسلة ورمز الضرب</div><div class="mb">
+    <p><b>الفكرة بمثال يومي:</b> احتمال أن تمطر <b>و</b>تأخذ مظلتك = احتمال أن تمطر × احتمال أن تأخذ المظلة <b>إذا</b> أمطرت. فإذا كان احتمال المطر ٠٫٣، واحتمال أخذ المظلة حين تمطر ٠٫٩، فاحتمال الاثنين معاً ٠٫٣ × ٠٫٩ = ٠٫٢٧.</p>
+    <p>وقاعدة السلسلة تكرر ذلك: احتمال الجملة = احتمال الكلمة الأولى × احتمال الثانية بشرط الأولى × احتمال الثالثة بشرط الأوليين… وهكذا.</p>
+    <p><b>الرمز ∏</b> (حرف «باي» الإغريقي الكبير) اختصار لـ «اضرب كل هذه معاً». <code>∏<sub>k=1..n</sub></code> تعني: ضع k = 1 ثم 2 ثم 3 … حتى n، واضرب الحدود الناتجة. فمثلاً <code>∏<sub>k=1..3</sub> k = 1 × 2 × 3 = 6</code>. وسترى قريباً أخاه <b>∑</b> («سيغما») ويعني «اجمع كل هذه».</p>
+  </div></div>
+  <p>لكن قاعدة السلسلة لا تحل المشكلة: ما زلنا نحتاج <code>P(w<sub>n</sub>|w<sub>1:n−1</sub>)</code>، أي احتمال كلمة بشرط كل ما قبلها، وهذا بالضبط ما لا نستطيع عدّه.</p>
+
+  <h3>٣٫١٫١ · افتراض ماركوف</h3>
+  <p>حدس الـ N-gram: <b>بدل التاريخ كله، نقرّبه بآخر كلمة أو كلمتين.</b> نموذج الـ bigram يستبدل <code>P(blue | The water of Walden Pond is so beautifully)</code> بـ <code>P(blue | beautifully)</code>:</p>
+  <div class="eq">P(w<sub>n</sub> | w<sub>1:n−1</sub>) <span class="c">≈</span> P(w<sub>n</sub> | w<sub>n−1</sub>) &nbsp;&nbsp; (3.7)</div>
+  <div class="math"><div class="mh"><span class="sym">≈</span>مفهوم رياضي · «يساوي تقريباً»، ونافذة N</div><div class="mb">
+    <p>الرمز <code>≈</code> يعني «يساوي تقريباً». نحن نعترف بأننا نبسّط: الكلمة تعتمد فعلاً على أكثر من كلمة واحدة قبلها، لكننا نتجاهل ذلك لنستطيع الحساب.</p>
+    <p>والافتراض بأن المستقبل يعتمد على الماضي القريب وحده اسمه <span class="t">افتراض ماركوف <i>Markov assumption</i></span>. وبعموم: نموذج الـ N-gram ينظر إلى <b>N−1</b> كلمة للخلف. bigram (N=2) ينظر كلمة واحدة، وtrigram (N=3) ينظر كلمتين:</p>
+    <div class="eq">P(w<sub>n</sub> | w<sub>1:n−1</sub>) ≈ P(w<sub>n</sub> | w<sub>n−N+1:n−1</sub>) &nbsp;&nbsp; (3.8)</div>
+    <p>تحقق: إذا كانت N = 3 فإن <code>n−N+1 = n−2</code>، أي ننظر إلى الكلمتين <code>w<sub>n−2</sub></code> و<code>w<sub>n−1</sub></code>. صحيح.</p>
+  </div></div>
+  <p>وبالتعويض في قاعدة السلسلة يصبح احتمال الجملة في نموذج bigram حاصل ضرب احتمالات الأزواج:</p>
+  <div class="eq">P(w<sub>1:n</sub>) ≈ ∏<sub>k=1..n</sub> P(w<sub>k</sub> | w<sub>k−1</sub>) &nbsp;&nbsp; (3.9)</div>
+
+  <h3>٣٫١٫٢ · كيف نقدّر الاحتمالات؟</h3>
+  <p>أبسط طريقة اسمها <span class="t">تقدير الإمكان الأعظم <i>maximum likelihood estimation · MLE</i></span>: نعدّ في مدوّنة، ثم <b>نطبّع</b> العدّ، أي نقسمه على مجموع مناسب ليقع بين ٠ و١ ويكون مجموع الاحتمالات ١.</p>
+  <div class="eq">P(w<sub>n</sub>|w<sub>n−1</sub>) = C(w<sub>n−1</sub> w<sub>n</sub>) ÷ <span class="c">∑<sub>w</sub></span> C(w<sub>n−1</sub> w) = C(w<sub>n−1</sub> w<sub>n</sub>) ÷ C(w<sub>n−1</sub>) &nbsp;&nbsp; (3.10–3.11)</div>
+  <div class="math"><div class="mh"><span class="sym">∑</span>مفهوم رياضي · رمز الجمع، ولماذا تبسّطت المعادلة</div><div class="mb">
+    <p><code>∑<sub>w</sub> C(w<sub>n−1</sub> w)</code> تعني: «اجمع عدّ كل الأزواج التي تبدأ بـ w<sub>n−1</sub>، مهما كانت الكلمة الثانية w». مثلاً لكلمة «أريد»: عدّ «أريد طعاماً» + عدّ «أريد أن» + عدّ «أريد ماءً» + …</p>
+    <p>والكتاب يطلب أن نقتنع بأن هذا المجموع يساوي ببساطة <code>C(w<sub>n−1</sub>)</code>، أي عدد مرات ظهور «أريد». لماذا؟ لأن <b>كل</b> ظهور لـ «أريد» تتبعه كلمة ما (ولو كانت علامة النهاية &lt;/s&gt;)، فكل ظهور يُحسب في زوج واحد بالضبط. عدد الأزواج التي تبدأ بها = عدد مرات ظهورها.</p>
+  </div></div>
+  <p>مثال الكتاب: مدوّنة من ثلاث جمل، نضيف لكل منها رمز البداية <code>&lt;s&gt;</code> لنعرف سياق الكلمة الأولى، ورمز النهاية <code>&lt;/s&gt;</code>. (ورمز النهاية ضروري ليكون مجموع احتمالات <b>كل الجمل</b>، بكل أطوالها، يساوي ١. بدونه يصبح عندنا توزيع منفصل لكل طول جملة، والتمرين ٣٫٥ يطلب إثبات ذلك.) اضغط أي كلمة في الجدول لترى حسابها:</p>
+  <div class="w" id="labBox"><div class="cap">مختبر الـ bigram: درّب نموذجاً على نصّك</div>
+    <div class="row" style="margin-bottom:8px"><button class="btn" data-lab="sam">مدوّنة I am Sam</button><button class="btn" data-lab="sam2">مدوّنة التمارين ٣٫٤ و٣٫٧</button><button class="btn" data-lab="ar">مدوّنة عربية</button></div>
+    <textarea id="labIn" class="txt" dir="auto" style="min-height:84px"></textarea>
+    <p class="note" style="margin:4px 0 8px">كل سطر جملة. يُضاف &lt;s&gt; و&lt;/s&gt; تلقائياً.</p>
+    <div class="row"><label class="note" for="labPrev">الكلمة السابقة</label><select id="labPrev"></select><label class="note" for="labMode">طريقة التقدير</label>
+      <select id="labMode"><option value="mle">MLE (بلا تنعيم)</option><option value="laplace">لابلاس (أضف ١)</option><option value="addk">أضف k</option><option value="interp">استيفاء خطي</option><option value="backoff">التراجع الغبي</option></select></div>
+    <div class="row" id="labParams" style="margin-top:8px"></div>
+    <div class="sub-h">احتمال كل كلمة بعد «<span id="labPrevName"></span>»</div>
+    <div class="bars" id="labBars"></div>
+    <div class="calc" id="labCalc" style="margin-top:8px"></div>
+    <p class="note" id="labNote" style="margin:6px 0 0"></p></div>
+
+  <h3>التكرار النسبي هو «الإمكان الأعظم»</h3>
+  <p>لماذا الاسم؟ لنفترض أن كلمة Chinese ظهرت ٤٠٠ مرة في مدوّنة من مليون كلمة. تقديرنا لاحتمالها ٤٠٠ ÷ ١٬٠٠٠٬٠٠٠ = ٠٫٠٠٠٤. قد لا يكون هذا أفضل تقدير لكل النصوص، لكنه <b>الاحتمال الذي يجعل ظهورها ٤٠٠ مرة في مليون كلمة أرجح ما يكون</b>. أي إن قيم MLE تجعل بيانات التدريب T أرجح ما يمكن تحت النموذج M، وهذا ما تعنيه <code>P(T|M)</code>.</p>
+
+  <h3>مثال حقيقي: مشروع مطاعم بيركلي</h3>
+  <p>نظام حوار قديم كان يجيب عن أسئلة حول مطاعم مدينة بيركلي، ومدوّنته ٩٣٣٢ جملة ومفرداتها V = ١٤٤٦ كلمة. والجدول التالي لثماني كلمات منها. <b>اقرأه هكذا:</b> الصف هو الكلمة الأولى، والعمود هو الكلمة التالية. فالخانة (صف i، عمود want) تعني أن want جاءت بعد i ‏٨٢٧ مرة.</p>
+  <div class="w"><div class="cap">جداول بيركلي (الأشكال ٣٫١ و٣٫٢ و٣٫٦ إلى ٣٫٨)</div>
+    <div class="row" id="brTabs"><button class="btn" data-v="count">العدّ (٣٫١)</button><button class="btn" data-v="mle">الاحتمال MLE (٣٫٢)</button><button class="btn" data-v="lap">لابلاس (٣٫٧)</button><button class="btn" data-v="cstar">العدّ المعاد بناؤه (٣٫٨)</button></div>
+    <div class="row" id="brK" style="margin-top:8px"></div>
+    <div class="scroll" style="margin-top:10px"><div id="brTable"></div></div>
+    <div class="calc" id="brCalc" style="margin-top:8px">اضغط أي خانة لترى حسابها.</div></div>
+  <p>لاحظ أن <b>أغلب الخانات صفر</b>، مع أن الكلمات الثماني اختيرت لتترابط. ومن الجدول نحسب احتمال جملة بضرب احتمالات أزواجها، مع بعض الاحتمالات الإضافية من الكتاب: <code>P(i|&lt;s&gt;) = 0.25</code> و<code>P(english|want) = 0.0011</code> و<code>P(food|english) = 0.5</code> و<code>P(&lt;/s&gt;|food) = 0.68</code>:</p>
+  <div class="calc">P(&lt;s&gt; i want english food &lt;/s&gt;)
+  = P(i|&lt;s&gt;) × P(want|i) × P(english|want) × P(food|english) × P(&lt;/s&gt;|food)
+  = 0.25 × 0.33 × 0.0011 × 0.5 × 0.68
+  = 0.000031</div>
+  <p>والتمرين ٣٫٢ يطلب حساب <span class="ltr en">i want chinese food</span>: جرّبه بنفسك من الجدول (الاحتمال P(chinese|want) في صف want).</p>
+  <p><b>ماذا تلتقط هذه الأرقام؟</b> بعضها حقائق نحوية: بعد eat يأتي غالباً اسم أو صفة، وبعد to يأتي غالباً فعل. وبعضها خاص بالمهمة: الجمل تبدأ كثيراً بـ i لأنها طلبات لمساعد. وبعضها ثقافي: الناس يبحثون عن الطعام الصيني أكثر من الإنجليزي.</p>
+
+  <h3>٣٫١٫٣ · التعامل مع الحجم</h3>
+  <p><b>لوغاريتمات الاحتمالات:</b> النماذج لا تخزّن الاحتمالات ولا تضربها، بل تستخدم <span class="t">لوغاريتماتها <i>log probabilities</i></span> وتجمعها. السبب أن الاحتمالات أصغر من ١، وكلما ضربنا أكثر صغر الناتج، حتى يصبح أصغر مما يستطيع الحاسوب تمثيله فيتحوّل إلى صفر. وهذا اسمه <b>انهيار القيمة نحو الصفر</b> <span class="en">(underflow)</span>.</p>
+  <div class="math"><div class="mh"><span class="sym">log</span>مفهوم رياضي · اللوغاريتم من الصفر</div><div class="mb">
+    <p><b>اللوغاريتم يجيب عن سؤال: «كم مرة أضرب الأساس في نفسه لأصل إلى هذا الرقم؟»</b> مثلاً log<sub>10</sub> 1000 = 3 لأن 10 × 10 × 10 = 1000. وlog<sub>2</sub> 8 = 3 لأن 2 × 2 × 2 = 8.</p>
+    <ul class="clean">
+      <li><b>الأرقام الأصغر من ١ لوغاريتمها سالب:</b> log<sub>10</sub> 0.01 = −2 لأن 0.01 = 1 ÷ (10 × 10). فلوغاريتم الاحتمال دائماً صفر أو سالب.</li>
+      <li><b>الخاصية السحرية: لوغاريتم حاصل الضرب = مجموع اللوغاريتمات.</b> log(a × b) = log a + log b. مثال: log<sub>10</sub>(100 × 1000) = log<sub>10</sub> 100000 = 5، وlog<sub>10</sub> 100 + log<sub>10</sub> 1000 = 2 + 3 = 5.</li>
+      <li>ولنعود من اللوغاريتم إلى الرقم نستخدم العملية العكسية: <b>الأُس</b> <code>exp</code>.</li>
+    </ul>
+    <div class="eq">p<sub>1</sub> × p<sub>2</sub> × p<sub>3</sub> × p<sub>4</sub> = exp( log p<sub>1</sub> + log p<sub>2</sub> + log p<sub>3</sub> + log p<sub>4</sub> ) &nbsp;&nbsp; (3.13)</div>
+    <p>والكتاب يقصد بـ <code>log</code> بلا أساس <b>اللوغاريتم الطبيعي</b> (ln)، وأساسه العدد <b>e ≈ 2.718</b>، وهو ثابت رياضي يظهر طبيعياً في النمو والاحتمالات. والقواعد نفسها تنطبق على أي أساس.</p>
+    <div class="w"><div class="cap">جرّب: اضرب احتمالات كثيرة صغيرة</div>
+      <div class="row" style="gap:22px"><label class="note">الاحتمال p = <b class="mono" id="ufPo"></b><br><input type="range" id="ufP" min="0.001" max="0.5" step="0.001" value="0.01"></label>
+      <label class="note">عدد الكلمات n = <b class="mono" id="ufNo"></b><br><input type="range" id="ufN" min="10" max="400" step="10" value="200"></label></div>
+      <div class="calc" id="ufCalc" style="margin-top:8px"></div>
+      <p class="note" style="margin:6px 0 0">حين يصبح حاصل الضرب أصغر من نحو 10<sup>−324</sup>، يكتبه الحاسوب صفراً. أما مجموع اللوغاريتمات فيبقى رقماً عادياً يمكن مقارنته.</p></div>
+  </div></div>
+  <p><b>سياق أطول:</b> مع بيانات كافية نستخدم trigram أو 4-gram أو 5-gram. وعند بداية الجملة نضيف رمزي بداية: <code>P(I|&lt;s&gt;&lt;s&gt;)</code>. ومن مجموعات الـ N-gram الكبيرة: أكثر مليون N-gram من مدوّنة COCA (مليار كلمة)، ومجموعة Google لـ 5-grams من تريليون كلمة، وGoogle Books Ngrams بثمان لغات. بل يسمح مشروع <b>infini-gram</b> بـ N-gram بأي طول على ٥ تريليونات رمز، بحساب الاحتمالات وقت الاستخدام ببنية فعّالة اسمها «مصفوفات اللواحق» بدل تخزين جداول ضخمة.</p>
+  <p><b>الكفاءة:</b> تُخزَّن الاحتمالات بـ٤ إلى ٨ بِتات بدل ٨ بايتات، والكلمات برقم «تجزئة» من ٦٤ بِتاً، وتُحذف الـ N-grams النادرة. وأدوات مثل KenLM تبني الجداول بأقل عدد من المرور على المدوّنة.</p>
+</section>
+
+<!-- ============ 3.2 ============ -->
+<section class="sec" id="s3-2">
+  <header><div class="kicker">القسم ٣٫٢ <span class="pg">p. 74</span></div><h2>تقييم النماذج: مجموعات التدريب والاختبار</h2></header>
+  <div class="brief"><b>باختصار</b>نقسم البيانات ثلاثة أقسام: تدريب نتعلم منه، وتطوير نجرّب عليه كثيراً، واختبار نقيس عليه مرة واحدة في النهاية. والنموذج الأفضل هو الذي يعطي نص الاختبار احتمالاً أعلى. وتسرّب نص الاختبار إلى التدريب يفسد القياس.</div>
+  <div class="terms"><span>تقييم خارجي <i>extrinsic</i></span><span>تقييم داخلي <i>intrinsic</i></span><span>مجموعة التدريب <i>training set</i></span><span>مجموعة التطوير <i>devset</i></span><span>مجموعة الاختبار <i>test set</i></span><span>تلوّث البيانات <i>data contamination</i></span></div>
+  <p>أفضل طريقة لتقييم نموذج لغوي أن نضعه داخل تطبيق حقيقي ونقيس تحسّن التطبيق: نشغّل نظام التعرّف على الكلام مرتين بنموذجين مختلفين، ونرى أيهما أدق. هذا <b>تقييم خارجي</b> <span class="en">(extrinsic)</span>، وهو الطريقة الوحيدة لنعرف هل التحسين مفيد فعلاً. لكنه مكلف. لذلك نستخدم أيضاً <b>تقييماً داخلياً</b> <span class="en">(intrinsic)</span> يقيس جودة النموذج وحده، وأشهره الحيرة (القسم التالي).</p>
+  <div class="w"><div class="cap">تقسيم البيانات</div>
+    <div class="split"><span style="flex:80;background:var(--green-soft);color:var(--green)">التدريب ~٨٠٪<small>نتعلم منه العدّ والاحتمالات</small></span><span style="flex:10;background:var(--amber-soft);color:var(--amber)">التطوير<small>نجرّب عليه</small></span><span style="flex:10;background:var(--rose-soft);color:var(--rose)">الاختبار<small>مرة واحدة</small></span></div>
+    <p class="note" style="margin:6px 0 0">النسب هنا للتوضيح. الكتاب لا يحدد نسبة، بل يطلب أكبر مجموعة اختبار ممكنة مع بيانات تدريب كافية.</p></div>
+  <ul class="clean">
+    <li><b>مجموعة التدريب:</b> نتعلم منها معاملات النموذج. في N-gram: نعدّ فيها ونحوّل العدّ إلى احتمالات.</li>
+    <li><b>مجموعة الاختبار:</b> بيانات منفصلة لا تتداخل مع التدريب. نقيس عليها لنعرف هل <b>يعمّم</b> النموذج على نص جديد. فنموذج يحفظ التدريب حرفياً ويفشل في غيره لا فائدة منه.</li>
+    <li><b>مجموعة التطوير</b> <span class="en">(devset)</span>: إذا جرّبنا على الاختبار مرات كثيرة بعد كل تعديل، سنضبط النموذج عليه دون أن ننتبه. لذلك نجرّب كل شيء على مجموعة التطوير، ونقيس على الاختبار مرة واحدة أو مرات قليلة في النهاية. ويجب أن تشبه مجموعة التطوير مجموعة الاختبار.</li>
+  </ul>
+  <p><b>ماذا نختار للاختبار؟</b> نصاً يشبه ما سيُستخدم فيه النموذج: محاضرات كيمياء لنظام يفرّغ محاضرات الكيمياء، وطلبات حجز فنادق لنظام يترجمها. ولنموذج عام: نصوص متنوعة، بشرط ألا يأتي الاختبار كله من وثيقة واحدة أو كاتب واحد.</p>
+  <p><b>ما معنى «أفضل على الاختبار»؟</b> النموذج الذي يعطي نص الاختبار <b>احتمالاً أعلى</b>، لأنه يتنبأ بتفاصيله أدق. ولذلك يجب ألا تتسرب جمل الاختبار إلى التدريب، وإلا أعطاها النموذج احتمالاً مرتفعاً مصطنعاً. وهذا <span class="t">تلوّث البيانات <i>data contamination</i></span> الذي رأيناه في الفصل الأول.</p>
+  <p><b>كم حجم الاختبار؟</b> نريده كبيراً لأن الصغير قد لا يمثّل البيانات صدفةً، ونريد بيانات تدريب كثيرة أيضاً. وأقل حد: أصغر مجموعة تكفي لقياس فرق «دال إحصائياً» بين نموذجين، أي فرق لا يُرجَّح أن يكون صدفة.</p>
+</section>
+
+<!-- ============ 3.3 ============ -->
+<section class="sec" id="s3-3">
+  <header><div class="kicker">القسم ٣٫٣ <span class="pg">p. 76</span></div><h2>الحيرة</h2></header>
+  <div class="brief"><b>باختصار</b>الحيرة مقلوب احتمال نص الاختبار، مأخوذاً له الجذر بعدد كلماته حتى لا يتأثر بالطول. كلما قلّت كان النموذج أفضل. ويمكن فهمها «كأن النموذج يختار في كل خطوة بين هذا العدد من الكلمات بالتساوي».</div>
+  <div class="terms"><span>الحيرة <i>perplexity · PP · PPL</i></span><span>المتوسط الهندسي <i>geometric mean</i></span><span>معامل التفرّع <i>branching factor</i></span></div>
+  <p>النموذج الأفضل أقل «تفاجؤاً» بكلمات الاختبار، فيعطيها احتمالات أعلى. والنموذج المثالي يعطي كل كلمة صحيحة احتمال ١. لكننا لا نستخدم الاحتمال الخام، لأنه يصغر كلما طال النص (رأينا ذلك في الفصل الأول). نحتاج مقياساً <b>لكل كلمة</b>، وهو <span class="t">الحيرة <i>perplexity</i></span>:</p>
+  <div class="eq">perplexity(W) = P(w<sub>1</sub> w<sub>2</sub> … w<sub>N</sub>)<sup class="c">−1/N</sup> = <span class="c">ᴺ√</span>( 1 ÷ P(w<sub>1</sub> w<sub>2</sub> … w<sub>N</sub>) ) &nbsp;&nbsp; (3.14)</div>
+  <div class="math"><div class="mh"><span class="sym">x⁻¹ᐟᴺ</span>مفهوم رياضي · المقلوب، والأس السالب، والجذر النوني</div><div class="mb">
+    <ol class="steps">
+      <li><b>المقلوب:</b> مقلوب الرقم واحد مقسوماً عليه. مقلوب ٤ هو ¼، ومقلوب ٠٫٢٥ هو ٤. والأس <b>السالب</b> يعني «خذ المقلوب»: <code>x<sup>−1</sup> = 1/x</code>. فالحيرة مقلوب الاحتمال، ولذلك <b>الاحتمال العالي يعطي حيرة منخفضة</b>.</li>
+      <li><b>الجذر النوني:</b> الجذر التربيعي يسأل «أي رقم مضروب في نفسه مرتين يعطي هذا؟». والجذر النوني <code>ᴺ√</code> يسأل «أي رقم مضروب في نفسه <b>N مرة</b> يعطي هذا؟». مثلاً الجذر الثالث لـ ٨ هو ٢، لأن ٢ × ٢ × ٢ = ٨. والأس الكسري <code>x<sup>1/N</sup></code> طريقة أخرى لكتابة الجذر النوني.</li>
+      <li><b>لماذا الجذر؟</b> احتمال النص حاصل ضرب N احتمالاً. والجذر النوني «يفك» هذا الضرب ويعطينا الاحتمال «النموذجي» لكلمة واحدة. هذا اسمه <b>المتوسط الهندسي</b>: المتوسط العادي يجمع ثم يقسم، والهندسي يضرب ثم يأخذ الجذر. المتوسط الهندسي لـ ٢ و٨ هو √(٢ × ٨) = √١٦ = ٤.</li>
+    </ol>
+    <p>وبقاعدة السلسلة نفكّ احتمال النص إلى احتمالات كلماته. وفي نموذج bigram:</p>
+    <div class="eq">perplexity(W) = ᴺ√( ∏<sub>i=1..N</sub> 1 ÷ P(w<sub>i</sub> | w<sub>i−1</sub>) ) &nbsp;&nbsp; (3.17)</div>
+  </div></div>
+  <p>ولماذا المقلوب بالذات؟ يأتي ذلك من تعريف الحيرة في نظرية المعلومات (القسم ٣٫٧). ويكفي الآن أن نتذكر: <b>الحيرة الأقل = نموذج أفضل</b>، وتقليل الحيرة يساوي رفع احتمال نص الاختبار.</p>
+  <p>وعند حساب الحيرة على نص فيه جمل كثيرة نضمّن رموز النهاية &lt;/s&gt; في العدّ N، ولا نضمّن رموز البداية &lt;s&gt;، لأن الانتقال من نهاية جملة إلى بداية التي تليها شبه مؤكد ولا نريده أن يؤثر.</p>
+  <p><b>مثال حقيقي:</b> نماذج دُرّبت على ٣٨ مليون كلمة من صحيفة وول ستريت جورنال، واختُبرت على ١٫٥ مليون كلمة:</p>
+  <table class="tb" style="max-width:420px"><tr><th>النموذج</th><th>الحيرة</th></tr><tr><td>Unigram</td><td class="num">962</td></tr><tr><td>Bigram</td><td class="num">170</td></tr><tr><td>Trigram</td><td class="num">109</td></tr></table>
+  <p>كلما زاد السياق الذي يراه النموذج قلّ تفاجؤه. وتنبيهات مهمة: يجب بناء النموذج دون أي معرفة بنص الاختبار، ولا تُقارن الحيرة بين نموذجين إلا إذا كانت مفرداتهما متطابقة. وتحسّن الحيرة (داخلي) لا يضمن تحسّن المهمة (خارجي)، لكنهما مرتبطان عادة، لذلك نستخدم الحيرة للسرعة ونتأكد بالتقييم الخارجي حين نستطيع.</p>
+
+  <h3>٣٫٣٫١ · الحيرة كمعامل تفرّع موزون</h3>
+  <p><b>معامل التفرّع</b> لِلُغة: عدد الكلمات التي يمكن أن تأتي بعد أي كلمة. لغة مصطنعة فيها ثلاث كلمات فقط {red, blue, green} وأي كلمة تأتي بعد أي كلمة: معامل تفرّعها ٣. الآن نموذجان على نص الاختبار <span class="ltr mono">red red red red blue</span>:</p>
+  <ul class="clean">
+    <li><b>النموذج A:</b> كل لون احتماله ⅓. الحيرة = ((⅓)<sup>5</sup>)<sup>−1/5</sup> = (⅓)<sup>−1</sup> = <b>٣</b>. أي تساوي معامل التفرّع تماماً.</li>
+    <li><b>النموذج B:</b> P(red) = 0.8 وP(green) = 0.1 وP(blue) = 0.1. احتمال النص 0.8<sup>4</sup> × 0.1 = 0.04096، والحيرة 0.04096<sup>−1/5</sup> = <b>١٫٨٩</b>. معامل التفرّع ما زال ٣، لكن «التفرّع الموزون» أقل، لأن الأحمر متوقع جداً.</li>
+  </ul>
+  <div class="w"><div class="cap">احسب الحيرة بنفسك</div>
+    <div class="row" style="gap:22px" id="ppSliders"></div>
+    <div class="row" style="margin-top:10px"><label class="note" for="ppTest">نص الاختبار:</label><input type="text" id="ppTest" value="red red red red blue" dir="ltr" style="flex:1;min-width:200px"></div>
+    <div class="row" style="margin-top:6px"><button class="btn" data-pp="0.3333,0.3333,0.3334">النموذج A</button><button class="btn" data-pp="0.8,0.1,0.1">النموذج B</button></div>
+    <div class="calc" id="ppCalc" style="margin-top:8px"></div></div>
+</section>
+
+<!-- ============ 3.4 ============ -->
+<section class="sec" id="s3-4">
+  <header><div class="kicker">القسم ٣٫٤ <span class="pg">p. 78</span></div><h2>أخذ عيّنات من نموذج لغوي</h2></header>
+  <div class="brief"><b>باختصار</b>لنرى ما تعلّمه النموذج نجعله يولّد جملاً عشوائية بحسب احتمالاته. نضع الكلمات على مسطرة من ٠ إلى ١، لكل كلمة قطعة بطول احتمالها، ونرمي رقماً عشوائياً. ومع الـ bigram نختار كل كلمة بحسب الكلمة التي قبلها.</div>
+  <p>«أخذ عيّنة» من توزيع يعني اختيار نقاط عشوائية بحسب احتمالها. وأخذ عيّنة من نموذج لغوي يعني توليد جمل، كل جملة بحسب احتمالها في النموذج. وهذه طريقة لـ«رؤية» ما يعرفه النموذج، اقترحها شانون منذ ١٩٤٨. وقد رأيناها في الفصل الأول بالمسطرة.</p>
+  <div class="math"><div class="mh"><span class="sym">∑…</span>مفهوم رياضي · الاحتمال التراكمي</div><div class="mb">
+    <p>في الشكل ٣٫٣ رتّب المؤلفان كلمات الكتاب من الأكثر تكراراً، ووضعا تحت المسطرة أرقاماً تراكمية: the تأخذ القطعة من 0 إلى 0.06، ثم of من 0.06 إلى 0.09، ثم a إلى 0.11، وهكذا. <b>الرقم التراكمي</b> عند كلمة = مجموع احتمالات كل الكلمات قبلها وهي معها. وآخر رقم دائماً ١ لأن مجموع الاحتمالات ١.</p>
+    <p>فإذا كان الرقم العشوائي 0.07 فهو بين 0.06 و0.09، أي في قطعة of. وكلمة نادرة مثل polyphonic (احتمالها 0.0000018) قطعتها شبه معدومة، فنادراً ما تُختار.</p>
+  </div></div>
+  <p>وللـ bigram: نختار أولاً زوجاً يبدأ بـ &lt;s&gt; بحسب احتماله، ولتكن كلمته الثانية w. ثم نختار زوجاً يبدأ بـ w، وهكذا حتى نصل إلى &lt;/s&gt;. جرّب المولّد في القسم التالي.</p>
+</section>
+
+<!-- ============ 3.5 ============ -->
+<section class="sec" id="s3-5">
+  <header><div class="kicker">القسم ٣٫٥ <span class="pg">p. 79</span></div><h2>التعميم مقابل الإفراط في ملاءمة التدريب</h2></header>
+  <div class="brief"><b>باختصار</b>كلما زاد N صارت الجمل المولّدة أكثر تماسكاً، لكنها حين تكون المدوّنة صغيرة تبدأ بنسخ نص التدريب حرفياً. والنموذج المدرّب على نوع من النص لا يصلح لنوع مختلف تماماً. فيجب أن يشبه التدريب ما سيُستخدم فيه النموذج، نوعاً ولهجةً.</div>
+  <div class="terms"><span>التعميم <i>generalization</i></span><span>الإفراط في الملاءمة <i>overfitting</i></span><span>التشتّت <i>sparsity</i></span></div>
+  <p>نموذج N-gram يعتمد على مدوّنة تدريبه، وكلما زاد N أجاد نمذجتها. والشكل ٣٫٤ يعرض جملاً ولّدتها نماذج دُرّبت على أعمال شكسبير:</p>
+  <div class="scroll"><table class="tb"><tr><th>النموذج</th><th>جملة مولّدة (من الشكل ٣٫٤)</th></tr>
+    <tr><td>1-gram</td><td class="en" style="text-align:left">To him swallowed confess hear both. Which. Of save on trail for are ay device and rote life have</td></tr>
+    <tr><td>2-gram</td><td class="en" style="text-align:left">What means, sir. I confess she? then all sorts, he is trim, captain.</td></tr>
+    <tr><td>3-gram</td><td class="en" style="text-align:left">This shall forbid it should be branded, if renown made it empty.</td></tr>
+    <tr><td>4-gram</td><td class="en" style="text-align:left">It cannot be but so.</td></tr></table></div>
+  <p>الـ unigram بلا أي علاقة بين الكلمات. والـ bigram فيه تماسك محلي بين كل كلمتين. والـ trigram يبدأ يشبه شكسبير. والـ 4-gram <b>يشبه شكسبير أكثر من اللازم</b>: جملة «It cannot be but so» منسوخة حرفياً من مسرحية «الملك جون». السبب أن أعمال شكسبير مدوّنة صغيرة (N = ٨٨٤٬٦٤٧ وV = ٢٩٬٠٦٦)، فجداول الاحتمالات <b>متشتتة</b> جداً: بعد «It cannot be» لا توجد إلا ست كلمات ممكنة.</p>
+  <div class="math"><div class="mh"><span class="sym">V⁴</span>مفهوم رياضي · لماذا تنفجر الأعداد</div><div class="mb">
+    <p>كم bigram ممكن؟ لكل كلمة أولى V خيار، ولكل كلمة ثانية V خيار، فالعدد V × V = V<sup>2</sup>. ومع V = ٢٩٬٠٦٦ يصبح نحو ٨٤٤ مليون زوج ممكن، بينما المدوّنة كلها أقل من مليون كلمة! وعدد الـ 4-grams الممكنة V<sup>4</sup> ≈ 7 × 10<sup>17</sup>.</p>
+    <p>والتدوين <code>7 × 10<sup>17</sup></code> اسمه <b>التدوين العلمي</b>: 10<sup>17</sup> واحد وأمامه ١٧ صفراً، فالعدد ٧٠٠ ألف تريليون تقريباً. فمعظم الاحتمالات مستحيلة التقدير لأننا لم نرَ أغلب التسلسلات أبداً.</p>
+  </div></div>
+  <div class="w"><div class="cap">مولّد N-gram: درّبه على سونيتات شكسبير أو على نصّك</div>
+    <div class="row" style="margin-bottom:8px"><button class="btn" data-gen="shk">أربع سونيتات لشكسبير</button><button class="btn" data-gen="lab">مدوّنة المختبر فوق</button><button class="btn" data-gen="own">نصّي الخاص</button></div>
+    <textarea id="genIn" class="txt" dir="auto" style="min-height:90px" hidden></textarea>
+    <div class="row"><span class="note">رتبة النموذج:</span><span class="seg" id="genN"><button data-n="1">1-gram</button><button data-n="2">2-gram</button><button data-n="3">3-gram</button><button data-n="4">4-gram</button></span></div>
+    <div class="ctx gen-out" id="genOut" dir="auto"></div>
+    <div class="row"><button class="btn pri" id="genStep">الكلمة التالية</button><button class="btn" id="genAll">أكمل الجملة</button><button class="btn" id="genNew">جملة جديدة</button></div>
+    <div class="sub-h" id="genDistH">التوزيع الحالي ومسطرته التراكمية</div>
+    <div class="nl" id="genNL"></div>
+    <div class="bars" id="genBars"></div>
+    <p class="note" id="genNote" style="margin:6px 0 0"></p></div>
+  <p><b>الاعتماد على نوع النص:</b> نماذج دُرّبت على ٤٠ مليون كلمة من وول ستريت جورنال تولّد جملاً مثل <span class="ltr en">They also point to ninety nine point six billion dollars from two hundred four oh six three percent of the rates of interest…</span>. كلاهما «إنجليزي»، لكن لا تداخل تقريباً بين ما يولّده نموذج شكسبير ونموذج الصحيفة، ولا حتى في العبارات القصيرة. فالنماذج الإحصائية شبه عديمة الفائدة إذا اختلف التدريب والاختبار بهذا القدر.</p>
+  <p>الحل: مدوّنة تدريب من <b>نوع</b> المهمة نفسه (وثائق قانونية لترجمة القانون، وأسئلة لنظام أسئلة وأجوبة)، ومن <b>اللهجة</b> المناسبة أيضاً. فتغريدات بإنجليزية المجتمعات الأمريكية الأفريقية فيها كلمات مثل <span class="ltr en">finna</span> (للمستقبل القريب) وتهجئات مثل <span class="ltr en">den</span> بدل <span class="ltr en">then</span>، وتغريدات بالبِدجن النيجيري لها مفردات وأنماط مختلفة تماماً.</p>
+  <p><b>وماذا عن كلمة لم تظهر أبداً في التدريب</b>، مثل Jurafsky؟ لأننا نعمل على <b>رموز BPE</b> لا كلمات (الفصل ٢)، فأي كلمة تُكتب برموز معروفة، حرفاً حرفاً عند الضرورة. فمفردات النموذج مجموعة رموز، ولا يحتوي الاختبار رمزاً مجهولاً أبداً.</p>
+</section>
+
+<!-- ============ 3.6 ============ -->
+<section class="sec" id="s3-6">
+  <header><div class="kicker">القسم ٣٫٦ <span class="pg">p. 81</span></div><h2>التنعيم والاستيفاء والتراجع</h2></header>
+  <div class="brief"><b>باختصار</b>أي تسلسل لم يظهر في التدريب يأخذ احتمال صفر، فيصير احتمال النص كله صفراً ولا تُحسب الحيرة. والتنعيم يقتطع قليلاً من احتمال الأحداث المرئية ويعطيه لغير المرئية. أبسطه «أضف ١» (لابلاس)، ثم «أضف k»، ثم الاستيفاء بين الـ N-grams المختلفة، ثم «التراجع الغبي».</div>
+  <div class="terms"><span>الأصفار <i>zeros</i></span><span>التنعيم <i>smoothing</i></span><span>الخصم <i>discounting</i></span><span>لابلاس <i>Laplace / add-one</i></span><span>الاستيفاء <i>interpolation</i></span><span>التراجع <i>backoff</i></span></div>
+  <p>أي مدوّنة محدودة ستفتقد تسلسلات إنجليزية مقبولة تماماً. ربما فيها ruby وفيها slippers لكن ليس فيها <span class="ltr en">ruby slippers</span>. هذه <span class="t">الأصفار <i>zeros</i></span> مشكلة لسببين: نقلّل احتمال تسلسلات قد تأتي فعلاً، و<b>إذا كان احتمال أي كلمة في الاختبار صفراً صار احتمال النص كله صفراً</b> (لأن أي رقم × صفر = صفر)، والحيرة مقلوب الاحتمال، و<b>القسمة على صفر مستحيلة</b>.</p>
+  <p>والحل <span class="t">التنعيم <i>smoothing</i></span> أو <span class="t">الخصم <i>discounting</i></span>: نأخذ قليلاً من «كتلة الاحتمال» من الأحداث المتكررة ونعطيه لما لم يُرَ.</p>
+
+  <h3>٣٫٦٫١ · تنعيم لابلاس (أضف واحداً)</h3>
+  <p>الفكرة الأبسط: <b>أضف ١ إلى كل عدّ</b> قبل التحويل إلى احتمالات. الأصفار تصبح ١، والواحد يصبح ٢، وهكذا. لا يصلح للنماذج اللغوية الحديثة، لكنه يقدّم المفاهيم، ومفيد في مهام أخرى مثل تصنيف النصوص.</p>
+  <div class="eq">P<sub>Laplace</sub>(w<sub>i</sub>) = (c<sub>i</sub> + 1) ÷ (N + V) &nbsp;&nbsp;&nbsp;&nbsp; P<sub>Laplace</sub>(w<sub>n</sub>|w<sub>n−1</sub>) = (C(w<sub>n−1</sub>w<sub>n</sub>) + 1) ÷ (C(w<sub>n−1</sub>) + V) &nbsp;&nbsp; (3.24, 3.26)</div>
+  <div class="math"><div class="mh"><span class="sym">+V</span>مفهوم رياضي · لماذا نضيف V إلى المقام؟</div><div class="mb">
+    <p>في الكسر، الرقم العلوي اسمه <b>البسط</b> والسفلي <b>المقام</b>. أضفنا ١ إلى بسط كل كلمة من V كلمة. فإذا لم نغيّر المقام صار مجموع الاحتمالات أكبر من ١، وهذا لا يجوز.</p>
+    <p>تحقق بمثال صغير: ثلاث كلمات عدّها ٣ و١ و٠، والمجموع N = ٤. بعد إضافة ١: ٤ و٢ و١، ومجموعها ٧ = N + V = ٤ + ٣. فالاحتمالات ٤/٧ و٢/٧ و١/٧، ومجموعها ٧/٧ = ١. أضفنا V واحداً للمقام لأننا أضفنا V واحداً للبسوط.</p>
+  </div></div>
+  <p>وطريقة مفيدة لرؤية أثر التنعيم: <b>العدّ المعاد بناؤه</b> <code>C*</code>، أي «العدّ الذي لو قسمناه على المقام الأصلي لأعطانا الاحتمال المنعَّم»:</p>
+  <div class="eq">C*(w<sub>n−1</sub>w<sub>n</sub>) = [C(w<sub>n−1</sub>w<sub>n</sub>) + 1] × C(w<sub>n−1</sub>) ÷ (C(w<sub>n−1</sub>) + V) &nbsp;&nbsp; (3.27)</div>
+  <p>افتح تبويب «العدّ المعاد بناؤه» في جدول بيركلي فوق: <code>C(want to)</code> نزل من ٦٠٨ إلى ٢٣٨، و<code>P(to|want)</code> من ٠٫٦٦ إلى ٠٫٢٦. و<b>الخصم</b> d، أي نسبة العدّ الجديد إلى القديم، لـ <span class="ltr en">want to</span> هو ٠٫٣٩، ولـ <span class="ltr en">Chinese food</span> ‏٠٫١٠، أي عُشر العدّ الأصلي! السبب أن كتلة احتمال كبيرة جداً ذهبت إلى كل الأصفار: كل صف فيه ١٤٤٦ خانة معظمها صفر.</p>
+
+  <h3>٣٫٦٫٢ · تنعيم «أضف k»</h3>
+  <p>بديل ينقل كتلة أقل: نضيف كسراً k (٠٫٥؟ ٠٫٠١؟) بدل ١:</p>
+  <div class="eq">P<sub>Add-k</sub>(w<sub>n</sub>|w<sub>n−1</sub>) = (C(w<sub>n−1</sub>w<sub>n</sub>) + k) ÷ (C(w<sub>n−1</sub>) + kV) &nbsp;&nbsp; (3.28)</div>
+  <p>ونختار k بتجربته على مجموعة التطوير. ومنزلق k في جدول بيركلي يريك أثره: k = ١ هو لابلاس، وk = ٠ هو MLE. ومع ذلك لا يعمل جيداً للنمذجة اللغوية، فهو يعطي خصومات غير مناسبة.</p>
+
+  <h3>٣٫٦٫٣ · الاستيفاء</h3>
+  <p>مصدر آخر للمعرفة: إذا لم نرَ trigram معيّناً، نستعين بالـ bigram، وإن لم نرَه فبالـ unigram. أحياناً <b>سياق أقل يعمّم أفضل</b>. وأشهر طريقة <span class="t">الاستيفاء الخطي <i>linear interpolation</i></span>: نخلط الثلاثة بأوزان λ:</p>
+  <div class="eq">P̂(w<sub>n</sub>|w<sub>n−2</sub>w<sub>n−1</sub>) = λ<sub>1</sub>P(w<sub>n</sub>) + λ<sub>2</sub>P(w<sub>n</sub>|w<sub>n−1</sub>) + λ<sub>3</sub>P(w<sub>n</sub>|w<sub>n−2</sub>w<sub>n−1</sub>) &nbsp;&nbsp; (3.29)</div>
+  <div class="math"><div class="mh"><span class="sym">λ</span>مفهوم رياضي · المتوسط الموزون</div><div class="mb">
+    <p>λ (لامدا) أوزان <b>مجموعها ١</b>، فالمعادلة <b>متوسط موزون</b>: كل تقدير يساهم بقدر وزنه. مثال: درجتك النهائية = ٠٫٣ × الاختبار الأول + ٠٫٧ × النهائي. إذا حصلت على ٦٠ و٩٠: ٠٫٣ × ٦٠ + ٠٫٧ × ٩٠ = ١٨ + ٦٣ = ٨١. ولأن الأوزان مجموعها ١، تبقى النتيجة بين أصغر الدرجات وأكبرها، فيبقى الاحتمال الناتج احتمالاً صحيحاً.</p>
+  </div></div>
+  <p>وفي نسخة أذكى تعتمد قيم λ على السياق: إذا كانت عدّات bigram معيّن دقيقة، نثق أكثر بالـ trigrams المبنية عليه ونعطيها وزناً أكبر. وتُتعلَّم قيم λ من <b>مدوّنة محجوزة</b> <span class="en">(held-out)</span>: بيانات تدريب إضافية نحجزها جانباً، فنثبّت احتمالات الـ N-grams ونبحث عن قيم λ التي تعطي المحجوز أعلى احتمال، بخوارزمية مثل EM. (وهذه القيم التي تُضبط على بيانات محجوزة اسمها «معاملات فائقة»، ويأتي شرحها في الفصل ٦.) جرّب الاستيفاء في مختبر الـ bigram فوق: اختر «استيفاء خطي» وحرّك λ.</p>
+
+  <h3>٣٫٦٫٤ · التراجع الغبي</h3>
+  <p>بديل الاستيفاء هو <span class="t">التراجع <i>backoff</i></span>: إذا كان عدّ الـ N-gram صفراً «نتراجع» إلى (N−1)-gram، وهكذا حتى نجد عدّاً. وليبقى ذلك توزيعاً صحيحاً يجب خصم الـ N-grams العليا. لكن عملياً يُستخدم أبسط منه: <span class="t">التراجع الغبي <i>stupid backoff</i></span>، الذي يتخلى عن فكرة التوزيع الصحيح، فيسمي الناتج «درجة» S لا احتمالاً:</p>
+  <div class="eq" style="text-align:left">S(w<sub>i</sub>|w<sub>i−N+1:i−1</sub>) = { count(w<sub>i−N+1:i</sub>) ÷ count(w<sub>i−N+1:i−1</sub>) &nbsp;&nbsp;if count(w<sub>i−N+1:i</sub>) &gt; 0<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ λ · S(w<sub>i</sub>|w<sub>i−N+2:i−1</sub>) &nbsp;&nbsp;otherwise &nbsp;&nbsp; (3.31)</div>
+  <div class="math"><div class="mh"><span class="sym">{</span>مفهوم رياضي · الدالة متعددة الفروع</div><div class="mb">
+    <p>القوس الكبير <code>{</code> يعني «اختر سطراً بحسب الشرط». إذا وُجد الـ N-gram (عدّه أكبر من صفر) خذ تكراره النسبي. <b>وإلا</b> اضرب λ في درجة السياق الأقصر. والسطر الثاني يستدعي الدالة نفسها بسياق أقصر بكلمة، فيتكرر التراجع حتى نصل إلى الـ unigram <code>S(w) = count(w) ÷ N</code>. ووجد مقترحوه أن λ = ٠٫٤ تعمل جيداً.</p>
+  </div></div>
+</section>
+
+<!-- ============ 3.7 ============ -->
+<section class="sec" id="s3-7">
+  <header><div class="kicker">القسم ٣٫٧ · متقدم <span class="pg">p. 85</span></div><h2>علاقة الحيرة بالإنتروبيا</h2></header>
+  <div class="brief"><b>باختصار</b>الإنتروبيا تقيس كمية المعلومات، أي أقل عدد من البِتات نحتاجه في المتوسط لترميز نتيجة. والإنتروبيا التقاطعية تقيس ذلك حين نستخدم نموذجاً تقريبياً، وهي دائماً أكبر من الإنتروبيا الحقيقية أو تساويها. والحيرة هي ٢ مرفوعة للإنتروبيا التقاطعية. ومن هنا جاء المقلوب.</div>
+  <div class="terms"><span>الإنتروبيا <i>entropy</i></span><span>معدل الإنتروبيا <i>entropy rate</i></span><span>الإنتروبيا التقاطعية <i>cross-entropy</i></span><span>ثابت <i>stationary</i></span></div>
+  <p>هذا القسم متقدم، ويمكن تخطيه في القراءة الأولى. فكرته تشرح «لماذا المقلوب؟» في الحيرة.</p>
+  <div class="eq">H(X) = − ∑<sub>x∈χ</sub> p(x) log<sub>2</sub> p(x) &nbsp;&nbsp; (3.32)</div>
+  <div class="math"><div class="mh"><span class="sym">H</span>مفهوم رياضي · الإنتروبيا خطوة خطوة</div><div class="mb">
+    <ol class="steps">
+      <li><code>X</code> متغير عشوائي (ما نتنبأ به: كلمة، حرف، حصان في سباق)، و<code>χ</code> مجموعة قيمه الممكنة. و<code>x∈χ</code> تُقرأ «x ينتمي إلى χ»، أي مرّ على كل قيمة ممكنة.</li>
+      <li><code>−log<sub>2</sub> p(x)</code> «كمية المفاجأة» في النتيجة x بالبِتات. نتيجة احتمالها ½ مفاجأتها بِت واحد، واحتمالها ¼ بِتان، و⅛ ثلاثة. النادر يفاجئ أكثر، والسالب يجعل الرقم موجباً لأن لوغاريتم الاحتمال سالب.</li>
+      <li>نضرب كل مفاجأة في احتمالها ونجمع: هذا <b>متوسط المفاجأة</b>، وهو الإنتروبيا. وبأساس ٢ تُقاس بالبِتات.</li>
+    </ol>
+    <p><b>مثال الكتاب:</b> تريد إرسال رسالة لوكيل مراهنات بأي من ٨ خيول تراهن. بترميز ثابت يأخذ كل حصان ٣ بِتات (000 إلى 111). لكن إذا كانت احتمالات الخيول غير متساوية، يمكن إعطاء الأرجح رمزاً أقصر:</p>
+    <div class="w"><div class="cap">سباق الخيول</div>
+      <div class="row"><button class="btn" data-hr="skew">توزيع الكتاب</button><button class="btn" data-hr="uni">خيول متساوية</button><button class="btn" data-hr="sure">حصان شبه مؤكد</button></div>
+      <div class="scroll" style="margin-top:8px"><table class="tb" id="hrTable"></table></div>
+      <div class="calc" id="hrCalc"></div></div>
+    <p>بتوزيع الكتاب الإنتروبيا <b>٢ بِت</b>: يمكن بناء ترميز متوسطه بِتان، بإعطاء الحصان الأرجح الرمز 0، والتالي 10، ثم 110، ثم 1110، ثم 111100 و111101 و111110 و111111. ومع خيول متساوية تصبح الإنتروبيا ٣ بِتات، وهو بالضبط الترميز الثابت.</p>
+  </div></div>
+  <h3>من متغير واحد إلى لغة كاملة</h3>
+  <p>للغة نحتاج إنتروبيا <b>سلاسل</b> كلمات. نحسبها لكل السلاسل بطول n ونقسم على n فنحصل على <b>معدل الإنتروبيا</b> لكل كلمة. وللغة كاملة نأخذ <b>النهاية</b> حين يطول n بلا حد:</p>
+  <div class="eq">H(L) = lim<sub>n→∞</sub> (1/n) H(w<sub>1:n</sub>) &nbsp;&nbsp; (3.37)</div>
+  <div class="math"><div class="mh"><span class="sym">lim</span>مفهوم رياضي · النهاية ومبرهنة شانون–مكميلان–برايمان</div><div class="mb">
+    <p><code>lim<sub>n→∞</sub></code> تعني «القيمة التي يقترب منها الناتج كلما كبر n بلا توقف». مثلاً 1/n تقترب من الصفر: 1/10، 1/100، 1/1000…</p>
+    <p>والمبرهنة تقول إنه إذا كانت اللغة «منتظمة» بشكل معيّن (<b>ثابتة</b>: احتمالاتها لا تتغير بتغيّر الموقع في الزمن، و<b>إرغودية</b>)، يكفي أن نأخذ <b>سلسلة واحدة طويلة جداً</b> بدل الجمع على كل السلاسل الممكنة. والحدس: السلسلة الطويلة تحتوي سلاسل قصيرة كثيرة تتكرر بحسب احتمالاتها.</p>
+    <div class="eq">H(L) = lim<sub>n→∞</sub> −(1/n) log p(w<sub>1:n</sub>) &nbsp;&nbsp; (3.38)</div>
+    <p>ونماذج N-gram ثابتة (الكلمة تعتمد دائماً على السابقة بالطريقة نفسها). أما اللغة الطبيعية فليست ثابتة: الكلمة القادمة قد تعتمد على أحداث بعيدة جداً. فنماذجنا تقريب فقط.</p>
+  </div></div>
+  <h3>الإنتروبيا التقاطعية والحيرة</h3>
+  <p>لا نعرف التوزيع الحقيقي p للغة. لكن لدينا نموذج m يقرّبه. <span class="t">الإنتروبيا التقاطعية <i>cross-entropy</i></span> تأخذ النص من p وتقيس مفاجأته بحسب m:</p>
+  <div class="eq">H(p, m) = lim<sub>n→∞</sub> −(1/n) log m(w<sub>1</sub> w<sub>2</sub> … w<sub>n</sub>) &nbsp;&nbsp; (3.40)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; H(p) ≤ H(p, m) &nbsp;&nbsp; (3.41)</div>
+  <p>والعلاقة <code>≤</code> («أصغر من أو يساوي») تعني أن الإنتروبيا التقاطعية <b>حد أعلى</b> للإنتروبيا الحقيقية: النموذج الخاطئ يتفاجأ دائماً بقدر الحقيقة أو أكثر، أبداً أقل. فكلما كان النموذج أدق اقتربت H(p, m) من H(p). فبين نموذجين، <b>الأدق هو صاحب الإنتروبيا التقاطعية الأقل</b>.</p>
+  <p>وعملياً نقرّبها بنص اختبار طويل بطول N، ثم نعرّف الحيرة:</p>
+  <div class="eq">H(W) = −(1/N) log<sub>2</sub> P(w<sub>1</sub> … w<sub>N</sub>) &nbsp;&nbsp; → &nbsp;&nbsp; Perplexity(W) = 2<sup>H(W)</sup> = P(w<sub>1</sub> … w<sub>N</sub>)<sup>−1/N</sup></div>
+  <p>وهنا يتضح «لماذا المقلوب»: الإنتروبيا فيها سالب ولوغاريتم. و٢ مرفوعة لـ «سالب لوغاريتم الاحتمال ÷ N» تساوي الاحتمال مرفوعاً لـ −1/N، أي مقلوبه مأخوذاً له الجذر النوني. ومعنى الحيرة إذن: <b>لو كانت الإنتروبيا H بِتاً لكل كلمة، فكأن النموذج يختار بين 2<sup>H</sup> كلمة متساوية الاحتمال.</b></p>
+</section>
+
+<!-- ============ summary/exercises ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وتمارينه <span class="pg">pp. 88–91</span></div><h2>الخلاصة والتمارين</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>النماذج اللغوية تعطي احتمالاً لجملة أو تسلسل، وتتنبأ بكلمة أو رمز من سابقه.</li>
+    <li>الـ N-grams أبسط النماذج اللغوية: نماذج ماركوف تقدّر الكلمة من نافذة ثابتة من الكلمات السابقة، وتُدرَّب بالعدّ والتطبيع (MLE).</li>
+    <li>تُقيَّم على مجموعة اختبار بالحيرة: مقلوب احتمال الاختبار بحسب النموذج، مطبّعاً بالطول.</li>
+    <li>أخذ العيّنات يولّد جملاً بحسب احتمالها في النموذج.</li>
+    <li>التنعيم يعطي الأحداث غير المرئية احتمالاً، مثل «أضف ١»، أو بالاستعانة بالـ N-grams الأدنى عبر الاستيفاء.</li>
+  </ul>
+  <h3>من الحواشي التاريخية</h3>
+  <p>اقترح ماركوف رياضيات الـ N-gram عام ١٩١٣: صنّف ٢٠ ألف حرف من رواية بوشكين «يفغيني أونيغين» إلى صوائت وصوامت، وحسب احتمال أن يكون الحرف التالي صائتاً بحسب الحرف أو الحرفين قبله. ثم طبّقها شانون على الكلمات (١٩٤٨). وجادل تشومسكي بأن «عمليات ماركوف المنتهية» لا يمكن أن تكون نموذجاً معرفياً كاملاً للنحو، فأهمل اللسانيون النمذجة الإحصائية عقوداً. ثم عادت مع فريد جيلينك في IBM وجيمس بيكر في CMU في التعرّف على الكلام في السبعينيات، وصاغ فريق IBM مصطلحي «النموذج اللغوي» و«الحيرة». وتعود فكرة «أضف ١» إلى «قانون التتابع» للابلاس (١٨١٢). وصار «Kneser-Ney المعدّل المستوفى» المعيار حوالي عام ٢٠٠٠. أما النماذج العصبية فتحل مشكلتين للـ N-gram: انفجار عدد المعاملات مع رتبة N، وعجزها عن التعميم بين كلمات مختلفة متشابهة المعنى، لأنها تضع الكلمات في فضاء متصل تتقارب فيه الكلمات المتشابهة (الفصول ٥ و٦ و٧).</p>
+  <h3>تمارين الفصل</h3>
+  <ol class="clean">
+    <li>اكتب معادلة تقدير احتمال الـ trigram (بتعديل المعادلة ٣٫١١)، ثم كل احتمالات الـ trigram غير الصفرية لمدوّنة I am Sam.</li>
+    <li>احسب احتمال <span class="ltr en">i want chinese food</span> مرتين: من الشكل ٣٫٢ والاحتمالات تحته، ومن جدول لابلاس ٣٫٧، مع <code>P(i|&lt;s&gt;) = 0.19</code> و<code>P(&lt;/s&gt;|food) = 0.40</code> المنعّمين.</li>
+    <li>أي الاحتمالين أعلى، المنعّم أم غير المنعّم؟ ولماذا؟</li>
+    <li>بمدوّنة التمارين (زر «مدوّنة التمارين» في المختبر) ونموذج bigram بتنعيم «أضف ١»: ما <code>P(Sam|am)</code>؟ عُدّ &lt;s&gt; و&lt;/s&gt; كأي رمز.</li>
+    <li>لو لم نستخدم &lt;/s&gt;: درّب bigram على <span class="ltr mono">&lt;s&gt; a b / &lt;s&gt; b b / &lt;s&gt; b a / &lt;s&gt; a a</span>، وأثبت أن مجموع احتمالات الجمل الأربع ذات الكلمتين ١، ومجموع احتمالات الجمل ذات الثلاث كلمات ١ أيضاً، أي إنه ليس توزيعاً واحداً على كل الأطوال.</li>
+    <li>عبّر عن <code>P(w3|w1,w2)</code> في trigram بتنعيم «أضف ١» بدلالة العدّات وV.</li>
+    <li>بالمدوّنة نفسها واستيفاء خطي بين bigram وunigram بوزنين λ<sub>1</sub> = λ<sub>2</sub> = ½: ما <code>P(Sam|am)</code>؟</li>
+    <li>اكتب برنامجاً يحسب الـ unigrams والـ bigrams غير المنعّمة.</li>
+    <li>شغّله على مدوّنتين صغيرتين مختلفتين وقارن أكثر الكلمات والأزواج تكراراً.</li>
+    <li>أضف خياراً لتوليد جمل عشوائية.</li>
+    <li>أضف خياراً لحساب حيرة مجموعة اختبار.</li>
+    <li>مجموعة تدريب من ١٠٠ رقم: ٩١ صفراً، وكل رقم من ١ إلى ٩ مرة واحدة. ما حيرة الـ unigram على الاختبار <span class="ltr mono">0 0 0 0 0 3 0 0 0 0</span>؟</li>
+  </ol>
+  <p class="note">التمرينان ٤ و٧ يمكن التحقق منهما في مختبر الـ bigram بعد حلّهما يدوياً.</p>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="02-words-and-tokens.html">→ الفصل السابق: الكلمات والرموز</a><span>الفصل التالي: الانحدار اللوجستي (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch03.js"></script>
+</body>
+</html>
