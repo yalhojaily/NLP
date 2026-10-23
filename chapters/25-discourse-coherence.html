@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٢٥ · تماسك الخطاب | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل الخامس والعشرين من كتاب Speech and Language Processing: علاقات التماسك في نظرية البنية البلاغية (RST) وبنك بن للخطاب (PDTB)، وتحليل الخطاب بالإزاحة والاختزال، ونظرية التمركز وشبكة الكيانات، والتقييم بالإشراف الذاتي، ونماذج التمثيل للتماسك المحلي (LCD)، والتماسك الكلي: بنية الحجاج والخطاب العلمي.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="24-coreference.html" style="text-decoration:none">→ الفصل ٢٤</a><b>الفصل ٢٥ من ٢٦</b><span class="pill">الفصل ٢٦ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الثالث · وسم البنية اللغوية · الفصل الخامس والعشرون</div>
+  <h1>تماسك الخطاب</h1>
+  <div class="sub en" style="font-size:16px">Chapter 25 · Discourse Coherence · pp. 569–590</div>
+  <p class="epi">«حتى في أشد أحلام يقظتنا جموحاً وتيهاً، بل في أحلامنا نفسها، سنجد إن تأملنا أن الخيال لم يجرِ على غير هدى، وأن صلةً ما ظلت قائمة بين الأفكار المتعاقبة. ولو دُوّنت أكثر المحادثات تفلّتاً وحرية، لظهر فوراً شيءٌ يربطها في كل انتقالاتها.» — ديفيد هيوم، ١٧٤٨.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>«الخطاب» مجموعة جمل متماسكة مترابطة، و«التماسك» ما يميزه عن جمل عشوائية. والتماسك المحلي ثلاثة أنواع: <b>علاقات تماسك</b> بين الجمل (سبب، وتفصيل، وتباين…)، و<b>تماسك الكيانات</b> (الحديث عن الكيان نفسه)، و<b>التماسك الموضوعي</b> (مفردات من حقل واحد). وهناك تماسك <b>كلي</b> بحسب النوع: الحجاج، والمقالة العلمية، والقصة.</li>
+    <li><b>RST</b>: علاقات بين نواة وتابع، تنتظم في شجرة فوق «وحدات خطاب أولية» (EDU)، وتُحلَّل بمحلل إزاحة-اختزال. و<b>PDTB</b>: علاقات بين مقطعين فقط، مبنية على الروابط الخطابية (because، as a result) الصريحة والضمنية، في ٤ أصناف عليا.</li>
+    <li><b>التمركز</b>: لكل قول مركز خلفي Cb ومراكز أمامية Cf مرتبة؛ والانتقالات Continue > Retain > Smooth-Shift > Rough-Shift. و<b>شبكة الكيانات</b>: جدول جمل × كيانات بالأدوار (S، O، X، –)، واحتمالات الانتقالات خصائص لمصنّف.</li>
+    <li>التقييم بالإشراف الذاتي: النص الأصلي أكثر تماسكاً من ترتيب عشوائي لجمله (تمييز، وإدراج، وإعادة ترتيب). ونموذج LCD العصبي يتعلم تمييز الجمل المتتالية الحقيقية من المزيفة.</li>
+    <li>التماسك الكلي: «تنقيب الحجاج» (ادعاءات ومقدمات وعلاقات دعم ونقض)، و«التقسيم الحجاجي» للأوراق العلمية (الهدف، والطريقة، والنتائج، والفجوة…).</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 569</span></div><h2>ما الذي يجعل الكلام متماسكاً؟</h2></header>
+  <div class="brief"><b>باختصار</b>اللغة عادةً جمل مترابطة لا معزولة. والتماسك المحلي بثلاث طرق: علاقات التماسك (الجملة الثانية تفسّر الأولى مثلاً)، وتماسك الكيانات (الحديث «عن» شيء بعينه دون التنقل)، والتماسك الموضوعي الذي يظهر سطحياً «سبكاً معجمياً». وهناك تماسك كلي: بنى تقليدية لأنواع النصوص. ويفيد ذلك في تقييم المقالات، والتلخيص، وحتى قياس أعراض اضطرابات اللغة.</div>
+  <div class="terms"><span>الخطاب <i>discourse</i></span><span>التماسك <i>coherence</i></span><span>محلي / كلي <i>local / global</i></span><span>علاقات التماسك <i>coherence relations</i></span><span>تماسك الكيانات <i>entity-based coherence</i></span><span>التماسك الموضوعي <i>topical coherence</i></span><span>السبك المعجمي <i>lexical cohesion</i></span></div>
+  <p>كان فيلم «المواطن كين» لأورسون ويلز رائداً، خاصةً في بنيته: لا يسير زمنياً في حياة قطب الإعلام كين، بل يبدأ بموته (وهمسته «Rosebud») ثم ينتظم في استرجاعات بين مشاهد صحفي يحقق في موته. وبيّن أن بنية الفيلم لا يلزم أن تتبع الخط الزمني، فانفتحت إمكانات لا نهائية لبنى سردية متماسكة. لكن البنية المتماسكة ليست حكراً على الأفلام: اللغة أيضاً جمل متجاورة منظمة متماسكة. نسمي المجموعة المتماسكة من الجمل <span class="t">خطاباً <i>discourse</i></span>، والعلاقة التي تجعلها مختلفة عن جمل عشوائية <span class="t">تماسكاً <i>coherence</i></span>: هذا الفصل خطاب، ومقال الأخبار، والمحادثة، وسلسلة التغريدات، وصفحة ويكيبيديا، وروايتك المفضلة.</p>
+  <p>وللخطاب الحقيقي تماسك <b>محلي</b> و<b>كلي</b>. والمحلي بثلاث طرق:</p>
+  <div class="w" id="lcBox"><div class="cap">ثلاث طرق للتماسك المحلي (اختر مثالاً)</div>
+    <div class="row"><span class="seg" id="lcS" style="flex-wrap:wrap"><button data-i="0" class="on">غير متماسك (25.1)</button><button data-i="1">علاقة سبب (25.2)</button><button data-i="2">تنقل الكيانات (25.3)</button><button data-i="3">سبك معجمي (25.4)</button></span></div>
+    <div id="lcOut" dir="ltr" style="margin-top:8px;line-height:2.1;font-size:16.5px"></div><div class="calc" id="lcCalc"></div></div>
+  <p><b>أولاً</b>، الجمل ترتبط بجاراتها بطرق منتظمة. «John took a train from Paris to Istanbul. He likes spinach» (25.1، هوبز ١٩٧٩) غير متماسك: لا يتضح لماذا تلي الثانية الأولى. بل قد يجتهد القارئ ليجد صلة: لعل في فرنسا نقصاً في السبانخ؟ ومجرد محاولته دليل على أن الفهم يتطلب إقامة هذا التماسك. أما «Jane took a train from Paris to Istanbul. She had to attend a conference» (25.2) فالثانية تعطي <b>سبباً</b> للأولى. والعلاقات المنظمة كالسبب اسمها <span class="t">علاقات التماسك <i>coherence relations</i></span> (القسم ٢٥٫١).</p>
+  <p><b>ثانياً</b>، أن يكون الخطاب «عن» شيء أو شخص: كيانات بارزة يركز عليها ولا يتنقل ذهاباً وإياباً. وهذا <span class="t">تماسك الكيانات <i>entity-based coherence</i></span>. وفي (25.3) يقفز الكيان البارز من John إلى Jenny إلى متجر البيانو إلى غرفة المعيشة إلى Jenny إلى البيانو. ونظرية <b>التمركز</b> (غروز وزملاؤها ١٩٩٥) تتبع الكيان البارز في كل لحظة (البارز أرجح أن يكون ضميراً أو في موقع الفاعل أو المفعول)، والانتقالات التي تحافظ عليه أكثر تماسكاً. و<b>شبكة الكيانات</b> (بارزيلاي ولاباتا ٢٠٠٨) تحقق بعض حدوسها (القسم ٢٥٫٣).</p>
+  <p><b>ثالثاً</b>، <b>التماسك الموضوعي</b>: الجمل المتجاورة عن الموضوع نفسه بمفردات متشابهة، فيظهر <span class="t">السبك المعجمي <i>lexical cohesion</i></span> (هاليداي وحسن ١٩٧٦): تشارك كلمات متطابقة أو متقاربة. ففي (25.4) تنتمي house وchimney وgarret وcloset وwindow إلى حقل دلالي واحد، وتتكرر shingled.</p>
+  <p>وللخطاب أيضاً <b>تماسك كلي</b>: أنواع نصوص كثيرة لها بنى تقليدية. فالمقالات الأكاديمية فيها «الطريقة» و«النتائج»، والقصص تتبع حبكات تقليدية، والمقالات الإقناعية لها ادعاء تدافع عنه بمقدمات وتفنّد الاعتراضات. ولماذا نهتم؟ لأن التماسك خاصية النص الجيد: يفيد في تقييم جودة المقالات وتصحيحها، وفي التلخيص (العلاقات بين الجمل تساعد على الاختيار منها)، بل في الصحة النفسية لقياس أعراض الفصام أو اضطرابات اللغة الأخرى.</p>
+</section>
+
+<!-- ============ 25.1 ============ -->
+<section class="sec" id="s25-1">
+  <header><div class="kicker">القسم ٢٥٫١ <span class="pg">p. 571</span></div><h2>علاقات التماسك</h2></header>
+  <div class="brief"><b>باختصار</b><b>RST</b> (مان وطومسون ١٩٨٧): علاقة بين <b>نواة</b> (مركزية، مفهومة وحدها) و<b>تابع</b> (يُفهم بالنواة)، وبعضها متعدد النوى (List). والعلاقات تنتظم في شجرة أوراقها «وحدات خطاب أولية» (EDU). وبنك RST: ٣٨٥ وثيقة، ٧٨ علاقة في ١٦ صنفاً. <b>PDTB</b>: مبني على الروابط الخطابية: صريحة (~١٨ ألفاً) وضمنية (~١٦ ألفاً يختار الواسم لها رابطاً)، و٤ أصناف عليا (زمني، وشرطي/سببي، ومقارنة، وتوسع)، و١٦ نوعاً، و٢٣ نوعاً فرعياً، ولا بنية فوق الزوج.</div>
+  <div class="terms"><span>نظرية البنية البلاغية <i>RST</i></span><span>النواة / التابع <i>nucleus / satellite</i></span><span>وحدة الخطاب الأولية <i>EDU</i></span><span>بنك بن للخطاب <i>PDTB</i></span><span>الرابط الخطابي <i>discourse connective</i></span><span>صريح / ضمني <i>explicit / implicit</i></span></div>
+  <p>(25.6) أكثر تماسكاً من (25.5) لأن القارئ يقيم صلة: الثانية <b>سبب</b> محتمل للأولى. وهذه الصلات تحددها مجموعة <b>علاقات تماسك</b>. ونعرض نموذجين شائعين وبياناتهما.</p>
+  <h3>٢٥٫١٫١ · نظرية البنية البلاغية</h3>
+  <p>أشهر نماذج تنظيم الخطاب <span class="t">نظرية البنية البلاغية <i>Rhetorical Structure Theory, RST</i></span>. العلاقة بين مقطعين، غالباً <span class="t">نواة <i>nucleus</i></span> (الأهم لغرض الكاتب، ومفهومة وحدها) و<span class="t">تابع <i>satellite</i></span> (أقل مركزية، لا يُفهم إلا بالنواة)، وبعض العلاقات متماثلة بين نواتين. ومن علاقات دليل بنك RST (كارلسون وماركو ٢٠٠١):</p>
+  <div class="w" id="rsBox"><div class="cap">أمثلة علاقات RST (25.7)–(25.11)</div>
+    <div class="row"><span class="seg" id="rsS" dir="ltr" style="flex-wrap:wrap"><button data-i="0" class="on">Reason</button><button data-i="1">Elaboration</button><button data-i="2">Evidence</button><button data-i="3">Attribution</button><button data-i="4">List</button></span></div>
+    <div id="rsSvg" style="margin-top:8px"></div><div class="calc" id="rsCalc"></div></div>
+  <p class="note">تعريف Evidence في الكتاب يبدأ بنص تعريف Elaboration نفسه («gives additional information or detail…») ثم يضيف هدف إقناع القارئ؛ والفرق الجوهري هو هذا الهدف.</p>
+  <p>ويُرسم الترابط تقليدياً بسهم من التابع إلى النواة. وتماسك نص أطول بنية هرمية من العلاقات. فهذه بنية فقرة من Scientific American (ماركو ٢٠٠٠) عن طقس المريخ (25.12):</p>
+  <div class="w" id="mtBox"><div class="cap">الشكل ٢٥٫١: شجرة الخطاب لفقرة المريخ (اضغط عقدة لترى نصها)</div>
+    <div class="scroll" dir="ltr" id="mtSvg"></div><div class="calc" id="mtCalc"></div></div>
+  <p>أوراق الشجرة مقاطع (جملة أو عبارة أو شبه جملة) اسمها <span class="t">وحدات الخطاب الأولية <i>elementary discourse units, EDUs</i></span> أو مقاطع الخطاب. ولأنها مقاطع اعتباطية، فتحديد حدودها مهمة مهمة لاستخراج العلاقات. وتقريباً: المقاطع في الخطاب كالمكونات في نحو الجملة، ولهذا نستعمل خوارزميات التحليل النحوي لاستنتاج بنية الخطاب. وأكبر مدوّنة: <b>بنك RST للخطاب</b> (كارلسون وزملاؤه ٢٠٠١): ٣٨٥ وثيقة إنجليزية من Penn Treebank، بتحليل RST كامل، و٧٨ علاقة في ١٦ صنفاً؛ وهناك بنوك للإسبانية والألمانية والباسكية والهولندية والبرتغالية البرازيلية. ويفيد ذلك في التلخيص واستخراج المعلومات: النوى أهم من التوابع، فيمكن حذف التوابع في الملخص.</p>
+  <h3>٢٥٫١٫٢ · بنك بن للخطاب</h3>
+  <p><b>PDTB</b> (ميلتساكي ٢٠٠٤، وبراساد ٢٠٠٨ و٢٠١٤) نموذج آخر، <b>مؤسس معجمياً</b>: بدل وسم العلاقة مباشرة، أُعطي الواسمون قائمة <span class="t">روابط خطابية <i>discourse connectives</i></span> (because، although، when، since، as a result)، وحيث يدل الرابط على علاقة بين مقطعين وُسم الرابط والمقطعان: Arg1 وArg2. وليست كل العلاقات بروابط صريحة، فوُسمت الجمل المتجاورة بلا رابط أيضاً: يختار الواسم الرابط الذي كان يمكن استعماله، ثم يسم معناه. وللروابط الملتبسة كـ since يسم الواسم هل هي سببية أم زمنية:</p>
+  <div class="w" id="pdBox"><div class="cap">علاقات PDTB (اختر مثالاً)</div>
+    <div class="row"><span class="seg" id="pdS" dir="ltr" style="flex-wrap:wrap"><button data-i="0" class="on">(25.13) explicit</button><button data-i="1">(25.14) implicit</button><button data-i="2">TEMPORAL</button><button data-i="3">CONTINGENCY</button><button data-i="4">COMPARISON</button><button data-i="5">EXPANSION</button><button data-i="6">(25.15) Chinese</button></span></div>
+    <div id="pdOut" dir="ltr" style="margin-top:8px;line-height:2;font-size:16px"></div><div class="calc" id="pdCalc"></div></div>
+  <p>والمجموعة النهائية: نحو ١٨ ألف علاقة صريحة و١٦ ألف ضمنية. وتسلسل المعاني (الشكل ٢٥٫٣): أربعة أصناف عليا، و١٦ نوعاً، و٢٣ نوعاً فرعياً (ليس لكل نوع فروع)، و١١ نوعاً من الـ ١٦ تُستعمل عادةً لتصنيف الضمنية (الخمسة الباقية نادرة):</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>Temporal</th><th>Contingency</th><th>Comparison</th><th>Expansion</th></tr>
+    <tr><td>• Asynchronous<br>• Synchronous (Precedence, Succession)</td><td>• Cause (Reason, Result)<br>• Pragmatic Cause (Justification)<br>• <i>Condition (Hypothetical, General, Unreal Present/Past, Factual Present/Past)</i><br>• <i>Pragmatic Condition (Relevance, Implicit Assertion)</i></td><td>• Contrast (Juxtaposition, Opposition)<br>• <i>Pragmatic Contrast (Juxtaposition, Opposition)</i><br>• Concession (Expectation, Contra-expectation)<br>• <i>Pragmatic Concession</i></td><td>• <i>Exception</i><br>• Instantiation<br>• Restatement (Specification, Equivalence, Generalization)<br>• Alternative (Conjunction, Disjunction, Chosen Alternative)<br>• List</td></tr>
+  </table></div>
+  <p class="note">الأنواع الخمسة المائلة نادرة في الضمنية فلا تُستعمل. وفي الشكل يظهر (Precedence, Succession) بعد Synchronous، وهما في PDTB فرعا Asynchronous (السابق واللاحق)؛ على الأرجح خطأ تنسيق.</p>
+  <p>وبخلاف بنك RST الذي يدمج العلاقات في شجرة كاملة للخطاب، لا يسم PDTB شيئاً فوق مستوى الزوج، ولا يلتزم ببنية أعلى. وهناك بنوك بالطريقة نفسها للغات أخرى، كبنك الخطاب الصيني (تشو وشيوي ٢٠١٥): ولأن الروابط الصريحة في الصينية أقل (٢٢٪ فقط من العلاقات مقابل ٤٧٪ في الإنجليزية)، وسم الواسمون أزواج الجمل مباشرة بـ ١١ معنى، بلا انطلاق من رابط.</p>
+</section>
+
+<!-- ============ 25.2 ============ -->
+<section class="sec" id="s25-2">
+  <header><div class="kicker">القسم ٢٥٫٢ <span class="pg">p. 574</span></div><h2>تحليل بنية الخطاب</h2></header>
+  <div class="brief"><b>باختصار</b>تحليل RST مرحلتان: (١) <b>تقطيع الوحدات</b>: وسم تسلسلي (١ = بداية وحدة) فوق مرمِّز؛ (٢) <b>التحليل</b>: محلل إزاحة-اختزال (يو ٢٠١٨) بأفعال SH وRD(l, d) بالعلاقة والنووية (NN، NS، SN) وPR، ومرمِّز biLSTM هرمي، ومفكك شبكة أمامية على أعلى ثلاث أشجار وأول وحدة في الطابور. ويقيَّم بـ RST-Pareval (S، N، R، F). وتحليل PDTB «ضحل»: ٤ مهام: إيجاد الروابط، ومقطعيها، ومعنى العلاقة، وعلاقة كل جملتين متجاورتين (أصعبها الضمنية).</div>
+  <div class="terms"><span>تحليل الخطاب <i>discourse parsing</i></span><span>تقطيع الوحدات <i>EDU segmentation</i></span><span>إزاحة / اختزال / إخراج <i>shift / reduce / pop root</i></span><span>النووية <i>nuclearity (NN, NS, SN)</i></span><span>RST-Pareval</span><span>التحليل الضحل <i>shallow discourse parsing</i></span></div>
+  <p>من تسلسل جمل، كيف نحدد علاقات التماسك آلياً؟ هذا <span class="t">تحليل الخطاب <i>discourse parsing</i></span> (وإن كنا في PDTB نسم مقاطع فقط ولا نبني شجرة كاملة).</p>
+  <h3>٢٥٫٢٫١ · تقطيع الوحدات</h3>
+  <p>المرحلة الأولى تحدد بداية كل وحدة ونهايتها:</p>
+  <div class="quote" dir="ltr">(25.16) [Mr. Rambo says]<sub>e1</sub> [that a 3.2-acre property]<sub>e2</sub> [overlooking the San Fernando Valley]<sub>e3</sub> [is priced at $4 million]<sub>e4</sub> [because the late actor Erroll Flynn once lived there.]<sub>e5</sub></div>
+  <p>ولأن الوحدات تقارب أشباه الجمل، كانت النماذج الأولى تحلل نحوياً ثم تعالج المخرج. والحديثة نماذج تسلسلية عصبية مُشرفٌ عليها بتقطيع بنك RST الذهبي، كنموذج لوكاسيك وزملائه (٢٠٢٠) المبسط في الشكل ٢٥٫٤: مرمِّز، ثم طبقة خطية وsoftmax لكل رمز، تُخرج ١ لبداية وحدة و٠ لغيرها:</p>
+  <div class="w" id="egBox"><div class="cap">وسوم بداية الوحدات لـ (25.16) (اضغط كلمة لتبديل وسمها)</div>
+    <div id="egOut" dir="ltr" style="line-height:2.4"></div><div class="calc" id="egCalc"></div></div>
+  <h3>٢٥٫٢٫٢ · تحليل RST</h3>
+  <p>أدوات بناء بنية RST تستند منذ زمن إلى خوارزميات التحليل النحوي كالإزاحة-الاختزال (ماركو ١٩٩٩)، والمحللات العصبية الحديثة منذ جي وأيزنشتاين (٢٠١٤) تستلهم محللات الفصل ٢٠. ونصف محلل يو وزملائه (٢٠١٨): الحالة مكدس وطابور، والأفعال: <b>shift</b> تدفع أول وحدة في الطابور إلى المكدس شجرةً من عقدة واحدة؛ و<b>reduce(l, d)</b> تدمج أعلى شجرتين بالعلاقة l والنووية d ∈ {NN, NS, SN}؛ و<b>pop root</b> تُخرج الشجرة النهائية:</p>
+  <div class="w" id="srBox"><div class="cap">الشكلان ٢٥٫٥ و٢٥٫٦: الإزاحة-الاختزال لشجرة RST بأربع وحدات (اضغط «الخطوة التالية»)</div>
+    <div class="row"><button class="btn pri" id="srNext">الخطوة التالية</button><button class="btn" id="srReset">من جديد</button></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="srTab" dir="ltr" style="margin-top:8px"></table></div>
+    <div id="srTree" style="margin-top:8px"></div><div class="calc" id="srCalc"></div></div>
+  <p>والمرمِّز <b>biLSTM هرمي</b>: الطبقة الأولى على كلمات كل وحدة، والثانية على تسلسل الوحدات. فمن كلمات w<sub>1</sub>…w<sub>m</sub> بتمثيلات x<sup>w</sup>: h<sup>w</sup><sub>1</sub>, …, h<sup>w</sup><sub>m</sub> = biLSTM(x<sup>w</sup><sub>1</sub>, …, x<sup>w</sup><sub>m</sub>) (25.17)، والوحدة w<sub>s</sub>…w<sub>t</sub> بمتوسط مخرجاتها x<sup>e</sup> = (1/(t − s + 1)) Σ<sub>k=s</sub><sup>t</sup> h<sup>w</sup><sub>k</sub> (25.18)، ثم h<sup>e</sup><sub>1</sub>, …, h<sup>e</sup><sub>n</sub> = biLSTM(x<sup>e</sup><sub>1</sub>, …, x<sup>e</sup><sub>n</sub>) (25.19). والمفكك شبكة أمامية W تُخرج فعلاً من أعلى ثلاث أشجار في المكدس وأول وحدة في الطابور:</p>
+  <div class="eq" dir="ltr">o = W(h<sup>t</sup><sub>s0</sub>, h<sup>t</sup><sub>s1</sub>, h<sup>t</sup><sub>s2</sub>, h<sup>e</sup><sub>q0</sub>) &nbsp;(25.20) &nbsp;&nbsp; h<sup>t</sup><sub>s</sub> = (1/(j − i + 1)) Σ<sub>k=i</sub><sup>j</sup> h<sup>e</sup><sub>k</sub> &nbsp;(25.21) &nbsp;&nbsp; p<sub>a</sub> = exp(o<sub>a</sub>) / Σ<sub>a′∈A</sub> exp(o<sub>a′</sub>) &nbsp;(25.22) &nbsp;&nbsp; L<sub>CE</sub> = −log(p<sub>a</sub>) + (λ/2)‖Θ‖² &nbsp;(25.23)</div>
+  <p>فتمثيل الشجرة الجزئية متوسط تمثيلات وحداتها. والتدريب: نحوّل كل شجرة ذهبية إلى تسلسل أفعال «عرّاف»، وندرّب بالإنتروبيا التقاطعية مع تنظيم l<sub>2</sub>. ويُقيَّم على قسم الاختبار من بنك RST، بوحدات ذهبية أو من البداية للنهاية، بمقاييس <b>RST-Pareval</b> (ماركو ٢٠٠٠): نحوّل الأشجار الذهبية إلى ثنائية متفرعة يميناً، ونبلغ عن أربعة: S (الامتداد بلا وسوم)، وN (بالنوى)، وR (بالعلاقات)، وF (كلاهما)، كل منها F1 مجهري على كل المقاطع.</p>
+  <h3>٢٥٫٢٫٣ · تحليل PDTB</h3>
+  <p>يسمى أحياناً <span class="t">التحليل الضحل <i>shallow discourse parsing</i></span> لأنه علاقات مسطحة بين مقاطع لا شجرة كاملة. ومهامه الأربع (لين وزملاؤه ٢٠١٤، أول نظام كامل): (١) إيجاد الروابط الخطابية (وتمييزها عن الاستعمالات غير الخطابية)؛ (٢) إيجاد مقطعي كل رابط؛ (٣) وسم العلاقة؛ (٤) إسناد علاقة لكل جملتين متجاورتين (الضمنية). وللمهمة ٤ أنظمة كثيرة، غالباً بمقاطع ذهبية وأحد الأنواع الـ ١١ من المستوى الثاني أو «لا شيء»؛ وخوارزمية بسيطة قوية جداً: BERT للمقطعين، وحالة [CLS] الأخيرة، وطبقة tanh أمامية واحدة، وsoftmax (ني وزملاؤه ٢٠١٩).</p>
+  <p>والمهمة ١ إزالة غموض: and رابط خطابي (توسع) في «Selling picked up as previous buyers bailed out of their positions <b>and</b> aggressive short sellers… moved in» (25.24) وعطف أسماء غير خطابي في «My favorite colors are blue <b>and</b> green» (25.25). وonce رابط زمني في «…is unusually resilient <b>once</b> it enters the lungs…» (25.26) وظرف بمعنى «سابقاً» في «A form of asbestos <b>once</b> used to make Kent cigarette filters…» (25.27). فهي حالة خاصة من إزالة غموض المعاني: صُنّفت الأصناف الأربعة العليا بدقة ٩٤٪ بخصائص نحوية من أشجار ذهبية (بيتلر ونينكوفا ٢٠٠٩)، وحديثاً من الكلمات مباشرة بـ biLSTM-CRF ووسوم B-CONN وI-CONN وO (يو ٢٠١٩). والمهمة ٢ بنماذج تقطيع الوحدات نفسها (biLSTM فوق BERT)، وحتى القواعد البسيطة جيدة: ٩٣٪ من العلاقات داخل جملة واحدة أو بين جملتين متجاورتين، لكل منهما معمول (بيران وماكيون ٢٠١٥).</p>
+</section>
+
+<!-- ============ 25.3 ============ -->
+<section class="sec" id="s25-3">
+  <header><div class="kicker">القسم ٢٥٫٣ <span class="pg">p. 578</span></div><h2>التمركز وتماسك الكيانات</h2></header>
+  <div class="brief"><b>باختصار</b><b>التمركز</b>: لكل قول U<sub>n</sub> مركز خلفي Cb(U<sub>n</sub>) (الكيان البارز الآن)، ومراكز أمامية Cf(U<sub>n</sub>) مرتبة بالدور النحوي، وأعلاها Cp (المفضل). الانتقالات (برينان ١٩٨٧) بحسب: هل Cb(U<sub>n+1</sub>) = Cb(U<sub>n</sub>)؟ وهل Cb(U<sub>n+1</sub>) = Cp(U<sub>n+1</sub>)؟ القاعدة ١: إن صار أي عنصر من Cf(U<sub>n</sub>) ضميراً في U<sub>n+1</sub> فـ Cb يجب أن يكون ضميراً. القاعدة ٢: Continue > Retain > Smooth-Shift > Rough-Shift. <b>شبكة الكيانات</b>: جدول جمل × كيانات بأدوار S/O/X/–، واحتمالات الانتقالات (مثلاً [S –] = ٦/٧٥) خصائص لمصنّف. والتقييم: أحكام بشرية، أو إشراف ذاتي (تمييز الترتيب، والإدراج، وإعادة الترتيب).</div>
+  <div class="terms"><span>نظرية التمركز <i>Centering Theory</i></span><span>المركز الخلفي <i>backward-looking center Cb</i></span><span>المراكز الأمامية <i>forward-looking centers Cf</i></span><span>المركز المفضل <i>preferred center Cp</i></span><span>Continue / Retain / Smooth-Shift / Rough-Shift</span><span>شبكة الكيانات <i>entity grid</i></span><span>انتقال الكيان المحلي <i>local entity transition</i></span><span>الإشراف الذاتي <i>self-supervision</i></span></div>
+  <p>فكرة أن كياناً ما بارز في كل نقطة، وأن الخطاب يتماسك بمواصلة الحديث عنه، ظهرت مبكراً في اللسانيات الوظيفية وعلم نفس الخطاب (تشيف ١٩٧٦، وكينتش وفان دايك ١٩٧٨)، ثم في النماذج الحاسوبية.</p>
+  <h3>٢٥٫٣٫١ · نظرية التمركز</h3>
+  <p><span class="t">نظرية التمركز <i>Centering Theory</i></span> (غروز وزملاؤها ١٩٩٥) نظرية في البروز والتماسك معاً: في كل نقطة كيان واحد «متمركز عليه»، والخطاب الذي تواصل جمله المتجاورة الكيان البارز نفسه أكثر تماسكاً من الذي يتنقل. ونصّا غروز وزملائها (25.28) و(25.29) لهما المحتوى القضوي نفسه وبروز مختلف: الأول عن John بوضوح، والثاني يتنقل بين John والمتجر. ولكل قول U<sub>n</sub> تمثيلان: <b>المركز الخلفي</b> Cb(U<sub>n</sub>): الكيان البارز بعد تفسير U<sub>n</sub>؛ و<b>المراكز الأمامية</b> Cf(U<sub>n</sub>): الكيانات التي يستحضرها، وأيها قد يصير Cb التالي، مرتبة بالبروز والدور النحوي (الفاعل > المفعول > غيرهما)، وأعلاها <b>Cp</b> («المفضل»)، كتنبؤ بما سيُتحدث عنه. وخوارزمية برينان وزملائه (١٩٨٧) تعرّف أربع علاقات:</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th></th><th>Cb(U<sub>n+1</sub>) = Cb(U<sub>n</sub>) or undefined Cb(U<sub>n</sub>)</th><th>Cb(U<sub>n+1</sub>) ≠ Cb(U<sub>n</sub>)</th></tr>
+    <tr><th>Cb(U<sub>n+1</sub>) = Cp(U<sub>n+1</sub>)</th><td>Continue</td><td>Smooth-Shift</td></tr>
+    <tr><th>Cb(U<sub>n+1</sub>) ≠ Cp(U<sub>n+1</sub>)</th><td>Retain</td><td>Rough-Shift</td></tr>
+  </table></div>
+  <p><b>القاعدة ١:</b> إن تحقق أي عنصر من Cf(U<sub>n</sub>) ضميراً في U<sub>n+1</sub>، فيجب أن يتحقق Cb(U<sub>n+1</sub>) ضميراً أيضاً (فالضمير، ومنه الصفري، علامة البروز: إن كان في القول ضمائر عدة تحقق كيانات القول السابق، فأحدها Cb؛ وإن كان واحداً فهو Cb). <b>القاعدة ٢:</b> الانتقالات مرتبة: Continue > Retain > Smooth-Shift > Rough-Shift. في Continue يتحدث المتكلم عن الكيان نفسه وسيواصل؛ وفي Retain ينوي الانتقال لاحقاً فيضع الكيان الحالي في رتبة أدنى؛ وفي Shift ينتقل فعلاً.</p>
+  <div class="w" id="ctBox"><div class="cap">خوارزمية برينان للتمركز (اختر النص؛ ترتيب Cf بالدور النحوي من عندنا حيث لم يذكره الكتاب)</div>
+    <div class="row"><span class="seg" id="ctS" style="flex-wrap:wrap"><button data-i="0" class="on">(25.30) كما في الكتاب</button><button data-i="1">(25.28) عن John</button><button data-i="2">(25.29) يتنقل</button></span></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="ctTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="ctCalc"></div></div>
+  <p class="note">ملاحظة على المسودة: (25.30) يُقدَّم «تكراراً» لبداية (25.28)، لكن قوله الثاني هو (25.28c) لا (b)، ورابعه «It was closing just as John arrived» من (25.29d). فكّه الكتاب حتى U2 وترك الباقي تمريناً (٢٥٫١)؛ والأداة تكمله.</p>
+  <h3>٢٥٫٣٫٢ · نموذج شبكة الكيانات</h3>
+  <p>التمركز نظرية من أعلى إلى أسفل: البارز فاعل أو ضمير، والتماسك بمواصلة ذكره كذلك. أما <span class="t">شبكة الكيانات <i>entity grid</i></span> (بارزيلاي ولاباتا ٢٠٠٨) فتستقرئ بالتعلّم الآلي أنماط ذكر الكيانات التي تجعل الخطاب متماسكاً. الشبكة مصفوفة ثنائية الأبعاد: الصفوف جمل، والأعمدة كيانات الخطاب (الاسمية غالباً)، وكل خانة: فاعل (S)، أو مفعول (O)، أو غيرهما (X)، أو غائب (–). (وفي تطبيقهما يُكتب فاعل المبني للمجهول O، فيقترب التمثيل من الأدوار الدلالية.) والكيان المذكور أكثر من مرة في جملة يأخذ أعلى أدواره. وبناء الشبكة يتطلب استخراج الكيانات وحلّ الإحالة (الفصل ٢٤) وتحليل الجمل نحوياً:</p>
+  <div class="w" id="gdBox"><div class="cap">الشكلان ٢٥٫٨ و٢٥٫٩: شبكة الكيانات وانتقالاتها (اضغط جملة لترى نصها؛ «خلط» يعيد ترتيب الجمل)</div>
+    <div class="row"><button class="btn" id="gdShuf">خلط ترتيب الجمل</button><button class="btn" id="gdOrig">الترتيب الأصلي</button></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="gdTab" dir="ltr" style="margin-top:8px"></table></div>
+    <div id="gdSent" dir="ltr" style="margin-top:6px;line-height:1.9;font-size:15.5px"></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="gdTr" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="gdCalc"></div></div>
+  <p class="note">من الشبكة المعروضة (وهي «جزء من» الشبكة كما يقول الشكل ٢٥٫٨) نحسب ٥/٧٥ = ٠٫٠٧ لـ [– S] و٦/٧٥ = ٠٫٠٨ لـ [– O]، والصف d<sub>1</sub> في الشكل ٢٥٫١٠ يعطي ٠٫٠٥ و٠٫٠٧؛ والفرق على الأرجح لأن d<sub>1</sub> محسوب من الشبكة الكاملة في الورقة الأصلية. أما [S –] = ٦/٧٥ = ٠٫٠٨ فيطابق الكتاب.</p>
+  <p>الأعمدة الكثيفة (Microsoft) لكيانات تتكرر، والمتفرقة (earnings) لكيانات نادرة. ويقاس التماسك بأنماط <span class="t">انتقالات الكيانات المحلية <i>local entity transitions</i></span>: تسلسلات من {S, O, X, –}<sup>n</sup> تُقرأ متتالية من كل عمود؛ فـ Department فاعل في الجملة ١ ثم غائب في ٢: الانتقال [S –]. ولكل انتقال احتمال، والتوزيع على الانتقالات خصائص لنموذج تعلّم: مصنّف مدرَّب على أحكام بشرية بالتماسك (مكلفة)، أو بالابتكار المبسِّط لبارزيلاي ولاباتا (٢٠٠٥): <b>الإشراف الذاتي</b>: تمييز الترتيب الأصلي للجمل من ترتيب معدَّل (عشوائي).</p>
+  <h3>٢٥٫٣٫٣ · تقييم نماذج التماسك</h3>
+  <p>طريقتان: (١) أحكام بشرية بالتماسك (فئوية: عالٍ/منخفض، أو متصلة) ومصنّف يتنبأ بها؛ الأفضل إن كانت لدينا مهمة نهائية كتصحيح المقالات. (٢) الإشراف الذاتي من النصوص الطبيعية: نقرن الخطاب الأصلي بوثيقة زائفة بترتيب مختلف؛ فالأصلي أكثر تماسكاً من التباديل العشوائية (لين وزملاؤه ٢٠١١)، والخوارزمية الناجحة تفضّله. وثلاث صيغ:</p>
+  <ul class="clean">
+    <li><b>تمييز ترتيب الجمل</b> (بارزيلاي ولاباتا ٢٠٠٥): الوثيقة مقابل تبديل عشوائي لجملها؛ النموذج صحيح إن رتّب الأصلية أعلى. ومن k وثيقة وn تبديلاً لكل منها: kn زوجاً.</li>
+    <li><b>إدراج الجملة</b> (تشن وزملاؤه ٢٠٠٧): نحذف جملة s من n جملة، ونصنع n − 1 نسخة بإدراجها في كل موضع آخر، والمطلوب تمييز الموضع الأصلي. أصعب من التمييز لأن الوثائق تختلف بجملة واحدة.</li>
+    <li><b>إعادة بناء الترتيب</b> (لاباتا ٢٠٠٣): نخلط الجمل وندرّب النموذج على إعادتها. أصعب بكثير من التصنيف.</li>
+  </ul>
+</section>
+
+<!-- ============ 25.4 ============ -->
+<section class="sec" id="s25-4">
+  <header><div class="kicker">القسم ٢٥٫٤ <span class="pg">p. 582</span></div><h2>نماذج التمثيل للتماسك المحلي</h2></header>
+  <div class="brief"><b>باختصار</b>التماسك الموضوعي. قديماً بلا إشراف: السلاسل المعجمية (موريس وهيرست ١٩٩١)، وTextTiling (جيب تمام أعداد الكلمات بين المقاطع المتجاورة)، وتماسك LSA: متوسط جيب التمام بين تضمينات الجمل المتجاورة. وحديثاً بالإشراف الذاتي: <b>LCD</b> (شو ٢٠١٩) يأخذ زوج جمل، ويلصق [s, t, s − t, |s − t|, s ⊙ t]، وشبكة بطبقة واحدة تعطي درجة؛ ويُدرَّب بخسارة الهامش ليكون الزوج الحقيقي المتتالي أعلى من زوج بجملة عشوائية من الوثيقة.</div>
+  <div class="terms"><span>السلاسل المعجمية <i>lexical chains</i></span><span>TextTiling</span><span>تماسك LSA <i>LSA coherence</i></span><span>LCD <i>local coherence discriminator</i></span><span>خسارة الهامش <i>margin loss</i></span><span>العيّنات السالبة <i>negative sampling</i></span></div>
+  <p>النوع الثالث من التماسك المحلي: الموضوعي أو الحقلي. وكان الرواد نماذج غير إشرافية في التسعينيات تستعمل السبك المعجمي: موريس وهيرست (١٩٩١) حسبا <b>سلاسل معجمية</b> (pine، bush، trees، trunk) مترابطة في معجم Roget، وبيّنا أن عددها وكثافتها يرتبطان ببنية الموضوع. وخوارزمية <b>TextTiling</b> (هيرست ١٩٩٧) حسبت جيب التمام بين المقاطع المتجاورة (بأعداد الكلمات الخام): جمل الموضوع الفرعي الواحد متشابهة، لا مع جمل الموضوع المجاور. ونموذج <b>تماسك LSA</b> (فولتز ١٩٩٨) أول من استعمل التضمينات: تضمين الجملة مجموع تضمينات كلماتها، والتماسك متوسط جيب التمام بين الجمل المتجاورة:</p>
+  <div class="eq" dir="ltr">sim(s, t) = cos(s, t) = cos( Σ<sub>w∈s</sub> w, Σ<sub>w∈t</sub> w ) &nbsp;&nbsp;(25.31) &nbsp;&nbsp;&nbsp;&nbsp; coherence(T) = (1/(n − 1)) Σ<sub>i=1</sub><sup>n−1</sup> cos(s<sub>i</sub>, s<sub>i+1</sub>) &nbsp;&nbsp;(25.32)</div>
+  <div class="w" id="lsBox"><div class="cap">(25.32) بأعداد الكلمات بدل تضمينات LSA (اختر نصاً؛ «خلط» يبدّل الجمل)</div>
+    <div class="row"><span class="seg" id="lsT" style="flex-wrap:wrap"><button data-i="0" class="on">نص متماسك (من صنعنا)</button><button data-i="1">(25.3) البيانو</button><button data-i="2">(25.28) John</button></span><button class="btn" id="lsShuf">خلط</button><button class="btn" id="lsOrig">الأصل</button></div>
+    <div id="lsOut" dir="ltr" style="margin-top:8px;line-height:1.9;font-size:15.5px"></div><div class="calc" id="lsCalc"></div></div>
+  <p class="note">(تضمينات LSA: تحليل SVD لمصفوفة الكلمات-الوثائق الموزونة، وأول ٣٠٠ بُعد؛ الفصل ٥.) أداتنا تحذف كلمات التوقف وتستعمل الأعداد الخام كـ TextTiling، ولا تفهم المترادفات (piano وinstrument مختلفتان عندها)، وهذا بالضبط ما تحلّه التضمينات.</p>
+  <p>والنماذج العصبية الحديثة (منذ لي وزملائه ٢٠١٤) تستلهم هذه الحدوس، مع فكرة <b>الإشراف الذاتي</b>: تتعلم تمييز الخطاب الطبيعي من خطاب مخلوط، فتكتشف بنفسها الخصائص المهمة للترتيب. ومنها <span class="t">مميِّز التماسك المحلي <i>LCD</i></span> (شو وزملاؤه ٢٠١٩): التماسك متوسط درجات الأزواج المتتالية، لكنه مُدرَّب ذاتياً لتمييز الأزواج المتتالية (s<sub>i</sub>, s<sub>i+1</sub>) (موجبة) من أزواج مصنوعة (s<sub>i</sub>, s′) حيث s′ جملة عشوائية من الوثيقة نفسها (سالبة). والنموذج f<sub>θ</sub> (الشكل ٢٥٫١١): تضمينا الجملتين s وt (بأي خوارزمية)، ثم لصق أربع خصائص: (١) المتجهان، (٢) الفرق s − t، (٣) القيمة المطلقة للفرق |s − t|، (٤) الضرب العنصري s ⊙ t؛ ثم شبكة بطبقة واحدة تعطي الدرجة. والهدف:</p>
+  <div class="eq" dir="ltr">L<sub>θ</sub> = Σ<sub>d∈C</sub> Σ<sub>s<sub>i</sub>∈d</sub> E<sub>p(s′|s<sub>i</sub>)</sub> [ L( f<sub>θ</sub>(s<sub>i</sub>, s<sub>i+1</sub>), f<sub>θ</sub>(s<sub>i</sub>, s′) ) ] &nbsp;&nbsp;(25.33) &nbsp;&nbsp;&nbsp;&nbsp; L(f<sup>+</sup>, f<sup>−</sup>) = max(0, η − f<sup>+</sup> + f<sup>−</sup>)</div>
+  <div class="w" id="lcdBox"><div class="cap">خصائص LCD وخسارة الهامش (متجهات ثلاثية الأبعاد ودرجات من صنعنا)</div>
+    <div class="row"><label class="note">f<sup>+</sup> (الزوج الحقيقي) = <b class="mono" id="lfPo"></b><br><input type="range" id="lfP" min="-2" max="3" step="0.1" value="1.2"></label><label class="note">f<sup>−</sup> (الزوج السالب) = <b class="mono" id="lfNo"></b><br><input type="range" id="lfN" min="-2" max="3" step="0.1" value="0.6"></label><label class="note">الهامش η = <b class="mono" id="lfEo"></b><br><input type="range" id="lfE" min="0" max="3" step="0.1" value="1"></label></div>
+    <div class="calc" id="lcdCalc"></div></div>
+  <p>والخسارة صفر فقط إذا تفوّق الحقيقي على السالب بهامش η على الأقل. وقدّم شو وزملاؤه خط أساس قوياً أيضاً: نموذج لغة تكراري، ولوغاريتم إمكان الجملة s<sub>i</sub> مرتين: بالسياق السابق (شرطي) وبلا سياق (هامشي)؛ والفرق يقيس كم حسّن السياقُ توقع الجملة، وهو مقياس تماسك بالتوقعية. والتدريب على سياقات أطول من الأزواج يعطي تمثيلات أقوى: محوّل بهدف تبايني يتنبأ بنص حتى ±٢ جملة حسّن مهام التماسك (إيتر وزملاؤه ٢٠٢٠). وتُقيَّم هذه النماذج بطرق القسم ٢٥٫٣٫٣، أو على مهام علاقات RST وPDTB.</p>
+</section>
+
+<!-- ============ 25.5 ============ -->
+<section class="sec" id="s25-5">
+  <header><div class="kicker">القسم ٢٥٫٥ <span class="pg">p. 584</span></div><h2>التماسك الكلي</h2></header>
+  <div class="brief"><b>باختصار</b>أقدم ما دُرس: بنية القصص (بروب ١٩٦٨: شخصيات كالبطل والشرير والمانح، و«وظائف» بترتيب ثابت). وحاسوبياً: <b>بنية الحجاج</b> (تنقيب الحجاج): ادعاءات ومقدمات وعلاقات SUPPORT وATTACK، وهي أقل محلية من علاقات التماسك؛ ومعها دراسة الإقناع (التبادل، والدليل الاجتماعي، والسلطة، والندرة). و<b>بنية الخطاب العلمي</b>: «التقسيم الحجاجي» (تويفل) بـ ١٥ وسماً للجمل (الهدف، والطريقة، والنتائج، والاستعمال، والفجوة، والدعم، والنقض…).</div>
+  <div class="terms"><span>الشخصيات الدرامية <i>dramatis personae</i></span><span>الوظائف <i>functions</i></span><span>تنقيب الحجاج <i>argumentation mining</i></span><span>العاطفة / الشخصية / المنطق <i>pathos / ethos / logos</i></span><span>الادعاء / المقدمة <i>claim / premise</i></span><span>دعم / نقض <i>SUPPORT / ATTACK</i></span><span>مخططات الحجاج <i>argumentation schemes</i></span><span>التقسيم الحجاجي <i>argumentative zoning</i></span></div>
+  <p>الخطاب يجب أن يتماسك كلياً لا زوجاً زوجاً فقط. وأقدم ما دُرس بنية القصص: في «مورفولوجيا الحكاية الشعبية» نمذج بروب (١٩٦٨) الحكايات الروسية بـ «نحو حبكة»: <b>شخصيات درامية</b> (البطل، والشرير، والمانح، والمساعد) و<b>وظائف</b> (أحداث: «الشرير يختطف»، «المانح يختبر البطل»، «البطل مُطارَد») تقع بترتيب محدد؛ وكل حكاية تسلسل من هذه الوظائف، تختار مجموعة فرعية منها، لكن دائماً بالترتيب نفسه. وبيّن لايكوف (١٩٧٢) أنه نحو خطاب للقصص، واستقرأ فينليسون (٢٠١٦) بعض الوظائف من مدوّنات الحكايات، وبامان وزملاؤه (٢٠١٣) استقرؤوا «شخصيات» كامنة من ملخصات حبكات الأفلام: من أفعال الشخصية (الأشرار يخنقون)، وما يُفعل بها (الأشرار يُحبَطون ويُعتقلون)، وأوصافها (الأشرار أشرار).</p>
+  <h3>٢٥٫٥٫١ · بنية الحجاج</h3>
+  <p>التحليل الحاسوبي لحجاج الناس اسمه <span class="t">تنقيب الحجاج <i>argumentation mining</i></span>. ووصف أرسطو في «الخطابة» ثلاثة مكونات للحجة الجيدة: <b>العاطفة</b> (pathos، مخاطبة انفعالات السامع)، و<b>الشخصية</b> (ethos، مكانة المتكلم)، و<b>المنطق</b> (logos، البنية المنطقية للحجة). ومعظم دراسات البنية ركزت على المنطق، بمدوّنات موسومة من المقالات الإقناعية: <b>ادعاءات</b> (المكون المركزي الخلافي الذي يحتاج دعماً) و<b>مقدمات</b> (أسباب الكاتب لدعم الادعاء أو المقدمات الأخرى أو نقضها) وعلاقات <b>SUPPORT</b> و<b>ATTACK</b>. فهذا مثال من ستاب وغوريفيتش (٢٠١٤):</p>
+  <div class="w" id="agBox"><div class="cap">بنية حجاج مقالة قصيرة (اضغط وحدة)</div>
+    <div id="agSvg"></div><div class="calc" id="agCalc"></div></div>
+  <p>والحجاج مرتبط بالبنية البلاغية وعلاقات التماسك، لكنه أقل محلية بكثير: للمقالة الإقناعية غالباً ادعاء رئيسي واحد، ومقدمات منتشرة في النص، بلا التماسك المحلي لعلاقات التماسك (الشكل ٢٥٫١٢ بنية أعقد بكثير). وخوارزميات اكتشافه تضم مصنّفات تميّز الادعاء من المقدمة من غير الحجاجي، ومصنّفات علاقات تقرر هل بين مقطعين SUPPORT أو ATTACK أو لا شيء (بلدسوس وشتيده ٢٠١٣). وهناك جهود أولية لعلاقات أغنى، كـ <b>مخططات الحجاج</b>: الحجة بالمثال، ومن السبب إلى النتيجة، وبالعواقب (فنغ وهيرست ٢٠١١).</p>
+  <p>وخط بحثي مهم آخر: كيف ترتبط هذه البنى (أو غيرها) بنجاح الحجة أو <b>إقناعها</b>. وهنا تبرز العاطفة والشخصية: فقد دُرس التحقق اللغوي لخصائص يدرسها علماء الاجتماع (شالديني ١٩٨٤): <b>التبادل</b> (الناس يردّون الجميل)، و<b>الدليل الاجتماعي</b> (يتبعون اختيارات الآخرين)، و<b>السلطة</b> (يتأثرون بذوي النفوذ)، و<b>الندرة</b> (يقدّرون النادر). فجمعها روزنتال وماكيون (٢٠١٧) ببنية الحجاج للتنبؤ بمن يؤثر في من على وسائل التواصل، ووجد ألتهوف وزملاؤه (٢٠١٤) أن نماذج التبادل والسلطة تتنبأ بنجاح الطلبات على الإنترنت، واكتشف نموذج يانغ (٢٠١٩) شبه الإشرافي ذكر الندرة والالتزام والهوية الاجتماعية للتنبؤ بنجاح منصات الإقراض بين الأفراد.</p>
+  <h3>٢٥٫٥٫٢ · بنية الخطاب العلمي</h3>
+  <p>للأوراق العلمية بنية كلية محددة: في موضع ما يجب أن يذكر المؤلفون هدفاً علمياً، ويطوروا طريقة، ويقدموا دليلاً، ويقارنوا بأعمال سابقة. ومخطط وسم شائع لهذه الأغراض البلاغية: <span class="t">التقسيم الحجاجي <i>argumentative zoning</i></span> (تويفل وزملاؤها ١٩٩٩ و٢٠٠٩)، المستند إلى أن كل ورقة تقدّم «ادعاء معرفة» جديداً يضاف إلى مستودع المجال (مايرز ١٩٩٢). ولكل جملة واحد من ١٥ وسماً، منها:</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>Category</th><th>Description</th><th>Example</th></tr>
+    <tr><td class="mono">AIM</td><td>Statement of specific research goal, or hypothesis of current paper</td><td>“The aim of this process is to examine the role that training plays in the tagging process”</td></tr>
+    <tr><td class="mono">OWN METHOD</td><td>New Knowledge claim, own work: methods</td><td>“In order for it to be useful for our purposes, the following extensions must be made:”</td></tr>
+    <tr><td class="mono">OWN RESULTS</td><td>Measurable/objective outcome of own work</td><td>“All the curves have a generally upward trend but always lie far below backoff (51% error rate)”</td></tr>
+    <tr><td class="mono">USE</td><td>Other work is used in own work</td><td>“We use the framework for the allocation and transfer of control of Whittaker....”</td></tr>
+    <tr><td class="mono">GAP WEAK</td><td>Lack of solution in field, problem with other solutions</td><td>“Here, we will produce experimental evidence suggesting that this simple model leads to serious overestimates”</td></tr>
+    <tr><td class="mono">SUPPORT</td><td>Other work supports current work or is supported by current work</td><td>“Work similar to that described here has been carried out by Merialdo (1994), with broadly similar conclusions.”</td></tr>
+    <tr><td class="mono">ANTISUPPORT</td><td>Clash with other’s results or theory; superiority of own work</td><td>“This result challenges the claims of...”</td></tr>
+  </table></div>
+  <p>وطوّرت تويفل وزملاؤها مدوّنات موسومة من مقالات اللسانيات الحاسوبية والكيمياء، تصلح إشرافاً لتدريب مصنّفات جمل قياسية على الوسوم الـ ١٥.</p>
+</section>
+
+<!-- ============ EXERCISES ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وتمارينه <span class="pg">pp. 587–590</span></div><h2>الخلاصة والتمارين</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>الخطاب ليس جملاً اعتباطية، بل يجب أن يكون متماسكاً. ومن عوامل التماسك: علاقات التماسك بين الجمل، وتماسك الكيانات، والتماسك الموضوعي.</li>
+    <li>اقتُرحت مجموعات كثيرة من علاقات التماسك والعلاقات البلاغية. علاقات RST بين مقاطع نصية تنتظم في شجرة، فتُحلَّل بالإزاحة-الاختزال وغيرها. وPDTB يسم علاقات بين أزواج مقاطع فقط، بنماذج تسلسلية عادةً.</li>
+    <li>تماسك الكيانات: الخطاب «عن» كيان، ويواصل ذكره من جملة إلى جملة. والتمركز عائلة نماذج تصف كيف يتحقق التماسك بإبقاء الكيانات نفسها بارزة. وشبكة الكيانات طريقة من أسفل إلى أعلى لحساب انتقالات الكيانات التي تؤدي إلى التماسك.</li>
+    <li>لأنواع النصوص المختلفة تماسك كلي مختلف: المقالات الإقناعية لها ادعاءات ومقدمات يستخرجها تنقيب الحجاج، والمقالات العلمية لها بنية من الأهداف والطرق والنتائج والمقارنات.</li>
+  </ul>
+  <h3>من الحواشي التاريخية</h3>
+  <p>نشأت علاقات التماسك من أعمال مستقلة: فكرة هوبز (١٩٧٩) أن لها دوراً استدلالياً عند السامع، وبحث مان وطومسون (١٩٨٧) في بنية النصوص الكبيرة؛ ومن المقاربات الأخرى SDRT (آشر ولاسكاريدس ٢٠٠٣) ونموذج الخطاب اللساني (بولاني ١٩٨٨). ويرى وولف وغيبسون (٢٠٠٥) أن بنية التماسك فيها تقاطعات تمنع تمثيلها شجرةً، فاقترحا رسماً بيانياً. وجمع هوفي (١٩٩٠) أكثر من ٣٥٠ علاقة مقترحة. واقترح ماركو (١٩٩٧) تحليل RST، وكان أولاً بالقواعد على العلامات الخطابية، ثم أتاح بنك RST التعلّم الآلي (محلل ماركو ١٩٩٩ بأشجار القرار)، ثم العصبي منذ جي وأيزنشتاين (٢٠١٤). وأرسى بارزيلاي ولاباتا (٢٠٠٥) الإشراف الذاتي للتماسك، وطبّقه لي وزملاؤه (٢٠١٤) عصبياً. واقترح مارك وإشيهابي (٢٠٠٢) استعمال الجمل ذات الروابط الصريحة (بعد حذفها) بيانات لتعلّم الضمنية، وخوارزمية DisSent (ني ٢٠١٩) تتعلم تمثيلات جمل قوية بالتنبؤ بالروابط الصريحة. ونشأ تماسك الكيانات في السبعينيات في اللسانيات الوظيفية (تشيف) وعلم النفس (كينتش وفان دايك) وأعمال غروز (التركيز الكلي والآني) وسيدنر (التركيز الحالي والمحتمل، سلفا Cb وCf) وجوشي؛ وانتشرت مخطوطة التمركز منذ ١٩٨٦ ولم تُنشر حتى ١٩٩٥.</p>
+  <h3>تمارين الفصل</h3>
+  <ol class="clean">
+    <li><b>٢٥٫١</b> أكمل تحليل التمركز لآخر قولين من (25.30)، وبيّن كيف يُعالَج (25.29). هل تجعله الخوارزمية أقل تماسكاً؟ <details><summary>الحل (من عندنا؛ تحقق في أداة التمركز)</summary>(25.30): U3 «He arrived just as the store was closing»: Cf = {John, store}، Cb = John = Cp وCb(U2) = John ← Continue. U4 «It was closing just as John arrived»: Cf = {store (It)، John}، Cb = John (أعلى عناصر Cf(U3) المتحققة)، Cp = store ≠ Cb ← Retain؛ وتُنتهك القاعدة ١: store من Cf(U3) صار ضميراً (It) وCb (John) جاء اسماً. و(25.29): Retain (مع انتهاك القاعدة ١ في U2)، ثم Continue، ثم Retain؛ مقابل Continue × ٣ في (25.28). فنعم: انتقالات أدنى رتبة، وانتهاك للقاعدة ١.</details></li>
+    <li><b>٢٥٫٢</b> اختر مقال رأي من صحيفتك المفضلة، وحدد بنية خطاب جزء من ١٠–٢٠ جملة. ما المشكلات التي واجهتك؟ وهل ساعدتك الإشارات السطحية (كالروابط الخطابية)؟</li>
+  </ol>
+  <h3>أسئلة للمراجعة</h3>
+  <ol class="clean">
+    <li>ما الفرق بين النواة والتابع؟ ولماذا يفيد ذلك في التلخيص؟</li>
+    <li>ما الفرق الجوهري بين RST وPDTB في البنية التي يسمانها؟</li>
+    <li>لماذا يُعدّ وسم الروابط الضمنية أصعب؟ ولماذا وسم بنك الخطاب الصيني الأزواج مباشرة؟</li>
+    <li>احسب يدوياً احتمال [S –] في شبكة الشكل ٢٥٫٨، وقارن بالأداة.</li>
+    <li>لماذا تُعدّ «إدراج الجملة» أصعب من «تمييز الترتيب»؟</li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="24-coreference.html">→ الفصل السابق: حلّ الإحالة وربط الكيانات</a><span>الفصل التالي: المحادثة وبنيتها (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch25.js"></script>
+</body>
+</html>
