@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٢٤ · حلّ الإحالة وربط الكيانات | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل الرابع والعشرين من كتاب Speech and Language Processing: نموذج الخطاب والإشارات والمرجع، وأنواع التعابير المحيلة وحالة المعلومة، والعبارات غير المحيلة، وقيود الإحالة وتفضيلاتها، واكتشاف الإشارات، ونماذج زوج الإشارات وترتيبها والكيانات، والخوارزمية العصبية e2e-coref، وربط الكيانات (TAGME وELQ)، ومقاييس MUC وB³، ومخططات وينوغراد، والتحيز الجنسي.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="23-affect-lexicons.html" style="text-decoration:none">→ الفصل ٢٣</a><b>الفصل ٢٤ من ٢٦</b><span class="pill">الفصل ٢٥ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الثالث · وسم البنية اللغوية · الفصل الرابع والعشرون</div>
+  <h1>حلّ الإحالة وربط الكيانات</h1>
+  <div class="sub en" style="font-size:16px">Chapter 24 · Coreference Resolution and Entity Linking · pp. 539–568</div>
+  <p class="epi">«وحتى ستيغاند، رئيس أساقفة كانتربري الوطني، وجده مستحسناً…» — «وجد ماذا؟» قالت البطة. «وجده»، ردّ الفأر متبرماً: «طبعاً تعرفين ماذا تعني الهاء». «أعرف ماذا تعني حين أجد أنا شيئاً»، قالت البطة: «غالباً ضفدع أو دودة. السؤال: ماذا وجد رئيس الأساقفة؟» — لويس كارول، «أليس في بلاد العجائب».</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>العبارات التي تحيل إلى الشيء نفسه (Victoria Chen، her، the 38-year-old، she) «متحدة المرجع». و<b>حلّ الإحالة</b>: اكتشاف الإشارات، ثم تجميعها في سلاسل، كل سلسلة كيان في «نموذج الخطاب». و<b>ربط الكيانات</b>: معرفة أي كيان في العالم (أي صفحة ويكيبيديا) هو.</li>
+    <li>شكل العبارة يدل على «حالة المعلومة»: النكرة تقدّم جديداً، والضمير لِما هو بارز جداً. وبعض العبارات لا تحيل أصلاً: it في «It is raining»، والبدل، والخبر، والعام.</li>
+    <li>قيود وتفضيلات: التوافق في العدد والشخص والجنس، وقيود الربط (herself)، والقرب، والدور النحوي (الفاعل أبرز)، ودلالة الفعل، والقيود الانتقائية.</li>
+    <li>ثلاث بنى: <b>زوج الإشارات</b> (مصنّف ثنائي لكل زوج)، و<b>ترتيب الإشارات</b> (softmax على كل السوابق + «لا سابق» ε)، و<b>الكيانات</b>. وأفضلها عملياً e2e-coref العصبي: كل المقاطع، ودرجة «إشارة» لكل مقطع، ودرجة «سابق» لكل زوج.</li>
+    <li>الربط: TAGME بقاموس نصوص الروابط واحتمالها المسبق والترابط عبر روابط ويكيبيديا، وELQ بمرمِّزين وضرب نقطي. والتقييم: MUC (روابط) وB³ (إشارات) ومتوسط CoNLL. وأخيراً: مخططات وينوغراد التي تتطلب معرفة بالعالم، والتحيز الجنسي في أنظمة الإحالة.</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 539</span></div><h2>من نتحدث عنه؟</h2></header>
+  <div class="brief"><b>باختصار</b>الإشارة (العبارة المحيلة) تحيل إلى «مرجع» في <b>نموذج الخطاب</b> الذي يبنيه السامع تدريجياً: أول إشارة «تستحضر» الكيان، واللاحقة «تصل» إليه. والإشارة اللاحقة «عائدة» وسابقتها «المرجع السابق». والكيان ذو الإشارة الواحدة «مفرد». وحلّ الإحالة: اكتشاف الإشارات وتجميعها في سلاسل. وربط الكيانات: ربط الكيان بفرد في العالم. وثلاث ظواهر أصعب لا نعالجها بتوسع: مخططات وينوغراد، وإحالة الأحداث، والإشارة الخطابية.</div>
+  <div class="terms"><span>الإشارة / العبارة المحيلة <i>mention / referring expression</i></span><span>المرجع <i>referent</i></span><span>اتحاد المرجع <i>corefer</i></span><span>نموذج الخطاب <i>discourse model</i></span><span>يستحضر / يصل <i>evoke / access</i></span><span>العائد / السابق <i>anaphor / antecedent</i></span><span>المفرد <i>singleton</i></span><span>سلسلة الإحالة <i>coreference chain / cluster</i></span><span>ربط الكيانات <i>entity linking</i></span></div>
+  <p>جزء مهم من فهم اللغة أن تعرف من يُتحدث عنه:</p>
+  <div class="quote" dir="ltr">(24.1) Victoria Chen, CFO of Megabucks Banking, saw her pay jump to $2.3 million, as the 38-year-old became the company’s president. It is widely known that she came to Megabucks from rival Lotsabucks.</div>
+  <p>العبارات Victoria Chen وher وthe 38-year-old وshe كلها يستعملها الكاتب ليحيل إلى شخص اسمه Victoria Chen. نسمي هذه العبارات <span class="t">إشارات <i>mentions</i></span> أو <b>عبارات محيلة</b>، والكيان المحال إليه <span class="t">المرجع <i>referent</i></span>. وإشارتان أو أكثر تحيلان إلى الكيان نفسه <b>متحدتا المرجع</b> (<i>corefer</i>). والإحالة مهمة: نظام حوار قال «هناك رحلة الثانية ظهراً على United والرابعة على Cathay Pacific» يجب أن يعرف أي رحلة يقصد المستخدم بـ «سآخذ الثانية»؛ ونظام أسئلة يقرأ عن ماري كوري يجب أن يعرف من هي «She» في «She was born in Warsaw»؛ ونظام ترجمة من الإسبانية (التي يجوز فيها حذف الضمير) يجب أن يعرف من السياق هل «‘Me encanta el conocimiento’, dice» = «he says» أم «she says». وهذا المثال من خبر حقيقي في El País عن أستاذة، تُرجم خطأً بـ «he» (شيبينغر ٢٠١٣).</p>
+  <p>والبشر والأنظمة يفسرون العبارات نسبةً إلى <span class="t">نموذج خطاب <i>discourse model</i></span> (كارتونن ١٩٦٩): نموذج ذهني يبنيه الفاهم تدريجياً، فيه تمثيلات الكيانات وخصائصها والعلاقات بينها. حين يُذكر المرجع أول مرة «يُستحضر» (<i>evoked</i>) تمثيله في النموذج، وفي الإشارات اللاحقة «يُوصل إليه» (<i>accessed</i>):</p>
+  <div class="w" id="dmBox"><div class="cap">الشكل ٢٤٫١ متحركاً: الإشارات تستحضر الكيانات أو تصل إليها (اضغط «التالي»)</div>
+    <div class="row"><button class="btn pri" id="dmNext">الإشارة التالية</button><button class="btn" id="dmAll">الكل</button><button class="btn" id="dmReset">من جديد</button></div>
+    <div id="dmText" dir="ltr" style="margin-top:8px;line-height:2.3;font-size:16.5px"></div>
+    <div id="dmModel" class="row" style="margin-top:8px;gap:8px"></div><div class="calc" id="dmCalc"></div></div>
+  <p>والإحالة إلى كيان سبق تقديمه اسمها <span class="t">الإحالة العائدة <i>anaphora</i></span>، والعبارة <b>عائد</b> (<i>anaphor</i>): she وher والتعريف the 38-year-old في المثال. والإشارة السابقة التي يتحد معها في المرجع اسمها <b>السابق</b> (<i>antecedent</i>). والكيان ذو الإشارة الواحدة (Lotsabucks) <span class="t">مفرد <i>singleton</i></span>. و<span class="t">حلّ الإحالة <i>coreference resolution</i></span> مهمة تقرير هل إشارتان تحيلان إلى الكيان نفسه في نموذج الخطاب، ومجموعة الإشارات المتحدة <b>سلسلة إحالة</b> أو <b>عنقود</b>. ففي (24.1) أربع سلاسل على الأقل: {Victoria Chen, her, the 38-year-old, She}، {Megabucks Banking, the company, Megabucks}، {her pay}، {Lotsabucks}. ولاحظ أن الإشارات تتداخل: her جزء من her pay، وهي تحيل إلى كيان آخر تماماً. فالمهمة جزآن (يُنفذان معاً غالباً): (١) اكتشاف الإشارات؛ (٢) تجميعها في سلاسل.</p>
+  <p class="note">«عائد» هنا بالاستعمال الشائع في المعالجة: أي إشارة لها سابق، لا الضمائر وحدها. والمعالجة تتبع تقليد اللسانيات الوظيفية: الإشارة تحيل إلى كيان في الخطاب، وربطه بالعالم خطوة إضافية؛ بخلاف الدلالة الصورية التي تجعل الإحالة علاقة مباشرة بالعالم.</p>
+  <p>وكثيراً ما نريد أكثر: أي فرد في العالم هو هذا الكيان؟ فـ Washington قد تكون الولاية أو العاصمة أو جورج واشنطن. و<span class="t">ربط الكيانات <i>entity linking</i></span> (جي وغريشمان ٢٠١١) يربط الكيان بفرد في <b>أنطولوجيا</b>: قائمة كيانات العالم، وأشهرها ويكيبيديا (كل صفحة معرّف فريد)، فتسمى المهمة <b>wikification</b> (ميهالتشيا وتشوماي ٢٠٠٧). ويمكن أي أنطولوجيا: جينات مثلاً.</p>
+  <p>ومهام أصعب نذكرها باختصار: <b>مخططات وينوغراد</b> (القسم ٢٤٫٩) تحتاج معرفة بالعالم: «The city council denied the demonstrators a permit because (a) they feared violence / (b) they advocated violence» (24.2). و<b>إحالة الأحداث</b>: هل [buy] في (24.3) و[acquisition] في (24.4) الحدث نفسه؟ وهي أصعب لأن الأحداث أفعال وأسماء. و<b>الإشارة الخطابية</b> (<i>discourse deixis</i>، ويبر ١٩٨٨): العائد يحيل إلى مقطع من الخطاب: «According to Soleil, Beau just opened a restaurant. (a) But that turned out to be a lie. (b) But that was false. (c) That struck me as a funny way to describe the situation» (24.5): that فعل كلامي في (a)، وقضية في (b)، وطريقة وصف في (c).</p>
+</section>
+
+<!-- ============ 24.1 ============ -->
+<section class="sec" id="s24-1">
+  <header><div class="kicker">القسم ٢٤٫١ <span class="pg">p. 542</span></div><h2>ظواهر الإحالة: خلفية لغوية</h2></header>
+  <div class="brief"><b>باختصار</b>أربعة أنواع من العبارات المحيلة: النكرة (تقدّم جديداً)، والمعرفة (معروف للسامع: ذُكر أو معروف عموماً أو فريد)، والضمائر (للبارز جداً؛ ومنها الإحالة البعدية، والضمير المربوط، والضمير الصفري)، والأسماء العَلَم. و«حالة المعلومة»: جديد تماماً، أو غير مستعمل (جديد في الخطاب قديم عند السامع)، أو قديم، أو مستنتَج بالجسر. وكلما برز الكيان قصرت الإشارة إليه. ولا تحيل: البدل، والخبر، وit الحشوية، والعام. ثم قيود وتفضيلات العلاقة بين العائد وسابقه.</div>
+  <div class="terms"><span>النكرة / المعرفة <i>indefinite / definite NP</i></span><span>الإحالة البعدية <i>cataphora</i></span><span>الضمير المربوط <i>bound pronoun</i></span><span>الضمير الصفري <i>zero anaphor</i></span><span>حالة المعلومة <i>information status</i></span><span>استنتاج الجسر <i>bridging inference</i></span><span>المعطى-الجديد <i>given-new</i></span><span>البروز / الإتاحة <i>salience / accessibility</i></span><span>الحشوي <i>expletive / pleonastic</i></span><span>العام <i>generic</i></span><span>نظرية الربط <i>binding theory</i></span></div>
+  <h3>٢٤٫١٫١ · أنواع العبارات المحيلة</h3>
+  <ul class="clean">
+    <li><b>النكرة:</b> بـ a/an غالباً، أو some، أو حتى this. تقدّم كياناً جديداً على السامع: «Mrs. Martin was so very kind as to send Mrs. Goddard <i>a beautiful goose</i>» (24.6a)، «He had gone round one day to bring her <i>some walnuts</i>» (b)، «I saw <i>this beautiful cauliflower</i> today» (c).</li>
+    <li><b>المعرفة:</b> بـ the، لكيان يعرفه السامع: لأنه ذُكر («…a white stallion… But the pedigree of <i>the white stallion</i>…» 24.7)، أو في معتقدات السامع عن العالم («<i>the New York Times</i>» 24.8)، أو لأن الوصف نفسه يفيد التفرد («Have you seen <i>the car keys</i>?» 24.9)، وفي الحالتين الأخيرتين «يستحضر». وأكثر من نصف المعارف في الأخبار غير عائدة، لأنها أول ذكر للكيان (بويزيو وفييرا ١٩٩٨).</li>
+    <li><b>الضمائر:</b> للكيانات البارزة جداً («Emma smiled and chatted as cheerfully as <i>she</i> could» 24.10). ومنها <b>الإحالة البعدية</b> (<i>cataphora</i>): الضمير قبل مرجعه: «Even before <i>she</i> saw <i>it</i>, Dorothy had been thinking about the Emerald City every day» (24.11). و<b>المربوط</b>: «Every dancer brought <i>her</i> left arm forward» (24.12): her متغير مربوط بـ every dancer لا امرأة بعينها (لا نعالجه). وفي لغات تلتصق الضمائر بالكلمة، كـ lo الإسبانية في unirlo (24.13)، ومثلها في العربية «ضربته».</li>
+    <li><b>الإشارة:</b> this وthat وحدهما أو محدِّدين («That one had been very tattered; this one was in much better condition» 24.14). وthis قد تكون نكرة في الكلام الدارج (24.6c) أو معرفة.</li>
+    <li><b>الضمير الصفري:</b> في الصينية واليابانية والإيطالية (والعربية) قد لا يُلفظ العائد أصلاً: «[Giovanni]<sub>i</sub> andò a far visita a degli amici. Per via φ<sub>i</sub> comprò del vino» (24.15)، وفي الصينية «[我] 前一会精神上太紧张。[0] 现在比较平静了» (24.16). وهذا يعقّد اكتشاف الإشارات. (وفي العربية: «زار زيدٌ أصدقاءه. وفي الطريق اشترى φ عصيراً».)</li>
+    <li><b>الأسماء:</b> لكيانات جديدة وقديمة: «Miss Woodhouse certainly had not done him justice» (24.17a)، «International Business Machines sought patent compensation from Amazon; IBM had previously sued other companies» (b).</li>
+  </ul>
+  <h3>٢٤٫١٫٢ · حالة المعلومة</h3>
+  <p>طريقة استعمال العبارة لاستحضار جديد (معلومة جديدة) أو الوصول إلى قديم اسمها <span class="t">حالة المعلومة <i>information status</i></span>. والكيان جديد في الخطاب أو قديم فيه، ويُميَّز عادةً ثلاثة أنواع على الأقل (برنس ١٩٨١):</p>
+  <div class="w" id="isBox"><div class="cap">حالة المعلومة عند برنس (اختر نوعاً)</div>
+    <div class="row"><span class="seg" id="isS" style="flex-wrap:wrap"><button data-i="0" class="on">جديد تماماً</button><button data-i="1">غير مستعمل</button><button data-i="2">قديم</button><button data-i="3">مستنتَج (جسر)</button></span></div>
+    <div id="isOut" dir="ltr" style="margin-top:8px;line-height:2.2;font-size:16.5px"></div><div class="calc" id="isCalc"></div></div>
+  <p>وشكل العبارة يدل على حالتها. فنتحدث عن موقع الكيان على بُعد <span class="t">المعطى-الجديد <i>given-new</i></span>: معطى (بارز في الخطاب، سهل الاستحضار، متوقَّع) أو جديد. والمرجع <b>المتاح</b> جداً (آرييل ٢٠٠١) يُشار إليه بمادة لغوية أقل: الضمائر لا تُستعمل إلا لمرجع شديد البروز (وعادةً لا يبعد أكثر من جملة أو جملتين، بخلاف المعارف). والكيان الجديد يحتاج عبارة أطول وأوضح: اسم كامل ولقب ودور، أو بدل أو صلة، كتقديم بطلتنا: «Victoria Chen, CFO of Megabucks Banking». ومع تقدم الخطاب يبرز فتقصر الإشارات: اسم مختصر (Ms. Chen)، ثم وصف معرّف (the 38-year-old)، ثم ضمير (she، her) (هوكنز ١٩٧٨). لكن هذا التقصير ليس رتيباً، ويتأثر ببنية الخطاب.</p>
+  <h3>٢٤٫١٫٣ · تعقيدات: عبارات لا تحيل</h3>
+  <p>عبارات اسمية كثيرة ليست محيلة وإن شابهت المحيلة. لاحظ كارتونن (١٩٦٩) أن a car في «Janet doesn’t have a car» (24.20) لا تُنشئ مرجعاً، فلا يصح «*It is a Toyota» ولا «*The car is red». وأربعة أنواع شائعة لا تُعدّ إشارات في مهام الإحالة:</p>
+  <ul class="clean">
+    <li><b>البدل</b> (<i>appositive</i>): عبارة بجوار رأس تصفه، بين فاصلتين غالباً: «Victoria Chen, <i>CFO of Megabucks Banking</i>, saw…» (24.23)، «United, <i>a unit of UAL</i>, matched the fares» (24.24). وصف إضافي لا إحالة، وإن كانت مجموعات مثل OntoNotes تسم علاقة البدل.</li>
+    <li><b>الخبر والوصف</b> (<i>predicative / attributive</i>): في «United is a unit of UAL» العبارة a unit of UAL صفة لـ United لا كيان آخر. وفي مثالنا $2.3 million (24.25) وthe company’s president (24.26) وصفان لـ her pay وthe 38-year-old. ومثال صيني: «上海是[中国最大的城市]» (24.27).</li>
+    <li><b>الحشو</b> (<i>expletive / pleonastic</i>): it غير محيلة في it is raining، والتعابير (hit it off)، والتراكيب الخاصة كالتبئير «It was Emma Goldman who founded Mother Earth» (24.28a) والإزاحة «It surprised me that there was a herring hanging on her wall» (b).</li>
+    <li><b>العام</b> (<i>generic</i>): «I love mangos. They are very tasty» (24.29): they للمانجو عموماً. وyou أيضاً: «In July in San Francisco you have to wear a jacket» (24.30).</li>
+  </ul>
+  <h3>٢٤٫١٫٤ · خصائص علاقة الإحالة</h3>
+  <p>بعد خصائص العبارة الواحدة، خصائص الزوج عائد-سابق، المفيدة لتصميم الخصائص وتحليل الأخطاء. اختر مثالاً لترى المرشحين وما يستبعده كل قيد وما يرجّحه كل تفضيل:</p>
+  <div class="w" id="cpBox"><div class="cap">قيود الإحالة وتفضيلاتها (24.31)–(24.42)</div>
+    <div class="row"><span class="seg" id="cpS" dir="ltr" style="flex-wrap:wrap"></span></div>
+    <div id="cpOut" dir="ltr" style="margin-top:8px;line-height:2;font-size:16.5px"></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="cpTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="cpCalc"></div></div>
+  <ul class="clean">
+    <li><b>التوافق في العدد:</b> she/her/he/him/his/it مفردة، وwe/us/they/them جمع، وyou غير محددة. فـ the chefs لا تتحد مع she عادةً. لكن لا يجوز فرضه بصرامة: الكيان الجمعي معنىً قد يُشار إليه بـ it أو they (24.31)، و<b>they المفردة</b> شائعة اليوم لأنها محايدة جنسياً، وهي قديمة في الإنجليزية (شكسبير: «There’s not a man I meet but doth salute me As if I were their well-acquainted friend»).</li>
+    <li><b>التوافق في الشخص:</b> ضمير الغائب يحتاج سابقاً غائباً، إلا في حالات كالاقتباس: «“I voted for Nader because he was most aligned with my values,” she said» (24.32): I وmy وshe متحدة.</li>
+    <li><b>التوافق في الجنس أو فئة الاسم:</b> في لغات كثيرة لكل اسم جنس نحوي (أو فئة اسمية: البانتو والصينية لها فئات أكثر بكثير)، والضمير يوافق سابقه. وفي الإنجليزية في ضمائر الغائب المفرد فقط (he، she، it، وضمائر غير ثنائية حديثة مثل ze وhir). ومعرفة جنس الاسم قد تحتاج معرفة بالعالم: «Maryam has a theorem. She is exciting» (24.33) و«…It is exciting» (24.34).</li>
+    <li><b>قيود نظرية الربط</b> (تشومسكي ١٩٨١): الضمير <b>الانعكاسي</b> (himself، herself) يتحد مع فاعل أقرب جملة تحويه، وغير الانعكاسي لا يتحد معه: «Janet bought herself a bottle of fish sauce» (herself = Janet، 24.35)، «Janet bought her a bottle of fish sauce» (her ≠ Janet، 24.36).</li>
+    <li><b>القرب:</b> الكيانات الأحدث أبرز (24.37).</li>
+    <li><b>الدور النحوي:</b> الفاعل أبرز من المفعول، والمفعول أبرز من المجرور (24.38–24.39).</li>
+    <li><b>دلالة الفعل:</b> أفعال تبرز أحد معمولاتها: «John telephoned Bill. He lost the laptop» (he = John) و«John criticized Bill. He lost the laptop» (he = Bill). وقد يرجع ذلك إلى «السببية الضمنية»: سبب الانتقاد ضمنياً مفعوله، وسبب الاتصال فاعله.</li>
+    <li><b>القيود الانتقائية</b> (الفصل ٢٢): «I ate the soup in my new bowl after cooking it for hours» (24.42): eat يطلب ما يؤكل، فيستبعد bowl.</li>
+  </ul>
+</section>
+
+<!-- ============ 24.2 ============ -->
+<section class="sec" id="s24-2">
+  <header><div class="kicker">القسم ٢٤٫٢ <span class="pg">p. 547</span></div><h2>المهام ومجموعات البيانات</h2></header>
+  <div class="brief"><b>باختصار</b>المهمة: من نص T، جد كل الكيانات وروابط الإحالة، وقارن بوسم بشري. وما يُعدّ إشارة يختلف بين المجموعات: بعضها لا يسم المفردات (فتسهل المهمة كثيراً، لأن المفردات ٦٠–٧٠٪ من الكيانات)، وبعضها يعطي الإشارات الذهبية. وأشهرها OntoNotes (نحو مليون كلمة إنجليزية ومليون صينية و٣٠٠ ألف عربية، بلا مفردات). والتقييم بمتوسط CoNLL F1 لـ MUC وB³ وCEAF<sub>e</sub>.</div>
+  <div class="terms"><span>OntoNotes</span><span>CoNLL 2012</span><span>الإشارات الذهبية <i>gold mentions</i></span><span>LitBank / AnCora / ARRAU / ISNotes</span></div>
+  <p>نصوغ المهمة: من نص T، جد كل الكيانات وروابط الإحالة بينها، وقيّم بمقارنة الروابط بوسم بشري ذهبي. والمثال برقم فوقي لكل سلسلة وحرف سفلي لكل إشارة:</p>
+  <div class="quote" dir="ltr">(24.43) [Victoria Chen]<sup>1</sup><sub>a</sub>, CFO of [Megabucks Banking]<sup>2</sup><sub>a</sub>, saw [[her]<sup>1</sup><sub>b</sub> pay]<sup>3</sup><sub>a</sub> jump to $2.3 million, as [the 38-year-old]<sup>1</sup><sub>c</sub> also became [[the company]<sup>2</sup><sub>b</sub>’s president. It is widely known that [she]<sup>1</sup><sub>d</sub> came to [Megabucks]<sup>2</sup><sub>c</sub> from rival [Lotsabucks]<sup>4</sup><sub>a</sub>.</div>
+  <p>وفي معظم حملات التقييم يكون المدخل نصاً خاماً: يجب اكتشاف الإشارات ثم ربطها. فنعالج الضمائر (her = Victoria Chen)، ونستبعد الضمائر غير المحيلة (It الحشوية)، والمعارف (the 38-year-old = Victoria Chen، the company = Megabucks)، والأسماء (Megabucks = Megabucks Banking). وما يُعدّ إشارة يختلف: بعض المجموعات لا تسم <b>المفردات</b>، فتسهل المهمة كثيراً، لأن المفردات أغلب الإشارات في النصوص ويصعب تمييزها من غير المحيلة. وبعض المهام تعطي <b>الإشارات الذهبية</b> والمطلوب التجميع فقط.</p>
+  <p><b>OntoNotes</b> (برادان وزملاؤه ٢٠٠٧) ومهمة CoNLL 2012: نحو مليون كلمة إنجليزية ومليون صينية (أخبار، ومجلات، وبث إخباري، ومحادثات، وويب، وكلام محادثي)، ونحو ٣٠٠ ألف كلمة أخبار عربية. وأهم ما يميزه: <b>لا يسم المفردات</b> (وهي ٦٠–٧٠٪ من الكيانات). ولا يسم العام ولا الحشوي. والبدل لا يُعدّ إشارة منفصلة بل يدخل في الإشارة: «Richard Godown, president of the Industrial Biotechnology Association» كلها إشارة واحدة. والنعوت السابقة للاسم كيانات فقط إن كانت أعلاماً: wheat في wheat fields ليست كياناً، وUN في UN policy كيان (لا American في American policy). ومجموعات أغنى: <b>ISNotes</b> (حالة المعلومة والجسور)، و<b>LitBank</b> (٢١٠٬٥٣٢ رمزاً من ١٠٠ رواية، بالمفردات والمسوَّرات والمنفيات)، و<b>AnCora-CO</b> (٤٠٠ ألف كلمة لكل من الإسبانية والكتالانية، بالإشارة الخطابية)، و<b>ARRAU</b> (٣٥٠ ألف كلمة إنجليزية بكل العبارات الاسمية، والجسور، والعام، والإحالات الملتبسة).</p>
+</section>
+
+<!-- ============ 24.3 ============ -->
+<section class="sec" id="s24-3">
+  <header><div class="kicker">القسم ٢٤٫٣ <span class="pg">p. 548</span></div><h2>اكتشاف الإشارات</h2></header>
+  <div class="brief"><b>باختصار</b>نقترح بسخاء (الاستدعاء أولاً) ثم نرشّح: كل عبارة اسمية وضمير ملكية وكيان مسمّى (أو كل المقاطع حتى ١٠ كلمات في الأنظمة الحديثة). ثم نحذف الحشو والبدل والخبر والكميات، بقواعد (أنماط لابين وليس لـ it الحشوية) أو بمصنّفات «الإحالية» و«العَود». لكن الترشيح الصارم يضر، فالأنظمة الحديثة تكتشف الإشارات وتحل الإحالة معاً. وما زال خلط الحشو بالمحيل مصدراً كبيراً للأخطاء.</div>
+  <div class="terms"><span>اكتشاف الإشارات <i>mention detection</i></span><span>مصنّف العَود <i>anaphoricity classifier</i></span><span>مصنّف الإحالية <i>referentiality classifier</i></span><span>مصنّف الجدة في الخطاب <i>discourse-new classifier</i></span></div>
+  <p>أول مرحلة: إيجاد مقاطع الإشارات. والخوارزميات سخية جداً في الاقتراح (تُعلي الاستدعاء) ثم ترشّح. فأنظمة كثيرة تشغّل محللاً نحوياً ووسّام كيانات وتستخرج كل عبارة اسمية أو ضمير ملكية أو كيان مسمّى، فتعطي ١٣ إشارة محتملة من (24.44). والأنظمة الأحدث أسخى: الخوارزمية المقطعية (القسم ٢٤٫٦) تأخذ كل المقاطع حتى N = ١٠ كلمات. ثم لا بد من ترشيح الحشو والبدل والخبر:</p>
+  <div class="w" id="mdBox"><div class="cap">من ١٣ مرشحاً إلى ٩ إشارات (فعّل المرشِّحات)</div>
+    <div class="row" id="mdF" style="flex-wrap:wrap;gap:6px 16px"></div>
+    <div id="mdOut" dir="ltr" style="margin-top:8px;line-height:2.2"></div><div class="calc" id="mdCalc"></div></div>
+  <p>وبعض الترشيح بقواعد. فالأنظمة القديمة صممت تعابير نمطية لـ it الحشوية، كقواعد لابين وليس (١٩٩٤) بقواميس أفعال معرفية (believe، know، anticipate) لـ «It is thought that ketchup…»، وصفات جهوية (necessary، possible، certain، important) لـ «It is likely that I…»، وما زالت تُستعمل أحياناً:</p>
+  <div class="w" id="plBox"><div class="cap">أنماط لابين وليس لـ it الحشوية (اكتب جملة أو اختر مثالاً)</div>
+    <div class="row" id="plBtns" style="flex-wrap:wrap"></div>
+    <input id="plIn" class="mono" dir="ltr" style="width:100%;margin-top:6px">
+    <div class="calc" id="plCalc"></div></div>
+  <p class="note">الأداة تقبل ظرفاً اختيارياً قبل الفعل أو الصفة (It is <i>widely</i> known that…)، وقوائم الأفعال والصفات فيها مختصرة من عندنا.</p>
+  <p>والقواعد قد تُصمم لحملة تقييم بعينها. ففي OntoNotes لا تتداخل الإشارات، والكميات نادراً ما تتحد، فالخوارزمية الأولية الشائعة (لي وزملاؤه ٢٠١٣): (١) خذ كل العبارات الاسمية وضمائر الملكية والكيانات المسمّاة؛ (٢) احذف الكميات (100 dollars، 8%)، والإشارات المضمَّنة في أكبر منها، والصفات القومية، وكلمات التوقف (there)؛ (٣) احذف it الحشوية بالأنماط.</p>
+  <p>لكن القواعد لا تكفي، فالأنظمة الحديثة تضيف مكوناً متعلَّماً: مصنّف <b>إحالية</b>، أو مصنّف <b>عَود</b> (هل العبارة عائدة؟)، أو مصنّف <b>جدة في الخطاب</b> (هل هي جديدة وسابق محتمل؟). فمصنّف العَود يأخذ أمثلته الموجبة من المقاطع الموسومة عائدةً في OntoNotes أو ARRAU أو AnCora، وكل عبارة أخرى سالبة، بخصائص كالرأس والكلمات المحيطة والتعريف والحياة والطول والموقع (نغ وكاردي ٢٠٠٢). لكن <b>الترشيح الصارم</b> يضر: عتبة عالية تحذف كثيراً فيهبط الاستدعاء، ومنخفضة تُدخل الحشو فتهبط الدقة. والنهج الحديث: اكتشاف الإشارات والعَود والإحالة <b>معاً</b> في نموذج واحد (نغ ٢٠٠٥، ودنيس وبالدريدج ٢٠٠٧، ورحمن ونغ ٢٠٠٩)، كنظام لي وزملائه (٢٠١٧) الذي يحسب درجة «إحالية» لكل إشارة ودرجة «اتحاد» لكل زوج ويدرّبهما بخسارة واحدة.</p>
+  <p>ومع ذلك يبقى اكتشاف الإشارات المحيلة مشكلة مفتوحة: وسم it الحشوية وغير المحيل متحداً مصدر كبير لأخطاء الأنظمة الحديثة. ومن الأفكار: بين وريلوف (١٩٩٩) تعلّما أنماط العبارات العائدة وغير العائدة من أوائل العبارات في النصوص (المضمون أنها غير عائدة)؛ وتشانغ وزملاؤه (٢٠١٢) يبحثون عن رؤوس أسماء تكثر في التدريب ولا تكون إشارات ذهبية أبداً؛ وبيرغسما وزملاؤه (٢٠٠٨) استعملوا عدّ الويب لـ it (بين ربع ونصف حالاتها غير عائدة): «You can make [it] in advance» (عائدة) و«You can make [it] in Hollywood» (غير عائدة، تعبير make it). حوّلوا السياق إلى نمط «make * in advance» وعدّوا ما يملأ النجمة في Google n-grams: السياقات غير العائدة لا يملؤها إلا it، والعائدة تقبل أسماء كثيرة (make them in advance شائع مثل make it in advance، أما make them in Hollywood فلم يظهر أبداً).</p>
+</section>
+
+<!-- ============ 24.4 ============ -->
+<section class="sec" id="s24-4">
+  <header><div class="kicker">القسم ٢٤٫٤ <span class="pg">p. 551</span></div><h2>بنى خوارزميات الإحالة</h2></header>
+  <div class="brief"><b>باختصار</b><b>زوج الإشارات:</b> مصنّف ثنائي لكل (عائد، سابق محتمل). التدريب (سون ٢٠٠١): أقرب سابق موجب، وكل ما بينهما سالب. والتجميع: «الأقرب أولاً» (أول سابق احتماله > ٠٫٥ من اليمين إلى اليسار) أو «الأفضل أولاً»، ثم الإغلاق المتعدي. وعيبه: لا يقارن السوابق، ولا يرى الكيانات. <b>ترتيب الإشارات:</b> softmax على كل السوابق + ε (لا سابق)، والسابق الذهبي «كامن» فنجمع احتمالات كل السوابق الصحيحة. <b>الكيانات:</b> القرار على عناقيد (حجمها و«شكلها»)، لكن مكاسبه العملية صغيرة.</div>
+  <div class="terms"><span>زوج الإشارات <i>mention-pair</i></span><span>الأقرب أولاً / الأفضل أولاً <i>closest-first / best-first</i></span><span>الإغلاق المتعدي <i>transitive closure</i></span><span>ترتيب الإشارات <i>mention-ranking</i></span><span>السابق الوهمي ε <i>dummy antecedent</i></span><span>السابق الكامن <i>latent antecedent</i></span><span>نموذج الكيانات <i>entity-based model</i></span><span>شكل الكيان <i>entity shape</i></span></div>
+  <p>الأنظمة الحديثة تعلّم آلي عصبي إشرافي على مجموعات مثل OntoNotes. ونصنّفها (نغ ٢٠١٠) بحسب: هل القرار على <b>الكيانات</b> أم على <b>الإشارات</b> وحدها، وهل تستعمل نماذج <b>ترتيب</b> تقارن السوابق مباشرة.</p>
+  <h3>٢٤٫٤٫١ · بنية زوج الإشارات</h3>
+  <p>أبسط البنى وأكثرها تأثيراً، وإن تفوقت عليها غيرها: مصنّف يأخذ زوجاً (عائد محتمل، سابق محتمل) ويقرر: متحدان أم لا. فلـ she يعطي احتمالاً لكل إشارة سابقة، ونريده عالياً للسوابق الحقيقية (Victoria Chen، her، the 38-year-old) ومنخفضاً لغيرها (Megabucks Banking، her pay). ولأن معظم الأزواج غير متحدة، نحتاج طريقة لاختيار أمثلة التدريب. الأشهر (سون وزملاؤه ٢٠٠١): لكل عائد m<sub>i</sub>، مثال موجب واحد (m<sub>i</sub>, m<sub>j</sub>) حيث m<sub>j</sub> أقرب سابق، ومثال سالب (m<sub>i</sub>, m<sub>k</sub>) لكل m<sub>k</sub> بينهما:</p>
+  <div class="w" id="mpBox"><div class="cap">زوج الإشارات على (24.43): أمثلة التدريب والتجميع (الاحتمالات من صنعنا)</div>
+    <div class="row"><span class="seg" id="mpA" dir="ltr" style="flex-wrap:wrap"></span></div>
+    <div class="row" style="margin-top:6px"><span class="seg" id="mpC"><button data-c="tr" class="on">أمثلة التدريب</button><button data-c="cf">الأقرب أولاً</button><button data-c="bf">الأفضل أولاً</button></span></div>
+    <div id="mpOut" dir="ltr" style="margin-top:8px;line-height:2.2;font-size:15.5px"></div><div class="calc" id="mpCalc"></div></div>
+  <p class="note">ملاحظة على المسودة: يقول الكتاب إن she يأخذ (she, her) موجباً «ولا أمثلة سالبة»، لكن أقرب سابق لـ she في (24.43) هو the 38-year-old (وبينهما the company سالبة). ويقول إن the company يأخذ (the company, Megabucks) موجباً و(the company, she) سالباً، مع أن Megabucks وshe بعدها لا قبلها؛ وأقرب سابق لها Megabucks Banking. الأداة تطبّق قاعدة سون كما هي على ترتيب (24.43). وفي الشكلين ٢٤٫٢ و٢٤٫٣ «the 37-year-old» والنص «38».</p>
+  <p>وبعد التدريب، يُجمَّع: لكل إشارة i ينظر المصنّف في الإشارات i − 1 السابقة. في <b>الأقرب أولاً</b> (سون ٢٠٠١) يمرّ من i − 1 نزولاً إلى ١، ويربط i بأول سابق احتماله > ٠٫٥، وإلا فلا سابق. وفي <b>الأفضل أولاً</b> يأخذ أعلى السوابق احتمالاً. ثم <b>الإغلاق المتعدي</b> للعلاقة الثنائية يعطي العناقيد. ومشكلتاه: لا يقارن السوابق ببعضها (لا يتعلم أي الاثنين أفضل)، ولا يرى نموذج الخطاب: كل قرار محلي للزوج، دون الإشارات الأخرى للكيان نفسه. والنموذجان التاليان يعالج كلٌّ منهما عيباً.</p>
+  <h3>٢٤٫٤٫٢ · بنية ترتيب الإشارات</h3>
+  <p>يقارن السوابق مباشرة ويختار أعلاها لكل عائد. في الصيغ الأولى يختار المصنّف من {1, …, i − 1} (دنيس وبالدريدج ٢٠٠٨). لكن ماذا لو لم تكن i عائدة أصلاً؟ الأفضل تعلّم العَود والإحالة معاً بخسارة واحدة (رحمن ونغ ٢٠٠٩): متغير y<sub>i</sub> قيمه Y(i) = {1, …, i − 1, ε}، وε <b>إشارة وهمية</b> تعني «لا سابق» (جديدة في الخطاب تبدأ سلسلة، أو غير عائدة). وعند الاختبار softmax واحد على كل السوابق وε (الشكل ٢٤٫٣)، ثم الإغلاق المتعدي. والتدريب أصعب: لا نعرف أي السوابق الذهبية نستعمل؛ السابق الأفضل <b>كامن</b>، ولكل إشارة عنقود كامل من السوابق الصحيحة. قديماً: أقرب سابق ذهباً وكل غير السوابق في نافذة جملتين سلباً (دنيس وبالدريدج ٢٠٠٨). وأبسط الطرق الحديثة: جمع احتمالات كل السوابق الصحيحة في الخسارة (لي وزملاؤه ٢٠١٧؛ القسم ٢٤٫٦).</p>
+  <h3>٢٤٫٤٫٣ · نماذج الكيانات</h3>
+  <p>تربط الإشارة لا بإشارة سابقة بل بكيان سابق (عنقود إشارات). ويتحول نموذج الترتيب إلى ترتيب كيانات بجعل القرار على العناقيد (رحمن ونغ ٢٠٠٩). وفي النماذج بالخصائص: خصائص على العناقيد، كحجمها و«شكلها»: قائمة أنواع إشاراتها: (P) علم، (D) معرفة، (I) نكرة، (Pr) ضمير، فعنقود {Victoria, her, the 38-year-old} شكله P-Pr-D (بيوركلوند وكون ٢٠١٤). أو متوسط احتمالات زوج الإشارات بين عنقودين (كلارك ومانينغ ٢٠١٥). والعصبية تتعلم تمثيل العنقود: شبكة تكرارية على إشاراته (وايزمان ٢٠١٦) أو تجميع تمثيلات أزواج الإشارات (كلارك ومانينغ ٢٠١٦). لكن رغم تعبيريتها لم تحقق مكاسب كبيرة، فنماذج ترتيب الإشارات أشيع.</p>
+</section>
+
+<!-- ============ 24.5 ============ -->
+<section class="sec" id="s24-5">
+  <header><div class="kicker">القسم ٢٤٫٥ <span class="pg">p. 553</span></div><h2>مصنّفات بخصائص يدوية</h2></header>
+  <div class="brief"><b>باختصار</b>أضعف من العصبية، لكنها مفيدة لأنظمة خفيفة ولتحليل الأخطاء. خمسة أنواع: خصائص العائد، والسابق، والزوج، وفي نماذج الكيانات خصائص عنقود السابق والعلاقة بين العنقودين. والأنفع: تطابق النص، واتفاق الرأس، والمسافة، وتطابق الصفات وi-within-i للضمائر، والاحتواء وجيب التمام للأسماء. و<b>تقاطعات</b> الخصائص ضرورية (+٤ نقاط F1).</div>
+  <div class="terms"><span>نوع الإشارة <i>mention type (P/D/I/Pr)</i></span><span>i-within-i</span><span>تطابق النص / الرأس <i>exact string / head word match</i></span><span>تقاطع الخصائص <i>feature conjunction</i></span></div>
+  <p>المصنّفات بالخصائص (انحدار لوجستي، وSVM، وغابات عشوائية) أضعف من العصبية، لكنها مفيدة لبناء أنظمة خفيفة حين يقل الحساب أو البيانات، وخصائصها مفيدة لتحليل الأخطاء حتى في الأنظمة العصبية. وقيم بعض الخصائص للعائد she والسابق المحتمل Victoria Chen (الشكل ٢٤٫٤):</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th colspan="3">Features of the Anaphor or Antecedent Mention</th></tr>
+    <tr><td>First (last) word</td><td class="mono">Victoria/she</td><td>First or last word (or embedding) of antecedent/anaphor</td></tr>
+    <tr><td>Head word</td><td class="mono">Victoria/she</td><td>Head word (or head embedding) of antecedent/anaphor</td></tr>
+    <tr><td>Attributes</td><td class="mono">Sg-F-A-3-PER/ Sg-F-A-3-PER</td><td>The number, gender, animacy, person, named entity type attributes of (antecedent/anaphor)</td></tr>
+    <tr><td>Length</td><td class="mono">2/1</td><td>length in words of (antecedent/anaphor)</td></tr>
+    <tr><td>Mention type</td><td class="mono">P/Pr</td><td>Type: (P)roper, (D)efinite, (I)ndefinite, (Pr)onoun) of antecedent/anaphor</td></tr>
+    <tr><th colspan="3">Features of the Antecedent Entity</th></tr>
+    <tr><td>Entity shape</td><td class="mono">P-Pr-D</td><td>The ‘shape’ or list of types of the mentions in the antecedent entity (cluster)</td></tr>
+    <tr><td>Entity attributes</td><td class="mono">Sg-F-A-3-PER</td><td>The number, gender, animacy, person, named entity type attributes of the antecedent entity</td></tr>
+    <tr><td>Ant. cluster size</td><td class="mono">3</td><td>Number of mentions in the antecedent cluster</td></tr>
+    <tr><th colspan="3">Features of the Pair of Mentions</th></tr>
+    <tr><td>Sentence distance</td><td class="mono">1</td><td>The number of sentences between antecedent and anaphor</td></tr>
+    <tr><td>Mention distance</td><td class="mono">4</td><td>The number of mentions between antecedent and anaphor</td></tr>
+    <tr><td>i-within-i</td><td class="mono">F</td><td>Anaphor has i-within-i relation with antecedent</td></tr>
+    <tr><td>Cosine</td><td></td><td>Cosine between antecedent and anaphor embeddings</td></tr>
+    <tr><th colspan="3">Features of the Pair of Entities</th></tr>
+    <tr><td>Exact String Match</td><td class="mono">F</td><td>True if the strings of any two mentions from the antecedent and anaphor clusters are identical.</td></tr>
+    <tr><td>Head Word Match</td><td class="mono">F</td><td>True if any mentions from antecedent cluster has same headword as any mention in anaphor cluster</td></tr>
+    <tr><td>Word Inclusion</td><td class="mono">F</td><td>All words in anaphor cluster included in antecedent cluster</td></tr>
+  </table></div>
+  <p class="note">في (24.43) بين Victoria Chen وshe خمس إشارات (Megabucks Banking، her، her pay، the 38-year-old، the company)، والجدول يقول ٤؛ ربما بعدٍّ مختلف للإشارات المتداخلة.</p>
+  <p>والخصائص الأنفع في الأعمال السابقة: تطابق النص التام، واتفاق رأس الكيان، والمسافة بين الإشارات، وللضمائر: تطابق الصفات وi-within-i (العائد جزء من السابق، كـ her داخل her pay، فلا يتحدان)، وللأسماء والأعلام: احتواء الكلمات وجيب التمام. وللخصائص المعجمية (كالرؤوس) يُستعمل عادةً ما يتكرر أكثر من ٢٠ مرة. و<b>التقاطعات</b> ضرورية: الانتقال من خصائص مفردة إلى تقاطعاتها رفع F1 بـ ٤ نقاط في تجربة (لي وزملاؤه ٢٠١٧)، يدوياً أو كل الأزواج أو بأشجار القرار والغابات. والعصبية بتضميناتها السياقية لا تستفيد من الخصائص السطحية كتطابق النص أو نوع الإشارة، لكن الطول والمسافة والنوع الأدبي تكمّلها.</p>
+</section>
+
+<!-- ============ 24.6 ============ -->
+<section class="sec" id="s24-6">
+  <header><div class="kicker">القسم ٢٤٫٦ <span class="pg">p. 555</span></div><h2>خوارزمية عصبية لترتيب الإشارات</h2></header>
+  <div class="brief"><b>باختصار</b>e2e-coref (لي وزملاؤه ٢٠١٧، وجوشي ٢٠١٩): كل المقاطع (حتى ~١٠ كلمات)، ولكل مقطع i سابق y<sub>i</sub> ∈ {1…i − 1, ε}. الدرجة s(i, j) = m(i) + m(j) + c(i, j)، وs(i, ε) = ٠، ثم softmax. والمقطع ممثَّل بـ [بدايته، نهايته، رأسه بالانتباه]. وm وc شبكتان أماميتان، وc تأخذ أيضاً حاصل الضرب العنصري g<sub>i</sub> ∘ g<sub>j</sub>. والتدريب: −log مجموع احتمالات كل السوابق الذهبية.</div>
+  <div class="terms"><span>e2e-coref</span><span>تمثيل المقطع <i>span representation</i></span><span>رأس الانتباه <i>attention head h<sub>ATT</sub></i></span><span>درجة الإشارة <i>mention score m(i)</i></span><span>درجة السابق <i>antecedent score c(i, j)</i></span><span>الضرب العنصري <i>element-wise product ∘</i></span></div>
+  <p>نصف خوارزمية <b>e2e-coref</b> (لي وزملاؤه ٢٠١٧، مبسطة وموسعة قليلاً بجوشي وزملائه ٢٠١٩). لوثيقة D من T كلمة، تنظر في كل المقاطع: T(T + 1)/2 مقطعاً (عملياً حتى طول ~١٠)، وتعطي كل مقطع i سابقاً y<sub>i</sub> من Y(i) = {1, …, i − 1, ε}:</p>
+  <div class="eq" dir="ltr">P(y<sub>i</sub>) = exp(s(i, y<sub>i</sub>)) / Σ<sub>y′∈Y(i)</sub> exp(s(i, y′)) &nbsp;&nbsp;(24.48) &nbsp;&nbsp;&nbsp;&nbsp; s(i, j) = m(i) + m(j) + c(i, j) &nbsp;&nbsp;(24.49) &nbsp;&nbsp;&nbsp;&nbsp; s(i, ε) = 0</div>
+  <p>m(i): هل المقطع i إشارة؟ m(j): هل j إشارة؟ c(i, j): هل j سابق i؟ ولأن s(i, ε) = ٠ ثابتة: إن كانت أي درجة غير وهمية موجبة يختار النموذج أعلاها، وإن كانت كلها سالبة «يمتنع».</p>
+  <div class="w" id="nrBox"><div class="cap">softmax ترتيب الإشارات لـ she مع ε (درجات m وc من صنعنا؛ حرّك الإزاحة)</div>
+    <div class="row"><label class="note">إزاحة تُضاف إلى كل c(i, j) = <b class="mono" id="nrBo"></b><br><input type="range" id="nrB" min="-8" max="4" step="0.5" value="0"></label></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="nrTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="nrCalc"></div></div>
+  <h3>٢٤٫٦٫١ · تمثيل المقاطع</h3>
+  <p>تمثيل المقطع يلتقط ثلاث كلمات: الأولى، والأخيرة، و«الأهم». نمرّر الفقرة على مرمِّز (BERT) فنحصل على h<sub>i</sub> لكل رمز، والمقطع i متجه g<sub>i</sub> بلصق ثلاثة: مخرج أول رمز، ومخرج آخر رمز، وتمثيل بالانتباه يمثل الرأس النحوي المحتمل (والرأس المتطابق مؤشر قوي على الاتحاد، كما رأينا):</p>
+  <div class="eq" dir="ltr">g<sub>i</sub> = [h<sub>START(i)</sub>, h<sub>END(i)</sub>, h<sub>ATT(i)</sub>] &nbsp;(24.50) &nbsp;&nbsp; α<sub>t</sub> = w<sub>α</sub> · FFN<sub>α</sub>(h<sub>t</sub>) &nbsp;(24.51) &nbsp;&nbsp; a<sub>i,t</sub> = exp(α<sub>t</sub>) / Σ<sub>k=START(i)</sub><sup>END(i)</sup> exp(α<sub>k</sub>) &nbsp;(24.52) &nbsp;&nbsp; h<sub>ATT(i)</sub> = Σ<sub>t=START(i)</sub><sup>END(i)</sup> a<sub>i,t</sub> · e<sub>t</sub> &nbsp;(24.53)</div>
+  <div class="w" id="spBox"><div class="cap">الشكل ٢٤٫٥: مقاطع «General Electric said the Postal Service contacted the company» ورؤوسها بالانتباه (درجات α من صنعنا)</div>
+    <div class="row"><span class="seg" id="spS" dir="ltr" style="flex-wrap:wrap"></span></div>
+    <div id="spBars" style="margin-top:8px"></div><div class="calc" id="spCalc"></div></div>
+  <h3>٢٤٫٦٫٢ · درجتا الإشارة والسابق</h3>
+  <div class="eq" dir="ltr">m(i) = w<sub>m</sub> · FFN<sub>m</sub>(g<sub>i</sub>) &nbsp;&nbsp;(24.54) &nbsp;&nbsp;&nbsp;&nbsp; c(i, j) = w<sub>c</sub> · FFN<sub>c</sub>([g<sub>i</sub>, g<sub>j</sub>, g<sub>i</sub> ∘ g<sub>j</sub>]) &nbsp;&nbsp;(24.55)</div>
+  <p>عند الاستدلال تُستعمل m مرشِّحاً: نُبقي أفضل الإشارات فقط، ثم نحسب c للإشارات العالية. وc تأخذ تمثيلي المقطعين وتشابههما العنصري g<sub>i</sub> ∘ g<sub>j</sub> (ضرب كل بُعد في نظيره). ثم يُحسب التوزيع المشترك للسوابق في تمرير أمامي، والإغلاق المتعدي يعطي العناقيد. ويجد لي وزملاؤه أن أوزان الانتباه ترتبط بالرؤوس الدلالية التقليدية. ومن أخطاء النموذج المذكورة: ربط attendants بـ pilot، على الأرجح لتقارب تضمينيهما (الشكل ٢٤٫٧).</p>
+  <h3>٢٤٫٦٫٣ · التعلّم</h3>
+  <p>لا سابق ذهبي واحد؛ الوسم يعطي العنقود كله، فالسابق كامن. فنعظّم مجموع احتمالات كل السوابق الصحيحة: GOLD(i) مجموعة إشارات العنقود الذهبي لـ i، والسابقة منها Y(i) ∩ GOLD(i) (وإن لم تكن i في عنقود ذهبي فـ GOLD(i) = ε). ثم الإنتروبيا التقاطعية (−log) مجموعة على كل الإشارات:</p>
+  <div class="eq" dir="ltr">Σ<sub>ŷ∈Y(i)∩GOLD(i)</sub> P(ŷ) &nbsp;&nbsp;(24.56) &nbsp;&nbsp;&nbsp;&nbsp; L = Σ<sub>i=2</sub><sup>N</sup> − log Σ<sub>ŷ∈Y(i)∩GOLD(i)</sub> P(ŷ) &nbsp;&nbsp;(24.57)</div>
+  <div class="math"><div class="mh"><span class="sym">−log Σ P</span>مفهوم رياضي · لماذا نجمع احتمالات السوابق الصحيحة؟</div><div class="mb">
+    <p>لـ she ثلاث سوابق صحيحة: Victoria Chen، وher، وthe 38-year-old. أيها «الصحيح»؟ كلها! فبدل إجبار النموذج على واحد بعينه، نكافئه على مجموع الاحتمالات التي يعطيها لأي منها: إن أعطى ٠٫٥ لـ her و٠٫٣ لـ Victoria Chen و٠٫١ لـ the 38-year-old، فالمجموع ٠٫٩، والخسارة −log ٠٫٩ ≈ ٠٫١٠٥ (صغيرة). وإن وزّع احتماله على غير السوابق فالمجموع صغير والخسارة كبيرة. هكذا يتعلم النموذج بنفسه أي سابق «أسهل» لكل حالة. (جرّب حساب الخسارة في أداة الـ softmax أعلاه.)</p>
+  </div></div>
+</section>
+
+<!-- ============ 24.7 ============ -->
+<section class="sec" id="s24-7">
+  <header><div class="kicker">القسم ٢٤٫٧ <span class="pg">p. 558</span></div><h2>ربط الكيانات</h2></header>
+  <div class="brief"><b>باختصار</b>ربط الإشارة بكيان في قاعدة معرفة (ويكيبيديا). مرحلتان: اكتشاف الإشارات ثم إزالة الغموض. <b>TAGME:</b> قاموس نصوص الروابط (anchor) مع linkprob، واحتمال مسبق p(e|a)، و«ترابط» الكيان مع كيانات السؤال الأخرى عبر الروابط الواردة المشتركة. فـ Yuan عملةٌ مسبقاً، لكن «Chinese Dynasty» في السؤال ترجّح «أسرة يوان». <b>ELQ:</b> BERT للسؤال يعطي احتمال كل مقطع إشارةً، وBERT لصفحة كل كيان، والربط بضرب نقطي ثم softmax.</div>
+  <div class="terms"><span>wikification</span><span>نص الرابط <i>anchor text</i></span><span>قاموس الروابط <i>anchor dictionary</i></span><span>احتمال الربط <i>linkprob</i></span><span>الاحتمال المسبق <i>prior p(e|a)</i></span><span>الترابط <i>relatedness / coherence</i></span><span>المرمِّز الثنائي <i>bi-encoder</i></span><span>ELQ</span></div>
+  <p><span class="t">ربط الكيانات <i>entity linking</i></span> امتداد طبيعي لحلّ الإحالة: بعد تجميع الإشارات، من هو الكيان؟ ونركز على ويكيبيديا (كل صفحة معرّف فريد): <b>wikification</b>. ومنذ أوائل الأنظمة يتم الربط على مرحلتين: اكتشاف الإشارات، ثم إزالة غموضها. ونركز على ربط الكيانات في <b>الأسئلة</b>.</p>
+  <h3>٢٤٫٧٫١ · الربط بقواميس الروابط ورسم الويب</h3>
+  <p><b>TAGME</b> (فيراجينا وسكايلا ٢٠١١): فهرس لكل صفحات ويكيبيديا (بلا صفحات التوضيح)، ولكل صفحة e عدد الروابط الواردة in(e). و<span class="t">قاموس الروابط <i>anchor dictionary</i></span>: لكل صفحة عنوانها وكل <b>نصوص الروابط</b> التي تشير إليها من صفحات أخرى (كـ <span dir="ltr" class="mono">&lt;a href="http://www.stanford.edu"&gt;Stanford University&lt;/a&gt;</span>). ولكل نص a: تكراره الكلي freq(a)، وعدد مرات كونه رابطاً link(a)، و<b>linkprob(a) = link(a)/freq(a)</b>. ويُنظَّف القاموس (حذف الأرقام والحروف المفردة والنادر وذي linkprob المنخفض جداً).</p>
+  <p><b>اكتشاف الإشارات:</b> لكل تسلسل حتى ٦ كلمات نبحث في القاموس، ثم نقلّم (مثلاً المقاطع الجزئية ذات linkprob الصغير). فـ «When was Ada Lovelace born?» يعطي Ada Lovelace وربما Ada، وقد تُقلَّم Lovelace، وborn ليست في القاموس أصلاً. <b>إزالة الغموض:</b> إن أشار المقطع إلى صفحة واحدة انتهينا. وإلا فعاملان: <b>الاحتمال المسبق</b> والترابط:</p>
+  <div class="eq" dir="ltr">prior(a → e) = p(e|a) = count(a → e) / link(a) &nbsp;&nbsp;(24.58) &nbsp;&nbsp;&nbsp;&nbsp; rel(A, B) = [ log(max(|in(A)|, |in(B)|)) − log(|in(A) ∩ in(B)|) ] / [ log(|W|) − log(min(|in(A)|, |in(B)|)) ] &nbsp;&nbsp;(24.59)<br>vote(b, X) = (1/|E(b)|) Σ<sub>Y∈E(b)</sub> rel(X, Y) p(Y|b) &nbsp;&nbsp;(24.60) &nbsp;&nbsp;&nbsp;&nbsp; relatedness(a → X) = Σ<sub>b∈X<sub>q</sub>\a</sub> vote(b, X) &nbsp;&nbsp;(24.61)<br>coherence(a → X) = (1/(|S| − 1)) Σ<sub>B∈S\X</sub> rel(B, X) &nbsp;&nbsp;&nbsp; score(a → X) = ( coherence(a → X) + linkprob(a) ) / 2 &nbsp;&nbsp;(24.62)</div>
+  <p>ففي «What Chinese Dynasty came before the Yuan?» أشهر ارتباط لـ Yuan في القاموس العملة الصينية، والأندر: اسم العائلة، ولغة في تايلاند، والصحيح هنا: أسرة يوان. فلو اعتمدنا الاحتمال المسبق وحده لأخطأنا. والعامل الثاني <b>الترابط</b> بكيانات السؤال الأخرى: «Chinese Dynasty» مرتبطة بقوة بصفحة Dynasties in Chinese history. وكيانان مترابطان بقدر ما تشترك صفحتاهما في الروابط الواردة. ثم نختار الكيان الأعلى ترابطاً، ومن الكيانات القريبة منه (ضمن ε صغيرة) الأعلى احتمالاً مسبقاً. وأخيراً نقلّم الأزواج التي score < λ (تُضبط على مجموعة منفصلة):</p>
+  <div class="w" id="tgBox"><div class="cap">TAGME على سؤال «Yuan» (القاموس وأعداد الروابط من صنعنا؛ |W| = مليون صفحة)</div>
+    <div class="row"><span class="seg" id="tgQ" dir="ltr" style="flex-wrap:wrap"><button data-q="0" class="on">What Chinese Dynasty came before the Yuan?</button><button data-q="1">How much is one Yuan worth?</button></span></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="tgTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="tgCalc"></div></div>
+  <p class="note">ملاحظة: (24.59) كما في الكتاب هي «مسافة» ميلن وويتن (٠ للكيانين المتطابقين في الروابط، وتكبر كلما قلّ الاشتراك)، والترابط في TAGME وميلن وويتن هو ١ ناقص هذه المسافة (ونقصّه عند ٠). الأداة تستعمل ١ − (24.59).</p>
+  <h3>٢٤٫٧٫٢ · الربط العصبي</h3>
+  <p>النماذج الأحدث <b>مرمِّزات ثنائية</b>: ترميز مقطع الإشارة، وترميز الكيان، وضرب نقطي، فتُحسب تضمينات كل كيانات القاعدة مسبقاً وتُخزَّن (وو وزملاؤه ٢٠٢٠). وخوارزمية <b>ELQ</b> (لي وزملاؤه ٢٠٢٠): من سؤال q ومجموعة كيانات ويكيبيديا بنصوصها، تُخرج ثلاثيات (e, m<sub>s</sub>, m<sub>e</sub>): الكيان وبداية الإشارة ونهايتها (الشكل ٢٤٫٨).</p>
+  <p><b>اكتشاف الإشارات:</b> [q<sub>1</sub> ⋯ q<sub>n</sub>] = BERT([CLS] q<sub>1</sub> ⋯ q<sub>n</sub> [SEP]) (24.63)، ثم درجة بداية s<sub>start</sub>(i) = w<sub>start</sub> · q<sub>i</sub> ونهاية s<sub>end</sub>(j) = w<sub>end</sub> · q<sub>j</sub> (24.64)، ودرجة «جزء من إشارة» لكل رمز s<sub>mention</sub>(t) = w<sub>mention</sub> · q<sub>t</sub> (24.65)، فاحتمال المقطع:</p>
+  <div class="eq" dir="ltr">p([i, j]) = σ( s<sub>start</sub>(i) + s<sub>end</sub>(j) + Σ<sub>t=i</sub><sup>j</sup> s<sub>mention</sub>(t) ) &nbsp;&nbsp;(24.66)</div>
+  <p><b>الربط:</b> لكل كيان e<sub>i</sub>: العنوان t(e<sub>i</sub>) وأول ١٢٨ رمزاً من صفحته d(e<sub>i</sub>) عبر BERT، ومخرج [CLS] تمثيله: x<sub>e<sub>i</sub></sub> = BERT<sub>[CLS]</sub>([CLS] t(e<sub>i</sub>) [ENT] d(e<sub>i</sub>) [SEP]) (24.67). وتمثيل المقطع متوسط رموزه y<sub>i,j</sub> = (1/(j − i + 1)) Σ<sub>t=i</sub><sup>j</sup> q<sub>t</sub>، والدرجة s(e, [i, j]) = x<sub>e</sub> · y<sub>i,j</sub> (24.68)، ثم softmax على الكيانات p(e|[i, j]) (24.69).</p>
+  <p><b>التدريب</b> إشرافي كامل (بخلاف TAGME): يحتاج حدود الكيانات وروابطها، كـ WebQSP<sub>EL</sub> وGraphQ<sub>EL</sub> (من WebQuestionsSP وGraphQuestions). والمرحلتان تُدرَّبان معاً بمجموع خسارتيهما: إنتروبيا ثنائية لاكتشاف الإشارات L<sub>MD</sub> = −(1/N) Σ [y log p + (1 − y) log(1 − p)] على كل المقاطع حتى الطول L (24.70)، وL<sub>ED</sub> = −log p(e<sub>g</sub>|[i, j]) للكيان الذهبي (24.71).</p>
+</section>
+
+<!-- ============ 24.8 ============ -->
+<section class="sec" id="s24-8">
+  <header><div class="kicker">القسم ٢٤٫٨ <span class="pg">p. 562</span></div><h2>تقييم حلّ الإحالة</h2></header>
+  <div class="brief"><b>باختصار</b>نقارن عناقيد النظام H بالذهبية R بدقة واستدعاء، وبخمسة مقاييس شائعة: MUC وBLANC (روابط)، وB³ (إشارات)، وCEAF (كيانات)، وLEA. <b>MUC</b>: الروابط المشتركة؛ يحابي السلاسل الكبيرة ويتجاهل المفردات. <b>B³</b>: لكل إشارة دقة |H∩R|/|H| واستدعاء |H∩R|/|R|، ثم متوسط موزون. وCoNLL: متوسط MUC وB³ وCEAF<sub>e</sub>. واستعمل التطبيقات المرجعية بدل إعادة البرمجة.</div>
+  <div class="terms"><span>MUC</span><span>B³</span><span>CEAF</span><span>BLANC / LEA</span><span>متوسط CoNLL F1</span><span>NEC F1</span></div>
+  <p>نقيّم «نظرياً-نموذجياً»: عناقيد الفرضية H مقابل المرجعية R. و<b>MUC</b> (فيلين وزملاؤه ١٩٩٥) يعتمد على روابط الإحالة المشتركة: الدقة = الروابط المشتركة ÷ روابط H، والاستدعاء = الروابط المشتركة ÷ روابط R. فيحابي الأنظمة التي تصنع سلاسل كبيرة (كيانات أقل)، ويتجاهل المفردات لأنها بلا روابط. و<b>B³</b> (باغا وبالدوين ١٩٩٨) يعتمد على الإشارات: لكل إشارة i، R السلسلة المرجعية التي فيها i، وH سلسلة الفرضية، والصحيح H ∩ R:</p>
+  <div class="eq" dir="ltr">Precision = Σ<sub>i=1</sub><sup>N</sup> w<sub>i</sub> · |H<sub>i</sub> ∩ R<sub>i</sub>| / |H<sub>i</sub>| &nbsp;&nbsp;&nbsp;&nbsp; Recall = Σ<sub>i=1</sub><sup>N</sup> w<sub>i</sub> · |H<sub>i</sub> ∩ R<sub>i</sub>| / |R<sub>i</sub>|</div>
+  <div class="w" id="evBox"><div class="cap">MUC وB³ على إشارات (24.43) (اختر فرضية؛ أوزان B³ = 1/N)</div>
+    <div class="row"><span class="seg" id="evH" style="flex-wrap:wrap"><button data-i="0">مثالية</button><button data-i="1" class="on">تقسيم سلسلة</button><button data-i="2">دمج مفرط</button><button data-i="3">خطأ her pay</button><button data-i="4">كلها مفردات</button></span></div>
+    <div id="evOut" dir="ltr" style="margin-top:8px;line-height:2.1"></div><div class="calc" id="evCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">|K| − |p(K)|</span>مفهوم رياضي · كيف «تُعدّ الروابط» في MUC؟</div><div class="mb">
+    <p>سلسلة من ٤ إشارات تحتاج ٣ روابط على الأقل لتتصل (كخرز في خيط). فـ «روابط» السلسلة K = |K| − ١. والاستدعاء: لكل سلسلة ذهبية K، كم رابطاً منها «حفظته» الفرضية؟ نقسم K بحسب عناقيد الفرضية إلى p(K) قطع؛ لنعيد وصل القطع نحتاج |p(K)| − ١ روابط ناقصة، فالمحفوظ = |K| − |p(K)|. ثم الاستدعاء = Σ(|K| − |p(K)|) ÷ Σ(|K| − ١). والدقة بالطريقة نفسها مع تبديل الدورين. فإن دمج النظام كل شيء في سلسلة واحدة، لا يفقد أي رابط ذهبي: الاستدعاء ١ كاملاً، والدقة تنخفض قليلاً فقط. ولهذا يحابي MUC السلاسل الكبيرة.</p>
+  </div></div>
+  <p>والوزن w<sub>i</sub> لكل كيان يعطي نسخاً مختلفة من B³. وباقتراح دنيس وبالدريدج (٢٠٠٩)، قُيّمت مسابقات CoNLL بمتوسط MUC وCEAF-e وB³، فصار شائعاً الإبلاغ عن هذا المتوسط. ويُستعمل التطبيق المرجعي (برادان وزملاؤه ٢٠١٤) بدل إعادة البرمجة. ومقاييس بديلة لمهام خاصة: لحلّ الإشارات إلى كيانات مسمّاة (لاستخراج المعلومات)، سلسلة فيها كل الضمائر الصحيحة بلا الاسم أو باسم خاطئ لا تفيد، فنزن الإشارة بمقدار إفادتها (تشن ونغ ٢٠١٣)، أو نعدّ الفرضية مطابقة فقط إن احتوت صيغة من الاسم (NEC F1، أغاروال وزملاؤه ٢٠١٩).</p>
+</section>
+
+<!-- ============ 24.9 ============ -->
+<section class="sec" id="s24-9">
+  <header><div class="kicker">القسم ٢٤٫٩ <span class="pg">p. 563</span></div><h2>مخططات وينوغراد</h2></header>
+  <div class="brief"><b>باختصار</b>حالات إحالة تحتاج معرفة بالعالم أو استدلالاً. صاغها ليفسك (٢٠١١) تحدياً: زوج جمل تختلف في كلمة واحدة تقلب الجواب. ومعرفتها متنوعة: فيزيائية (الكأس والحقيبة)، وصور نمطية اجتماعية (المجلس والمتظاهرون)، وأفعال بشرية (الأدوار، والشكر). والنماذج اللغوية المسبقة التدريب حلّت نسبة كبيرة منها، فظهرت مجموعات أصعب كـ KnowRef.</div>
+  <div class="terms"><span>مخطط وينوغراد <i>Winograd schema</i></span><span>WNLI</span><span>KnowRef</span></div>
+  <p>لاحظ وينوغراد (١٩٧٢) أن القراء يفضّلون «the city council» سابقاً لـ they في (a) «they feared violence»، و«the demonstrators» في (b) «they advocated violence» (24.72)، وأن ذلك يتطلب فهم أن الجملة الثانية تفسير للأولى، وأن أطرنا الثقافية تجعل المجالس أخشى للعنف من المتظاهرين، والمتظاهرين أدعى إليه. وسعياً لتوجيه المجال إلى المعرفة والاستدلال بالحس المشترك، اقترح ليفسك (٢٠١١) <b>تحدي مخطط وينوغراد</b>: مسائل إحالة يحلها الإنسان بسهولة، ولا تحلها التقنيات البسيطة كالقيود الانتقائية وارتباطات الكلمات. وخصائصها: (١) طرفان؛ (٢) ضمير يفضّل أحدهما ويجوز نحوياً للآخر؛ (٣) سؤال: إلى أيهما يعود؟ (٤) تغيير كلمة واحدة يقلب الجواب:</p>
+  <div class="w" id="wgBox"><div class="cap">مخططات وينوغراد (اختر مثالاً وبدّل الكلمة الحاسمة)</div>
+    <div class="row"><span class="seg" id="wgS" dir="ltr" style="flex-wrap:wrap"><button data-i="0" class="on">(24.72) council</button><button data-i="1">(24.73–74) trophy</button><button data-i="2">(24.75) gameboy</button><button data-i="3">(24.76) thank</button></span><span class="seg" id="wgV"><button data-v="0" class="on">الصيغة ١</button><button data-v="1">الصيغة ٢</button></span></div>
+    <div id="wgOut" dir="ltr" style="margin-top:8px;line-height:2.2;font-size:16.5px"></div><div class="calc" id="wgCalc"></div></div>
+  <p>ورغم أنها صُممت لتتطلب الحس المشترك، حلّت النماذج اللغوية المسبقة التدريب (مضبوطةً على جمل وينوغراد) نسبة كبيرة من المجموعة الأصلية (كوتشيان وزملاؤه ٢٠١٩): فهي تشفّر قدراً هائلاً من المعرفة! فالاتجاه الآن مجموعات أصعب كـ <b>KnowRef</b> (إمامي وزملاؤه ٢٠١٩): «Marcus is undoubtedly faster than Jarrett right now but in [his] prime the gap wasn’t all that big» (24.77). والأرجح أن الجمع بين النمذجة اللغوية والمعرفة مثمر؛ فالنماذج القائمة على المعرفة تفرط في ملاءمة خصوصيات مجموعات التدريب أقل (تريشلير وزملاؤه ٢٠١٨).</p>
+</section>
+
+<!-- ============ 24.10 ============ -->
+<section class="sec" id="s24-10">
+  <header><div class="kicker">القسم ٢٤٫١٠ <span class="pg">p. 564</span></div><h2>التحيز الجنسي في الإحالة</h2></header>
+  <div class="brief"><b>باختصار</b>WinoBias: جملة فيها مهنتان (نمطياً ذكورية وأنثوية) وضمير لا يحسمه الجنس. الأنظمة بكل بُناها أسوأ بـ ٢١ نقطة F1 في الحالات المخالفة للصورة النمطية. ومن الأسباب قلة الكيانات الأنثوية في OntoNotes. والعلاج: بيانات بتبديل الجنس + تضمينات منزوعة التحيز. وGAP: ٤٤٥٤ جملة متوازنة جنسياً (في OntoNotes ٢٠٪ فقط من الضمائر المجنَّسة مؤنثة)، والأنظمة أسوأ في ضمائر المؤنث.</div>
+  <div class="terms"><span>WinoBias</span><span>نمطي / مخالف للنمط <i>pro- / anti-stereotypical</i></span><span>تبديل الجنس <i>gender swapping</i></span><span>GAP</span></div>
+  <p>كبقية المعالجة، تُظهر نماذج الإحالة تحيزات جنسية وغيرها (تشاو وزملاؤه ٢٠١٨، وروديغر ٢٠١٨، وويبستر ٢٠١٨). ومجموعة <b>WinoBias</b> (تشاو وزملاؤه ٢٠١٨) تستعمل صيغة من مخططات وينوغراد لاختبار هل تميل الأنظمة لربط الضمائر المجنَّسة بسوابق توافق الصور النمطية الثقافية. فكما رأينا في الفصل ٥، تكرر التضمينات تحيزات مجتمعية (الرجال بالأطباء، والنساء بالسكرتيرات). وجملة WinoBias فيها مهنتان وضمير مجنَّس لا يحسمه جنسه، لكن النموذج المتحيز قد ينخدع به:</p>
+  <div class="quote" dir="ltr">(24.78) The secretary called the physician<sub>i</sub> and told him<sub>i</sub> about a new patient [pro-stereotypical]<br>(24.79) The secretary called the physician<sub>i</sub> and told her<sub>i</sub> about a new patient [anti-stereotypical]</div>
+  <p>ويُعدّ النظام متحيزاً إذا كان أدق في ربط الضمائر الموافقة للنمط (him بـ physician) منه في المخالفة (her بـ physician). وقد أظهروا أن الأنظمة بكل بُناها (القواعد، والخصائص، والعصبية الشاملة) متحيزة بوضوح: أسوأ بمتوسط ٢١ نقطة F1 في الحالات المخالفة. ومن الأسباب نقص تمثيل الكيانات الأنثوية في OntoNotes. والعلاج المقترح: مجموعة ثانية <b>بتبديل الجنس</b> (كل كيان مذكر في OntoNotes يصير مؤنثاً والعكس)، وإعادة التدريب على الأصلية والمبدَّلة معاً، مع تضمينات GloVe منزوعة التحيز (بولوكباسي ٢٠١٦)؛ فزال التحيز على WinoBias دون أثر يذكر على دقة OntoNotes. وأظهروا لاحقاً (٢٠١٩) التحيزات نفسها في تمثيلات ELMo، وأن إعادة تدريبها بالبيانات المعزَّزة تقللها أو تزيلها.</p>
+  <p>وقدّم ويبستر وزملاؤه (٢٠١٨) مجموعة <b>GAP</b> ومهمة «حلّ الضمائر المجنَّسة»: ٤٤٥٤ جملة متوازنة جنسياً بضمائر مجنَّسة ملتبسة (مقابل ٢٠٪ فقط من الضمائر المجنَّسة في تدريب OntoNotes الإنجليزي مؤنثة)، من جمل ويكيبيديا طبيعية فيها كيانان مسمّيان من الجنس نفسه وضمير قد يعود إلى أيهما أو لا أحد: «In May, Fujisawa joined Mari Motohashi’s rink as the team’s skip, moving back from Karuizawa to Kitami where she had spent her junior days» (24.80). والأنظمة الحديثة أسوأ بوضوح في ضمائر المؤنث، ونظام على BERT يُظهر تحيزاً مشابهاً (كوريتا وزملاؤه ٢٠١٩).</p>
+</section>
+
+<!-- ============ EXERCISES ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وتمارينه <span class="pg">pp. 565–568</span></div><h2>الخلاصة والتمارين</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>حلّ الإحالة: ربط الإشارات التي تحيل إلى الكيان نفسه في نموذج الخطاب، فتنتج سلاسل إحالة (عناقيد، كيانات).</li>
+    <li>الإشارات: معارف ونكرات وضمائر (ومنها الصفرية) وأسماء أعلام.</li>
+    <li>شكل الإشارة مرتبط بحالة معلومتها (جديد، قديم، مستنتَج) وبمدى بروز الكيان وإتاحته.</li>
+    <li>بعض العبارات غير محيلة، كـ it الحشوية في It is raining.</li>
+    <li>مجموعات موسومة بشرياً للتعلّم الإشرافي: OntoNotes (إنجليزي وصيني وعربي)، وARRAU (إنجليزي)، وAnCora (إسباني وكتالاني).</li>
+    <li>اكتشاف الإشارات يبدأ بكل الأسماء والكيانات ثم يرشّح بمصنّفات العَود أو الإحالية.</li>
+    <li>ثلاث بنى: زوج الإشارات، وترتيبها، والكيانات، بالخصائص أو عصبياً. والأنظمة الحديثة شاملة: اكتشاف وإحالة في بنية واحدة، تتعلم تمثيلات المقاطع ورؤوسها وتقارن العائد بالسوابق.</li>
+    <li>ربط الكيانات: ربط الإشارة بكيان في أنطولوجيا.</li>
+    <li>التقييم بمقاييس دقة/استدعاء: MUC وB³ وCEAF وBLANC وLEA.</li>
+    <li>مخططات وينوغراد مسائل إحالة صعبة تبدو محتاجة إلى معرفة بالعالم أو استدلال متقدم.</li>
+    <li>أنظمة الإحالة متحيزة جنسياً، ويقاس ذلك بـ WinoBias وGAP.</li>
+  </ul>
+  <h3>من الحواشي التاريخية</h3>
+  <p>الإحالة جزء من المعالجة منذ السبعينيات. صاغ كارتونن (١٩٦٩) نموذج الخطاب، واستكشفت بوني ويبر (١٩٧٨) جوانبه الحاسوبية. و<b>خوارزمية هوبز</b> (١٩٧٨) أول سلسلة طرق نحوية: بصيغة كيلر المبسطة، تبحث في العبارات الاسمية: (١) في الجملة الحالية من اليمين إلى اليسار بدءاً بأول عبارة يسار الضمير، (٢) في الجملة السابقة من اليسار إلى اليمين، (٣) في التي قبلها كذلك، (٤) في الجملة الحالية يمين الضمير (للإحالة البعدية)؛ وتختار أول عبارة توافق الضمير عدداً وجنساً وشخصاً. ثم لابين وليس (١٩٩٤) بأوزان للخصائص، و«التمركز» (الفصل ٢٥). ووفرت مؤتمرات MUC (١٩٩٥ و١٩٩٨) أولى البيانات الموسومة ووجّهت المجال نحو التعلّم الإشرافي، وأرسى سون وزملاؤه (٢٠٠١) الخصائص الأساسية. والانتقال إلى الترتيب بدأ بيانغ (٢٠٠٣) وإيدا (٢٠٠٣) ثم دنيس وبالدريدج (٢٠٠٨)، والسابق الوهمي من نغ (٢٠٠٥). وعادت أنظمة القواعد في العقد ٢٠١٠ لدقتها في الخصائص على مستوى الكيان، ثم العصبية الشاملة (لي ٢٠١٧). والإحالة وربط الكيانات يتعاونان: «[Michael Eisner]<sub>1</sub> and [Donald Tsang]<sub>2</sub> announced the grand opening of [[Hong Kong]<sub>3</sub> Disneyland]<sub>4</sub> yesterday. [Eisner]<sub>1</sub> thanked [the President]<sub>2</sub>…» (24.81): معرفة أن دونالد تسانغ رئيس تحسم the President. وعلاقة الإحالة ليست دائماً تطابقاً: <b>الكناية</b> (Washington بمعنى الولايات المتحدة، 24.82) وأمثلة أعقد (24.83–24.84). وكتب آندي كيلر فصل الخطاب في الطبعة الأولى، وبقيت بقايا من نثره هنا.</p>
+  <h3>تمارين الفصل</h3>
+  <p class="note">قسم «Exercises» فارغ في هذه المسودة؛ فالتمارين التالية من عندنا.</p>
+  <ol class="clean">
+    <li>كم مقطعاً ينظر فيه e2e-coref لوثيقة من ١٠٠ كلمة بلا حد للطول؟ ومع حد ١٠ كلمات؟ <details><summary>الحل (من عندنا)</summary>بلا حد: T(T + 1)/2 = ١٠٠ × ١٠١ / ٢ = ٥٠٥٠. ومع حد ١٠: لكل طول k من ١ إلى ١٠ هناك ١٠١ − k مقطعاً، فالمجموع = ١٠ × ١٠١ − ٥٥ = ٩٥٥.</details></li>
+    <li>طبّق خوارزمية هوبز المبسطة على «The doctor found an old map in the captain’s chest. Jim found an even older map hidden on the shelf. It described an island» (24.37). <details><summary>الحل (من عندنا)</summary>لا عبارة يسار It في جملتها، فنبحث في الجملة السابقة من اليسار: Jim (مذكر، لا يوافق it)، ثم an even older map (يوافق) ← it = خريطة جيم، وهو ما يقوله الكتاب بتفضيل القرب.</details></li>
+    <li>احسب B³ يدوياً لفرضية «كلها مفردات» على سلاسل (24.43)، وتحقق في الأداة. <details><summary>الحل (من عندنا)</summary>الدقة ١ لكل إشارة (كل عنقود فرضي إشارة واحدة صحيحة). والاستدعاء: إشارات Victoria الأربع ١/٤ لكل منها، وإشارات Megabucks الثلاث ١/٣، والمفردتان ١؛ المتوسط = (٤ × ٠٫٢٥ + ٣ × ⅓ + ٢) / ٩ = ٤/٩ ≈ ٠٫٤٤.</details></li>
+  </ol>
+  <h3>أسئلة للمراجعة</h3>
+  <ol class="clean">
+    <li>ما الفرق بين حلّ الإحالة وربط الكيانات؟ وكيف يساعد كلٌّ منهما الآخر؟</li>
+    <li>لماذا لا يسم OntoNotes المفردات؟ وكيف يغيّر ذلك صعوبة المهمة؟</li>
+    <li>لماذا s(i, ε) = ٠ في e2e-coref؟ وماذا يعني أن تكون كل الدرجات سالبة؟</li>
+    <li>لماذا يخطئ الاحتمال المسبق وحده في «Yuan»؟</li>
+    <li>صمّم زوج وينوغراد عربياً: «لم تدخل الحقيبة في الخزانة لأنها كانت …».</li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="23-affect-lexicons.html">→ الفصل السابق: معاجم المشاعر والانفعال</a><span>الفصل التالي: تماسك الخطاب (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch24.js"></script>
+</body>
+</html>
