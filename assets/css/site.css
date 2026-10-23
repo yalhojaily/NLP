@@ -385,3 +385,8 @@ table.bi td.ok{background:var(--green-soft);color:var(--green)}
 table.bi td.no{background:var(--tint);color:var(--soft)}
 table.bi tr.sel th,table.bi tr.sel td.ok{background:var(--green);color:var(--paper)}
 table.ml td.sel{background:var(--amber-soft);color:var(--amber);font-weight:600}
+/* ch15 */
+table.cn td{text-align:center;padding:4px 3px;min-width:44px}
+table.cn th{font-size:12px}
+.cnb{font-family:var(--f-mono);font-size:14px;font-weight:600;background:none;border:1px solid transparent;border-radius:5px;padding:0 4px;cursor:pointer;margin:1px}
+.cnb.on{border-color:currentColor;background:var(--tint)}
