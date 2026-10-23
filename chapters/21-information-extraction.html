@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٢١ · استخراج المعلومات | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل الحادي والعشرين من كتاب Speech and Language Processing: استخراج العلاقات بالأنماط والتعلّم الإشرافي والإقلاع الذاتي والإشراف البعيد وOpen IE، واستخراج الأحداث، وتمثيل الزمن (علاقات ألن ونقطة رايشنباخ)، والجهة، وTimeBank، وتطبيع التعابير الزمنية، وملء القوالب.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="20-dependency-parsing.html" style="text-decoration:none">→ الفصل ٢٠</a><b>الفصل ٢١ من ٢٦</b><span class="pill">الفصل ٢٢ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الثالث · وسم البنية اللغوية · الفصل الحادي والعشرون</div>
+  <h1>استخراج المعلومات: العلاقات والأحداث والزمن</h1>
+  <div class="sub en" style="font-size:16px">Chapter 21 · Information Extraction: Relations, Events, and Time · pp. 473–498</div>
+  <p class="epi">«الزمن سيفسّر» — جين أوستن، «إقناع». (العبارة نفسها افتتح بها الكتاب الفصل ١٤.) تخيّل أنك محلل في شركة استثمار تتابع أسهم شركات الطيران، ومطلوب منك أن تعرف هل لإعلانات رفع الأسعار أثر على أسهمها في اليوم التالي. أسعار الأسهم سهلة المنال؛ أما الإعلانات فمدفونة في نصوص الأخبار. وهذا الفصل عن تحويلها إلى بيانات.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>استخراج المعلومات يحوّل النص غير المنظم إلى بيانات منظمة: علاقات بين الكيانات (X وحدة تابعة لـ Y)، وأحداث، وأزمنة، وقوالب.</li>
+    <li>العلاقات تُستخرج بخمس طرق: أنماط مكتوبة يدوياً (أنماط هيرست)، وتعلّم إشرافي على بيانات موسومة، وإقلاع ذاتي من أمثلة بذرية قليلة، وإشراف بعيد من قاعدة بيانات كبيرة، واستخراج مفتوح بلا قائمة علاقات أصلاً.</li>
+    <li>الأحداث غالباً أفعال (said، increased) وأحياناً أسماء (the move).</li>
+    <li>والزمن: علاقات ألن الثلاث عشرة بين الفترات، ونقطة رايشنباخ المرجعية لفهم الأزمنة النحوية، و«الجهة» (حالة، ونشاط، وإنجاز، وبلوغ). ثم استخراج التعابير الزمنية وتطبيعها إلى تواريخ ISO وترتيب الأحداث على خط زمني.</li>
+    <li>ملء القوالب: التعرّف على موقف نمطي (محاولة رفع أسعار) وملء خاناته (الشركة الرائدة، والمبلغ، والتاريخ، والتابع) من النص.</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 473</span></div><h2>من النص إلى قاعدة البيانات</h2></header>
+  <div class="brief"><b>باختصار</b>استخراج المعلومات (IE) يحوّل المعلومات المضمَّنة في النصوص إلى بيانات منظمة، مثلاً لملء قاعدة بيانات علائقية. ويضم: استخراج العلاقات (ومنها بناء الرسوم المعرفية)، واستخراج الأحداث، والتعرّف على التعابير الزمنية وتطبيعها وترتيب الأحداث زمنياً، وملء القوالب.</div>
+  <div class="terms"><span>استخراج المعلومات <i>information extraction, IE</i></span><span>استخراج العلاقات <i>relation extraction</i></span><span>الرسم المعرفي <i>knowledge graph</i></span><span>استخراج الأحداث <i>event extraction</i></span><span>ملء القوالب <i>template filling</i></span></div>
+  <p>المحلل يحتاج على الأقل: اسم شركة الطيران، وطبيعة الزيادة، وتواريخ الإعلان، وربما ردود الشركات الأخرى. وكلها في أخبار مثل هذا الخبر الذي رأيناه في الفصل ١٨:</p>
+  <div class="quote" dir="ltr">Citing high fuel prices, United Airlines said Friday it has increased fares by $6 per round trip on flights to some cities also served by lower-cost carriers. American Airlines, a unit of AMR Corp., immediately matched the move, spokesman Tim Wagner said. United, a unit of UAL Corp., said the increase took effect Thursday and applies to most routes where it competes against discount carriers, such as Chicago to Dallas and Denver to San Francisco.</div>
+  <p>و<span class="t">استخراج المعلومات <i>IE</i></span> يستخرج أنواعاً محدودة من المحتوى الدلالي، ويحوّل المعلومات غير المنظمة إلى بيانات منظمة. ونبدأ بـ<b>استخراج العلاقات</b>: إيجاد العلاقات الدلالية بين الكيانات وتصنيفها، كـ «ابن لـ» أو «جزء من» أو العلاقات الجغرافية. وله صلة وثيقة بملء قواعد البيانات العلائقية، و<b>الرسوم المعرفية</b> (بيانات معرفة علائقية منظمة) طريقة مفيدة لمحركات البحث لعرض المعلومات. ثم <b>استخراج الأحداث</b>: زيادتا الأسعار من United وAmerican، وحدثا القول said والاستشهاد cite. والأحداث تقع في زمن، ويترتب بعضها قبل بعض أو بعده أو معه: نحتاج التعرّف على تعابير مثل Friday وThursday و«بعد يومين» و3:30 P.M.، وتطبيعها إلى تواريخ وأوقات محددة، وربط Friday بإعلان United، وThursday بالزيادة في اليوم السابق، وبناء خط زمني. وأخيراً <b>ملء القوالب</b>: إيجاد المواقف النمطية المتكررة وملء خاناتها.</p>
+</section>
+
+<!-- ============ 21.1 ============ -->
+<section class="sec" id="s21-1">
+  <header><div class="kicker">القسم ٢١٫١ <span class="pg">p. 474</span></div><h2>استخراج العلاقات</h2></header>
+  <div class="brief"><b>باختصار</b>بعد التعرّف على الكيانات نبحث عن العلاقات بينها: Tim Wagner متحدث باسم American Airlines، وUnited وحدة تابعة لـ UAL Corp. وهذه حالات من علاقات عامة مثل «جزء من» و«يوظّف». ومن مجموعات العلاقات: ١٧ علاقة في تقييمات ACE، و٥٤ علاقة في UMLS الطبي، وصناديق المعلومات في ويكيبيديا (ثلاثيات RDF في DBpedia)، وعلاقة «نوع من» في WordNet، وبيانات موسومة مثل TACRED (٤١ علاقة + «لا علاقة»).</div>
+  <div class="terms"><span>علاقة ثنائية <i>binary relation</i></span><span>ACE</span><span>UMLS</span><span>صندوق المعلومات <i>infobox</i></span><span>ثلاثية RDF <i>RDF triple</i></span><span>DBpedia / Freebase / Wikidata</span><span>نوع من / الكلمة العامة <i>is-a / hypernym</i></span><span>TACRED</span></div>
+  <p>النص يخبرنا أن Tim Wagner متحدث باسم American Airlines، وأن United وحدة تابعة لـ UAL Corp.، وAmerican تابعة لـ AMR. وهذه علاقات <b>ثنائية</b> هي حالات من علاقات أعم شائعة في الأخبار، مثل part-of وemploys. وقد نستخرج علاقات خاصة بالمجال، كخطوط الطيران: United لها خطوط إلى Chicago وDallas وDenver وSan Francisco. والشكل ٢١٫١ يعرض العلاقات السبع عشرة في تقييمات <b>ACE</b> (Automatic Content Extraction):</p>
+  <div class="w" id="acBox"><div class="cap">الشكلان ٢١٫١ و٢١٫٢: علاقات ACE (اضغط فئة)</div>
+    <div class="row" id="acBtns" dir="ltr" style="flex-wrap:wrap"></div>
+    <div class="calc" id="acCalc"></div></div>
+  <p>ولمجالات أخرى مجموعاتها: نظام <b>UMLS</b> الطبي (المكتبة الوطنية الأمريكية للطب) فيه ١٣٤ فئة عامة و٥٤ علاقة بين الكيانات، مثل: Injury <i>disrupts</i> Physiological Function، وPharmacologic Substance <i>treats</i> Pathologic Function. فمن الجملة «Doppler echocardiography can be used to diagnose left anterior descending artery stenosis in patients with type 2 diabetes» (21.1) نستخرج: Echocardiography, Doppler — <i>Diagnoses</i> — Acquired stenosis.</p>
+  <p>وتوفر ويكيبيديا كمية كبيرة من العلاقات في <b>صناديق المعلومات</b> (infoboxes): جداول منظمة مع بعض المقالات. فصندوق Stanford فيه state = "California" وpresident = "Marc Tessier-Lavigne"، تتحول إلى علاقات مثل located-in، أو إلى لغة واصفة اسمها <b>RDF</b>. و<span class="t">ثلاثية RDF</span> = كيان-علاقة-كيان، أو «فاعل-محمول-مفعول»: <span dir="ltr" class="mono">Golden Gate Park — location — San Francisco</span>. وDBpedia (من ويكيبيديا) فيها أكثر من ملياري ثلاثية، وFreebase (الآن جزء من Wikidata) فيها علاقات الأشخاص وجنسياتهم والأماكن وما يحويها. وفي WordNet علاقة <b>is-a</b> (الكلمة العامة، hypernym): Giraffe is-a ruminant is-a ungulate is-a mammal is-a vertebrate…، وعلاقة Instance-of (San Francisco مثيل لـ city). واستخراجها خطوة مهمة لتوسيع الأنطولوجيات.</p>
+  <p>وبيانات موسومة يدوياً لتدريب المستخرجات واختبارها: <b>TACRED</b> فيها ١٠٦٬٢٦٤ مثالاً عن أشخاص أو منظمات من تحديات TAC KBP، بـ ٤١ نوع علاقة (per:city_of_birth، org:subsidiaries، per:spouse…) ووسم no_relation. وحوالي ٨٠٪ من الأمثلة «لا علاقة»، وكثرة الأمثلة السلبية مهمة لتدريب المصنّفات (الشكل ٢١٫٣: «Baldwin declined further comment, and said JetBlue chief executive Dave Barger was unavailable»: PERSON / TITLE لكن no_relation بين Baldwin وchief executive). وبيانات SemEval 2010 (المهمة ٨): ١٠٬٧١٧ مثالاً، لكل منها زوج أسماء موسوم بإحدى ٩ علاقات موجّهة، مثل product-producer (a factory manufactures suits) وcomponent-whole (my apartment has a large kitchen).</p>
+</section>
+
+<!-- ============ 21.2 ============ -->
+<section class="sec" id="s21-2">
+  <header><div class="kicker">القسم ٢١٫٢ <span class="pg">p. 476</span></div><h2>خوارزميات استخراج العلاقات</h2></header>
+  <div class="brief"><b>باختصار</b>(١) أنماط مكتوبة يدوياً: دقيقة لكن استدعاؤها منخفض. (٢) تعلّم إشرافي: لكل زوج كيانات في جملة مصنّف (بالخصائص أو BERT)؛ دقيق لكن البيانات مكلفة والنموذج هش خارج نوع نصوصه. (٣) إقلاع ذاتي من بذور قليلة: يتعلم أنماطاً جديدة ويخشى «الانجراف الدلالي». (٤) إشراف بعيد: قاعدة بيانات كبيرة تعطي آلاف الأمثلة المشوّشة لمصنّف. (٥) استخراج مفتوح: العلاقة سلسلة كلمات تبدأ بفعل.</div>
+  <div class="terms"><span>أنماط هيرست <i>Hearst patterns</i></span><span>الكلمة الخاصة / العامة <i>hyponym / hypernym</i></span><span>الإقلاع الذاتي <i>bootstrapping</i></span><span>البذور <i>seed patterns / tuples</i></span><span>الانجراف الدلالي <i>semantic drift</i></span><span>noisy-or</span><span>الإشراف البعيد <i>distant supervision</i></span><span>الاستخراج المفتوح <i>Open IE</i></span></div>
+  <p>يقول الكتاب «خمس فئات رئيسية»: الأنماط المكتوبة يدوياً، والتعلّم الإشرافي، وشبه الإشرافي (بالإقلاع الذاتي أو بالإشراف البعيد)، وغير الإشرافي.</p>
+  <h3>٢١٫٢٫١ · الأنماط</h3>
+  <p>أقدم الخوارزميات وما زالت شائعة: الأنماط المعجمية-النحوية لهيرست (١٩٩٢). في «Agar is a substance prepared from a mixture of red algae, such as Gelidium, for laboratory or industrial use»، لا يعرف معظم القراء ما Gelidium، لكنهم يستنتجون بسهولة أنها نوع من (كلمة خاصة، hyponym) الطحالب الحمراء. فالنمط NP₀ such as NP₁ {, NP₂ …, (and|or) NP<sub>i</sub>} (21.2) يعني: لكل i ≥ 1، hyponym(NP<sub>i</sub>, NP₀) (21.3)، ومنه hyponym(Gelidium, red algae) (21.4). وأنماط هيرست الخمسة (الشكل ٢١٫٤):</p>
+  <div class="w" id="hpBox"><div class="cap">أنماط هيرست (اكتب جملة أو اختر مثالاً من الشكل ٢١٫٤)</div>
+    <div class="row" id="hpBtns" style="flex-wrap:wrap"></div>
+    <input id="hpIn" class="mono" dir="ltr" style="width:100%;margin-top:6px">
+    <div class="calc" id="hpCalc"></div></div>
+  <p class="note">ملاحظة على المسودة: يقول الكتاب «we’ve shown NP<sub>H</sub> as the parent/hyponym»، والصواب hypernym (الكلمة العامة)؛ الكلمة الخاصة hyponym هي الأبناء. والأداة تقرّب «العبارة الاسمية» بكلمة أو كلمتين لأنها بلا محلل نحوي.</p>
+  <p>والنسخ الحديثة تضيف قيود الكيانات المسمّاة، فلسؤال «من يشغل أي منصب في أي منظمة؟»: «PER, POSITION of ORG» (George Marshall, Secretary of State of the United States)، و«PER (named|appointed|chose|…) PER Prep? POSITION» (Truman appointed Marshall Secretary of State)، و«PER [be]? (named|appointed|…) Prep? ORG POSITION» (George Marshall was named US Secretary of State). ومزايا الأنماط: دقة عالية، وتفصيل للمجال. وعيوبها: استدعاء منخفض، وجهد كبير لكتابة كل الأنماط الممكنة.</p>
+  <h3>٢١٫٢٫٢ · التعلّم الإشرافي</h3>
+  <p>نختار مجموعة علاقات وكيانات، ونسم مدوّنة تدريب يدوياً، وندرّب مصنّفات. وأبسط نهج (الشكل ٢١٫٥): (١) جد أزواج الكيانات (عادةً في الجملة نفسها)؛ (٢) صنّف علاقة كل زوج، بأي مصنّف (انحدار لوجستي، أو شبكة تكرارية، أو محوّل، أو غابة عشوائية…). وقد نضيف مصنّفاً مرشِّحاً وسيطاً يقرر بسرعة هل بين الزوج علاقة أصلاً، مدرَّباً على أمثلة إيجابية من كل العلاقات الموسومة وسلبية من الأزواج غير الموسومة في الجملة نفسها:</p>
+  <div class="w" id="rpBox"><div class="cap">أزواج الكيانات في الخبر وعلاقاتها (من قراءتنا للنص؛ اضغط جملة)</div>
+    <div class="row" id="rpBtns"></div>
+    <div class="calc" id="rpCalc"></div></div>
+  <p><b>خصائص المصنّف</b> لعلاقة American Airlines (M1) وTim Wagner (M2) في (21.5) «American Airlines, a unit of AMR, immediately matched the move, spokesman Tim Wagner said»:</p>
+  <ul class="clean" dir="ltr" style="text-align:left">
+    <li>headwords of M1, M2 and their concatenation: <span class="mono">Airlines · Wagner · Airlines-Wagner</span></li>
+    <li>bag-of-words / bigrams in M1 and M2: <span class="mono">American, Airlines, Tim, Wagner, American Airlines, Tim Wagner</span></li>
+    <li>words in particular positions: <span class="mono">M2: −1 spokesman · M2: +1 said</span></li>
+    <li>bag of words between M1 and M2: <span class="mono">a, AMR, of, immediately, matched, move, spokesman, the, unit</span></li>
+    <li>entity types: <span class="mono">M1: ORG, M2: PER, M1M2: ORG-PER</span>; entity level (NAME / NOMINAL / PRONOUN): <span class="mono">M1: NAME, M2: NAME</span>; entities between: <span class="mono">1 (AMR)</span></li>
+    <li>constituent path: <span class="mono">NP ↑ NP ↑ S ↑ S ↓ NP</span>; dependency path: <span class="mono">Airlines ←subj matched ←comp said →subj Wagner</span></li>
+  </ul>
+  <p><b>المصنّفات العصبية:</b> في TACRED لدينا جملة ومقطعان: فاعل (شخص أو منظمة) ومفعول (أي كيان)، والمطلوب إحدى ٤٢ علاقة (منها no_relation). والنظام النموذجي (الشكل ٢١٫٦): مرمِّز مسبق التدريب مثل BERT، وفوقه طبقة خطية على تمثيل الجملة ([CLS]) تُضبط مصنّفاً «واحد من N». والمدخل «منزوع المفردات» جزئياً: نستبدل الكيانين بوسمي نوعهما، فلا يحفظ النموذج كلمات بعينها. ويفيد استعمال نسخ مثل RoBERTa أو SpanBERT التي لا تفصل تسلسلين بـ [SEP]:</p>
+  <div class="w" id="dlBox"><div class="cap">نزع المفردات قبل BERT (الشكل ٢١٫٦)</div>
+    <div class="row"><span class="seg" id="dlM"><button data-m="raw">الجملة الأصلية</button><button data-m="dl" class="on">منزوعة المفردات</button></span></div>
+    <div class="calc" id="dlCalc"></div></div>
+  <p class="note">ملاحظة: يقول الكتاب ٤١ علاقة + no_relation (= ٤٢)، ثم «مصنّف واحد من N لـ ٤٣ وسماً»؛ والفرق غير مفسَّر في المسودة.</p>
+  <p>وإن كانت بيانات الاختبار تشبه التدريب، والبيانات الموسومة كافية، فالدقة عالية. لكن الوسم مكلف جداً، والنماذج الإشرافية هشة: لا تعمم جيداً على أنواع نصوص أخرى. ولهذا ركّز البحث على الطرق شبه الإشرافية وغير الإشرافية.</p>
+  <h3>٢١٫٢٫٣ · الإقلاع الذاتي</h3>
+  <p>لنفترض أن لدينا بضعة أنماط بذرية دقيقة، أو بضع <b>ثلاثيات بذرية</b>. هذا يكفي لـ<span class="t">الإقلاع الذاتي <i>bootstrapping</i></span> (الشكل ٢١٫٧): نأخذ كيانات الزوج البذري، ونجد جملاً (على الويب أو في بياناتنا) تحوي الكيانين، ونعمم السياق حولهما إلى أنماط جديدة، ونستعملها لإيجاد أزواج جديدة، ونضيف الموثوق منها، ونكرر. مثلاً لقائمة «شركة طيران / مطارها المحوري» ونعرف فقط أن Ryanair محورها Charleroi:</p>
+  <div class="quote" dir="ltr">(21.6) Budget airline Ryanair, which uses Charleroi as a hub, scrapped all weekend flights out of the airport.<br>(21.7) All flights in and out of Ryanair’s hub at Charleroi airport were grounded on Friday...<br>(21.8) A spokesman at Charleroi, a main hub for Ryanair, estimated that 8000 passengers had already been affected.</div>
+  <p>ومنها أنماط: <span dir="ltr" class="mono">/ [ORG], which uses [LOC] as a hub / · / [ORG]’s hub at [LOC] / · / [LOC], a main hub for [ORG] /</span>. والخطر <span class="t">الانجراف الدلالي <i>semantic drift</i></span>: نمط خاطئ يُدخل ثلاثيات خاطئة، وهذه تولّد أنماطاً أسوأ، فيبتعد معنى العلاقة المستخرجة. فـ «Sydney has a ferry hub at Circular Quay» (21.9) لو قُبلت لأدخلت ⟨Sydney, Circular Quay⟩. ولذلك نعطي الأنماط والثلاثيات <b>درجات ثقة</b>. وثقة النمط تُوازن أداءه على الثلاثيات الحالية T وإنتاجيته في المجموعة D: hits(p) ما يطابقه من T، وfinds(p) كل ما يجده:</p>
+  <div class="eq">Conf<sub>RlogF</sub>(p) = ( |hits(p)| / |finds(p)| ) · log(|finds(p)|) &nbsp;&nbsp; (21.10) &nbsp;&nbsp;&nbsp;&nbsp; Conf(t) = 1 − Π<sub>p∈P′</sub> (1 − Conf(p)) &nbsp;&nbsp; (21.11)</div>
+  <div class="w" id="cfBox"><div class="cap">ثقة نمط (RlogF) وثقة ثلاثية (noisy-or)</div>
+    <div class="row"><label class="note">|hits(p)| = <b class="mono" id="cfHo"></b><br><input type="range" id="cfH" min="1" max="100" step="1" value="20"></label><label class="note">|finds(p)| = <b class="mono" id="cfFo"></b><br><input type="range" id="cfF" min="2" max="500" step="1" value="40"></label></div>
+    <div class="row"><label class="note">ثقة الأنماط الثلاثة الداعمة لثلاثية: p₁ = <b class="mono" id="cf1o"></b>, p₂ = <b class="mono" id="cf2o"></b>, p₃ = <b class="mono" id="cf3o"></b><br><input type="range" id="cf1" min="0" max="1" step="0.05" value="0.6"> <input type="range" id="cf2" min="0" max="1" step="0.05" value="0.3"> <input type="range" id="cf3" min="0" max="1" step="0.05" value="0"></label></div>
+    <div class="calc" id="cfCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">1 − Π(1 − c)</span>مفهوم رياضي · «الأو المشوّش» (noisy-or)</div><div class="mb">
+    <p>سؤال: ما احتمال أن تكون الثلاثية <b>صحيحة</b> إذا دعمتها عدة أنماط؟ الافتراضان: الثلاثية خاطئة فقط إذا أخطأت <b>كل</b> الأنماط الداعمة، وأخطاء الأنماط مستقلة. احتمال خطأ النمط p هو 1 − Conf(p)، واحتمال خطأ الكل حاصل الضرب (للاستقلال، كرمي عملات). فاحتمال الصحة = 1 − حاصل الضرب. مثلاً نمطان ثقتهما ٠٫٦ و٠٫٣: احتمال خطأ الاثنين ٠٫٤ × ٠٫٧ = ٠٫٢٨، فالثقة ٠٫٧٢ أعلى من أي منهما وحده. والعتبات المحافظة لقبول الأنماط والثلاثيات تمنع الانجراف.</p>
+  </div></div>
+  <h3>٢١٫٢٫٤ · الإشراف البعيد</h3>
+  <p>طريقة <span class="t">الإشراف البعيد <i>distant supervision</i></span> (منتز وزملاؤه ٢٠٠٩) تجمع مزايا الإقلاع الذاتي والتعلّم الإشرافي: بدل بضع بذور، نأخذ من قاعدة بيانات كبيرة عدداً هائلاً منها، ونصنع خصائص أنماط مشوّشة كثيرة، ونجمعها في مصنّف إشرافي. فلعلاقة مكان الميلاد، في DBpedia وFreebase أكثر من ١٠٠ ألف مثال (⟨Edwin Hubble, Marshfield⟩، ⟨Albert Einstein, Ulm⟩…). ونشغّل وسّام كيانات على نصوص كثيرة (٨٠٠ ألف مقالة ويكيبيديا عند منتز)، ونستخرج كل جملة فيها كيانا ثلاثية:</p>
+  <div class="w" id="dsBox"><div class="cap">الإشراف البعيد بقاعدة بيانات صغيرة (الشكل ٢١٫٨)</div>
+    <div class="row"><button class="btn pri" id="dsGo">طابق القاعدة مع الجمل</button></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="dsTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="dsCalc"></div></div>
+  <p>ولكل ثلاثية متطابقة ⟨علاقة، كيان١، كيان٢⟩ مثال تدريب واحد، وخصائصه من جمل كثيرة تذكر الكيانين معاً. ولكبر البيانات نستعمل خصائص غنية مركّبة، مثل: <span dir="ltr" class="mono">M1 = ORG &amp; M2 = PER &amp; nextword = “said” &amp; path = NP ↑ NP ↑ S ↑ S ↓ NP</span>. ووسم no-relation يُدرَّب بأزواج عشوائية لا تظهر في أي علاقة في Freebase. والمزايا: كالإشرافي، مصنّف بخصائص كثيرة؛ وكالأنماط، أدلة دقيقة (بل يتعلم أنماطاً كالمكتوبة يدوياً: نظام سنو وزملائه (٢٠٠٥) استعمل أزواج WordNet إشرافاً بعيداً، فاستخلص أنماط هيرست الخمسة بالضبط، و٧٠ ألف نمط آخر، مثل «NP<sub>H</sub> like NP» و«NP<sub>H</sub> called NP» و«NP is a NP<sub>H</sub>» و«NP, a NP<sub>H</sub>»)؛ وبلا انجراف دلالي لأنه يستعمل خصائص كثيرة معاً لا توسيعاً تكرارياً؛ وكغير الإشرافي، لا يحتاج نصوصاً موسومة، فلا يتأثر بنوعها. والعيب: دقة منخفضة، ولا يصلح إلا لعلاقات لها قاعدة بيانات كبيرة.</p>
+  <h3>٢١٫٢٫٥ · الاستخراج غير الإشرافي (Open IE)</h3>
+  <p>الهدف: استخراج علاقات من الويب بلا بيانات موسومة ولا حتى قائمة علاقات. وفي <span class="t">الاستخراج المفتوح <i>Open IE</i></span> العلاقات سلاسل كلمات (تبدأ عادةً بفعل). فنظام <b>ReVerb</b> (فيدر وزملاؤه ٢٠١١) يستخرج علاقة من جملة في ٤ خطوات: (١) وسم أقسام الكلام وتقطيع الكيانات؛ (٢) لكل فعل، أطول سلسلة تبدأ به وتحقق القيود النحوية والمعجمية (مع دمج المتجاور)؛ (٣) لكل عبارة، أقرب عبارة اسمية x يساراً (ليست ضمير وصل ولا wh ولا there الوجودية)، وأقرب y يميناً؛ (٤) ثقة c للعلاقة r = (x, w, y) بمصنّف. والقيد النحوي (الأفعال الخفيفة كـ make وhave تعبّر عن جوهر العلاقة باسم، كـ have a hub in):</p>
+  <div class="eq" dir="ltr">V | VP | VW*P &nbsp;&nbsp;&nbsp; V = verb particle? adv? &nbsp;&nbsp; W = (noun | adj | adv | pron | det) &nbsp;&nbsp; P = (prep | particle | infinitive “to”)</div>
+  <div class="w" id="rvBox"><div class="cap">ReVerb مبسَّطاً على جمل موسومة سلفاً (الوسوم من عندنا)</div>
+    <div class="row"><span class="seg" id="rvS"><button data-s="0" class="on">(21.13)</button><button data-s="1">مثال ٢</button><button data-s="2">مثال ٣</button></span></div>
+    <div id="rvOut" dir="ltr" style="margin-top:8px;line-height:2.2"></div><div class="calc" id="rvCalc"></div></div>
+  <p>والقيد المعجمي يحذف سلاسل العلاقات النادرة الطويلة: شُغّل الاستخراج على ٥٠٠ مليون جملة ويب، وطُبّعت العلاقات (حذف التصريف والمساعدات والصفات والظروف)، وقُبلت العلاقة في القاموس إذا ظهرت مع ٢٠ معمولاً مختلفاً على الأقل (قاموس فيدر: ١٫٧ مليون علاقة). والثقة من انحدار لوجستي دُرّب على ١٠٠٠ جملة ويب وُسمت مخرجاتها يدوياً صحيحة أو خاطئة، بخصائص مثل: (x, r, y) تغطي كل كلمات الجملة؛ وآخر حرف جر في r هو for أو on؛ وطول الجملة ≤ ١٠؛ وr فعل وحيد… (الشكل ٢١٫٩). ومزية Open IE: علاقات لا تحصى دون تحديدها مسبقاً. وعيبها: يجب ربط السلاسل بصيغة قياسية لإدخالها في قواعد البيانات، وتغفل العلاقات المعبَّر عنها بالأسماء.</p>
+  <h3>٢١٫٢٫٦ · التقييم</h3>
+  <p>الإشرافي: مجموعات اختبار موسومة بشرياً، ودقة واستدعاء وF؛ و«الموسوم» يتطلب تصنيف العلاقة صحيحاً، و«غير الموسوم» مجرد اكتشاف أن الكيانين مرتبطان. أما شبه الإشرافي وغير الإشرافي فأصعب تقييماً: يستخرجان علاقات جديدة من نصوص ضخمة، فلا مجموعة ذهبية مسبقة. فنقرّب <b>الدقة فقط</b>: عيّنة عشوائية من المخرجات يفحصها إنسان، مع التركيز على الثلاثيات في قاعدة البيانات النهائية لا على كل ذكر (نريد أن نعرف هل اكتشف أن Ryanair محورها Charleroi، لا كم مرة):</p>
+  <div class="eq">P̂ = (# correctly extracted relation tuples in the sample) / (total # of extracted relation tuples in the sample) &nbsp;&nbsp; (21.14)</div>
+  <p>وللحصول على شيء عن الاستدعاء: إن كان النظام يرتّب علاقاته بالثقة، نحسب الدقة لأعلى ١٠٠٠، و١٠٬٠٠٠، و١٠٠٬٠٠٠… (بعيّنة من كل منها)، فنرى سلوك منحنى الدقة كلما استخرجنا أكثر. لكن لا طريقة لتقييم الاستدعاء مباشرة.</p>
+</section>
+
+<!-- ============ 21.3 ============ -->
+<section class="sec" id="s21-3">
+  <header><div class="kicker">القسم ٢١٫٣ <span class="pg">p. 484</span></div><h2>استخراج الأحداث</h2></header>
+  <div class="brief"><b>باختصار</b>ذكر الحدث: أي تعبير يدل على حدث أو حالة يمكن إسناده إلى نقطة أو فترة زمنية. وفي الإنجليزية معظمها أفعال، لكن بعضها أسماء (the move، the increase)، وبعض الأفعال لا تدل على حدث (took effect، والأفعال الخفيفة make/take/have). ويُصنَّف الحدث (فعل، حالة، قول، إدراك…) مع زمنه وجهته وصيغته، بنماذج تسلسل IOB ومصنّفات.</div>
+  <div class="terms"><span>ذكر الحدث <i>event mention</i></span><span>الفعل الخفيف <i>light verb</i></span><span>أحداث القول <i>reporting events</i></span><span>TempEval</span></div>
+  <div class="w" id="evBox"><div class="cap">الأحداث في الخبر (اضغط حدثاً)</div>
+    <div id="evText" dir="ltr" style="line-height:2.1"></div><div class="calc" id="evCalc"></div></div>
+  <p>في الإنجليزية معظم الأحداث أفعال، ومعظم الأفعال تُدخل أحداثاً، لكن ليس دائماً: قد تأتي الأحداث <b>أسماء</b> (the move، the increase)، وبعض الأفعال لا تدل على حدث: الفعل المركّب took effect يشير إلى متى بدأ الحدث لا إلى الحدث نفسه. والأفعال <span class="t">الخفيفة <i>light verbs</i></span> مثل make وtake وhave معناها قليل جداً، والحدث في مفعولها الاسمي: في took a flight الحدث هو flight، والفعل مجرد هيكل نحوي لمعمولات الاسم. وفي مهام TempEval نستخرج الأحداث وخصائصها: تُصنَّف أفعالاً، أو حالات، أو <b>أحداث قول</b> (say، report، tell، explain)، أو إدراك…، مع الزمن والجهة والصيغة؛ فأحداث said في الخبر: (class = REPORTING, tense = PAST, aspect = PERFECTIVE). ويُنمذج إشرافياً: وسم IOB للأحداث ومصنّفات للفئات والخصائص، بمرمِّزات عصبية أو خصائص كلاسيكية: البادئات واللواحق، ولاحقة التسمية (-tion)، وقسم الكلام، وهل يحكمه فعل خفيف، وفئة الفاعل، والجذر، وجذر الفعل للاسم المشتق، وكلمات WordNet العامة (الشكل ٢١٫١٠).</p>
+</section>
+
+<!-- ============ 21.4 ============ -->
+<section class="sec" id="s21-4">
+  <header><div class="kicker">القسم ٢١٫٤ <span class="pg">p. 485</span></div><h2>تمثيل الزمن</h2></header>
+  <div class="brief"><b>باختصار</b>الزمن يجري للأمام، والأحداث نقاط أو فترات على خط زمني. وجبر الفترات لألن: كل شيء فترات، وبينها ١٣ علاقة أولية (قبل، ويلتقي، ويتداخل، ويبدأ، وأثناء، وينتهي، ويساوي، ومعكوساتها). ولفهم الأزمنة النحوية: رايشنباخ يفصل ثلاث نقاط: زمن الحدث E، وزمن المرجع R، وزمن التلفظ U. وتعابير الزمان في الإنجليزية مكانية مجازياً (at، in، near).</div>
+  <div class="terms"><span>المنطق الزمني <i>temporal logic</i></span><span>جبر الفترات <i>interval algebra</i></span><span>علاقات ألن <i>Allen relations</i></span><span>النقطة المرجعية <i>reference point</i></span><span>E / R / U</span></div>
+  <p>أبسط نظرية: الزمن يجري للأمام بلا توقف، والأحداث مقترنة بنقاط أو فترات على خط زمني، فنرتّبها: حدث يسبق آخر إذا قاد جريان الزمن من الأول إلى الثاني. ومع فكرة «اللحظة الحالية» نحصل على الماضي والحاضر والمستقبل. ومن أشهر أنظمة التمثيل الحاسوبية <b>جبر الفترات</b> لألن (١٩٨٤): كل الأحداث وتعابير الزمن فترات، بلا نقاط (وإن قصرت الفترات جداً)، وبين أي فترتين إحدى ١٣ علاقة أولية:</p>
+  <div class="w" id="alBox"><div class="cap">الشكل ٢١٫١١: علاقات ألن الثلاث عشرة (حرّك الفترة B)</div>
+    <div class="row"><label class="note">بداية B = <b class="mono" id="alSo"></b><br><input type="range" id="alS" min="0" max="10" step="1" value="5"></label><label class="note">نهاية B = <b class="mono" id="alEo"></b><br><input type="range" id="alE" min="1" max="11" step="1" value="9"></label></div>
+    <div id="alSvg" style="margin-top:6px"></div><div class="calc" id="alCalc"></div></div>
+  <h3>٢١٫٤٫١ · نقطة رايشنباخ المرجعية</h3>
+  <p>العلاقة بين الأزمنة النحوية والزمن ليست مباشرة: المضارع قد يدل على مستقبل: «Ok, we fly from San Francisco to Boston at 10» (21.15). و«Flight 1902 arrived late» (21.16) و«Flight 1902 had arrived late» (21.17) كلاهما ماضٍ، لكن تمثيلهما بالطريقة نفسها خطأ: في الثاني حدث آخر خفي في الخلفية (كانت قد وصلت متأخرة <i>حين</i> حدث شيء آخر). ولهذا أدخل رايشنباخ (١٩٤٧) <span class="t">النقطة المرجعية <i>reference point</i></span> منفصلة عن زمن التلفظ وزمن الحدث. ففي «When Mary’s flight departed, I ate lunch» (21.18) بدأ الأكل حين أقلعت الطائرة؛ وفي «When Mary’s flight departed, I had eaten lunch» (21.19) انتهى الأكل قبل الإقلاع. والإقلاع هو النقطة المرجعية في المثالين:</p>
+  <div class="w" id="rbBox"><div class="cap">الشكل ٢١٫١٢: الأزمنة الإنجليزية بنقاط رايشنباخ (E الحدث، R المرجع، U التلفظ)</div>
+    <div class="row"><span class="seg" id="rbT" style="flex-wrap:wrap"><button data-t="pp">Past Perfect</button><button data-t="sp" class="on">Simple Past</button><button data-t="prp">Present Perfect</button><button data-t="pr">Present</button><button data-t="sf">Simple Future</button><button data-t="fp">Future Perfect</button></span></div>
+    <div id="rbSvg" style="margin-top:8px"></div><div class="calc" id="rbCalc"></div></div>
+  <p>وللغات وسائل أخرى غير الزمن النحوي، أهمها لنا <b>التعابير الزمنية</b>: «I’d like to go at 6:45 in the morning» (21.20)، «Somewhere around noon, please» (21.21)، «I want to take the train back afterwards» (21.22). وطريف أن التعابير الزمنية في الإنجليزية مكانية مجازياً كثيراً: at، in، somewhere، near (لايكوف وجونسون ١٩٨٠). وهذا التنظيم المجازي (مجال يُعبَّر عنه بلغة مجال آخر) شائع جداً في اللغات (وفي العربية: «قبل»، «بعد»، «أمامنا أيام صعبة»، «وراءنا سنوات»).</p>
+</section>
+
+<!-- ============ 21.5 ============ -->
+<section class="sec" id="s21-5">
+  <header><div class="kicker">القسم ٢١٫٥ <span class="pg">p. 488</span></div><h2>تمثيل الجهة</h2></header>
+  <div class="brief"><b>باختصار</b>الجهة (aspect): البنية الزمنية الداخلية للحدث: هل مستمر أم انتهى؟ نقطة أم فترة؟ وتصنيف فندلر الرباعي: الحالة (بلا تغيّر: I know my gate)، والنشاط (فترة بلا نهاية محددة: John is flying)، والإنجاز (فترة تنتهي بحالة: Sally booked her flight)، والبلوغ (لحظي ينتج حالة: She found her gate). والتصنيف للتعبير كاملاً في سياقه لا للفعل وحده: I flew نشاط، وI flew to New York إنجاز.</div>
+  <div class="terms"><span>الجهة <i>aspect / aktionsart</i></span><span>حالة / حدث <i>state / event</i></span><span>نشاط <i>activity</i></span><span>غائي <i>telic</i></span><span>إنجاز <i>accomplishment</i></span><span>بلوغ <i>achievement</i></span></div>
+  <p>الجهة تصنّف الأحداث بـ«شكلها الزمني» الداخلي: هل الحدث مستمر أم انتهى؟ هل يُتصوَّر في نقطة أم على فترة؟ وهذا التصنيف قديم منذ أرسطو، والأقسام الأربعة لفندلر (١٩٦٧) (وتسمى أيضاً بالألمانية aktionsart). أبسط تمييز: <b>الأحداث</b> (فيها تغيّر) و<b>الحالات</b> (لا تغيّر). فالتعابير الحالية تمثّل مشاركاً في حالة أو صاحب خاصية في لحظة، دون تغيّر داخلي: «I like express trains»، «I need the cheapest fare»، «I want to go first class» (21.23–21.25). وغير الحالات ثلاثة: <b>النشاط</b> حدث على فترة بلا نقطة نهاية محددة في المعنى («She drove a Mazda»، «I live in Brooklyn»). وتعبيرا <b>الإنجاز</b> و<b>البلوغ</b> يتصوران الحدث ذا غاية (telos اليونانية: «الغاية»)، فيسميان «غائيين». الإنجاز له نهاية طبيعية ونتيجة («He booked me a reservation»، «The 7:00 train got me to New York City»). والبلوغ ينتج حالة أيضاً، لكنه «لحظي»: يُتصوَّر في لحظة، والفعل لا يتصور ما قبله («She found her gate»، «I reached New York»؛ ربما سبقهما بحث أو سفر طويل، لكن الفعل لا يذكره):</p>
+  <div class="w" id="asBox"><div class="cap">صنّف الجملة (أمثلة الكتاب)</div>
+    <div class="calc" id="asQ" style="font-size:16px"></div>
+    <div class="row"><span class="seg" id="asA"><button data-a="stative">حالة</button><button data-a="activity">نشاط</button><button data-a="accomplishment">إنجاز</button><button data-a="achievement">بلوغ</button></span><button class="btn" id="asN">التالية</button></div>
+    <div class="calc" id="asCalc"></div></div>
+</section>
+
+<!-- ============ 21.6 ============ -->
+<section class="sec" id="s21-6">
+  <header><div class="kicker">القسم ٢١٫٦ <span class="pg">p. 489</span></div><h2>بيانات موسومة زمنياً: TimeBank</h2></header>
+  <div class="brief"><b>باختصار</b>مدوّنة TimeBank (نصوص إنجليزية أمريكية) موسومة بلغة TimeML المبنية على جبر ألن، بثلاثة أنواع: EVENT للأحداث والحالات، وTIMEX3 للتعابير الزمنية (بقيمة ISO مطبّعة)، وLINK للعلاقات: TLINK (علاقات ألن الزمنية)، وALINK (الجهة: حدث وأجزاؤه)، وSLINK (الواقعية).</div>
+  <div class="terms"><span>TimeBank</span><span>TimeML</span><span>EVENT / TIMEX3</span><span>TLINK / ALINK / SLINK</span><span>زمن إنشاء الوثيقة <i>DCT</i></span></div>
+  <p>ففي «Delta Air Lines earnings soared 33% to a record in the fiscal first quarter, bucking the industry trend toward declining profits» (21.34) ثلاثة أحداث وتعبيران زمنيان (منهما زمن إنشاء المقالة، أي «زمن الوثيقة»)، وأربع علاقات TLINK:</p>
+  <div class="eq" dir="ltr" style="text-align:left;font-size:13.5px;line-height:1.7">&lt;TIMEX3 tid="t57" type="DATE" value="1989-10-26" functionInDocument="CREATION_TIME"&gt; 10/26/89 &lt;/TIMEX3&gt;<br>Delta Air Lines earnings &lt;EVENT eid="e1" class="OCCURRENCE"&gt; soared &lt;/EVENT&gt; 33% to a record in &lt;TIMEX3 tid="t58" type="DATE" value="1989-Q1" anchorTimeID="t57"&gt; the fiscal first quarter &lt;/TIMEX3&gt;, &lt;EVENT eid="e3" class="OCCURRENCE"&gt;bucking&lt;/EVENT&gt; the industry trend toward &lt;EVENT eid="e4" class="OCCURRENCE"&gt;declining&lt;/EVENT&gt; profits.</div>
+  <ul class="clean" dir="ltr" style="text-align:left"><li>Soaring<sub>e1</sub> is <b>included in</b> the fiscal first quarter<sub>t58</sub></li><li>Soaring<sub>e1</sub> is <b>before</b> 1989-10-26<sub>t57</sub></li><li>Soaring<sub>e1</sub> is <b>simultaneous with</b> the bucking<sub>e3</sub></li><li>Declining<sub>e4</sub> <b>includes</b> soaring<sub>e1</sub></li></ul>
+  <p>ويمكن رسم العلاقات رسماً بيانياً (الشكل ٢١٫١٤، عن أوكال وزملائه ٢٠٢٢) لنص مثل (21.35): «Pacific First Financial Corp. said shareholders approved its acquisition by Royal Trustco Ltd. of Toronto… The thrift holding company said it expects to obtain regulatory approval and complete the transaction by year-end»: TLINK بالأزرق (BEFORE، AFTER، SIMULTANEOUS…)، وALINK بالأحمر (CULMINATES، ENDS…)، وSLINK بالأخضر (EVIDENTIAL، MODAL، FACTIVE).</p>
+</section>
+
+<!-- ============ 21.7 ============ -->
+<section class="sec" id="s21-7">
+  <header><div class="kicker">القسم ٢١٫٧ <span class="pg">p. 490</span></div><h2>التحليل الزمني الآلي</h2></header>
+  <div class="brief"><b>باختصار</b>ثلاث خطوات: (١) استخراج التعابير الزمنية: مطلقة (April 24, 1916)، ونسبية (yesterday، last quarter)، ومُدد (four hours)؛ بقواعد تعابير نمطية متتالية أو وسم IOB. (٢) التطبيع إلى ISO 8601 بالنسبة إلى تاريخ الوثيقة (المرساة): YYYY-MM-DD، وYYYY-Wnn، وP2W… (٣) ربط الأحداث بالأزمنة وترتيبها: مصنّفات لكل زوج تتنبأ بعلاقة TLINK.</div>
+  <div class="terms"><span>تعبير مطلق / نسبي / مدة <i>absolute / relative / duration</i></span><span>المحفّز المعجمي <i>lexical trigger</i></span><span>TIMEX3</span><span>التطبيع الزمني <i>temporal normalization</i></span><span>ISO 8601</span><span>المرساة الزمنية <i>temporal anchor</i></span></div>
+  <h3>٢١٫٧٫١ · استخراج التعابير الزمنية</h3>
+  <p>التعابير <b>المطلقة</b> تُربط مباشرة بتواريخ أو أوقات (April 24, 1916؛ The summer of ’77؛ 10:15 AM؛ The 3rd quarter of 2006). و<b>النسبية</b> تُربط عبر نقطة مرجعية أخرى (yesterday؛ next semester؛ two weeks from yesterday؛ last quarter). و<b>المُدد</b> فترات بدقة متفاوتة (four hours؛ three weeks؛ the last three quarters) (الشكل ٢١٫١٥). ورؤوسها غالباً <b>محفّزات معجمية</b> زمنية تسهّل إيجادها: أسماء (morning، noon، winter، dawn)، وأعلام (January، Monday، Easter، Ramadan، Tet)، وصفات (recent، past، annual)، وظروف (hourly، daily) (الشكل ٢١٫١٦). والطرق بالقواعد تستعمل تعابير نمطية متتالية، مثل قاعدة SUTime لـ «3 years old»: <span dir="ltr" class="mono">/(\d+)[-\s]($TEUnits)(s)?([-\s]old)?/</span>. وطرق وسم السلاسل تستعمل IOB: A/O fare/O increase/O initiated/O last/B week/I by/O… والصعوبة الكبرى الإيجابيات الكاذبة: «1984 tells the story of Winston Smith» (رواية لا سنة)، و«U2’s classic Sunday Bloody Sunday» (أغنية لا يوم).</p>
+  <h3>٢١٫٧٫٢ · التطبيع الزمني</h3>
+  <p>ربط التعبير بنقطة زمنية أو مدة، بمعيار <b>ISO 8601</b>. ومعظم التعابير في الأخبار ناقصة ومربوطة ضمنياً بتاريخ المقالة: <b>المرساة الزمنية</b>. فـ today = المرساة، وtomorrow = المرساة + يوم، وyesterday = المرساة − يوم (بحساب «دوري» يراعي الأشهر والأسابيع). وفي مثالنا (الشكل ٢١٫١٧) تاريخ الوثيقة July 2, 2007 = 2007-07-02، وهو في أسبوع ISO رقم ٢٧ (الأسابيع من ٠١ إلى ٥٣، والأسبوع الأول هو الذي فيه أول خميس في السنة، والأسبوع يبدأ الاثنين)، فـ «last week» = 2007-W26. و«the weekend» مدة: P1WE (مع مرساة)، و«two weeks» = P2W:</p>
+  <div class="w" id="nmBox"><div class="cap">مطبِّع زمني صغير (غيّر تاريخ الوثيقة)</div>
+    <div class="row"><label class="note">تاريخ الوثيقة<br><input type="date" id="nmD" value="2007-07-02" dir="ltr"></label></div>
+    <div class="scroll" dir="ltr"><table class="tb" id="nmTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="nmCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">ISO week</span>مفهوم رياضي · لماذا «أسبوع ISO» معقد؟</div><div class="mb">
+    <p>السنة ٣٦٥ يوماً (أو ٣٦٦) ليست مضاعفاً لسبعة، فيبدأ الأسبوع الأول في أيام مختلفة كل سنة. قاعدة ISO: الأسبوع يبدأ الاثنين، والأسبوع رقم ١ هو الذي يحتوي أول خميس في السنة (أي فيه ٤ أيام على الأقل من السنة الجديدة). فقد تنتمي أيام أول يناير إلى الأسبوع ٥٢ أو ٥٣ من السنة السابقة! وحسابه: نجد خميس الأسبوع الذي فيه التاريخ، ثم رقم الأسبوع = 1 + ⌊(ترتيب ذلك الخميس في سنته − 1) ÷ 7⌋. وهذا مثال على «الحساب الدوري» الذي يذكره الكتاب.</p>
+  </div></div>
+  <p>والتطبيع صعب حتى في التعابير البسيطة: «the weekend» في مثالنا عطلة الأسبوع السابق للوثيقة، لكن في «Random security checks that began yesterday at Sky Harbor will continue at least through the weekend» (21.38) هي العطلة القادمة، والإشارة من زمن الفعل continue. و«next Friday» قد تكون الجمعة القادمة مباشرة أو التي بعدها، وكلما اقترب تاريخ الوثيقة من الجمعة زاد احتمال تخطي الأقرب. وتُرمَّز هذه الغموضات بقواعد خاصة باللغة والمجال. ومعظم المطبِّعات الحالية بالقواعد (SUTime، HeidelTime): نمط مقرون بإجراء دلالي، مثل: <span dir="ltr" class="mono">pattern: /(\d+)[-\s]($TEUnits)(s)?([-\s]old)?/ &nbsp; result: Duration($1, $2)</span>.</p>
+  <h3>٢١٫٧٫٣ · الترتيب الزمني للأحداث</h3>
+  <p>الهدف الطموح: ربط الأزمنة بالأحداث ووضعها كلها على خط زمني كامل، وهذا أبعد من قدرة الأنظمة الحالية بدقة عالية. والأبسط: ترتيب جزئي، مثل أن زيادة American جاءت بعد زيادة United. وهذا تصنيف علاقات ثنائية. ويفترض أننا اكتشفنا الأحداث أيضاً، فكثير من التعابير الزمنية مربوط بأحداث لا بأزمنة: «One week after the storm, JetBlue issued its customer bill of rights» (21.39): نحتاج زمن العاصفة ثم نضيف أسبوعاً. فنُدرّب مصنّفات تتنبأ بعلاقة TLINK لكل زوج (حدث-حدث، وحدث-زمن، وزمن-زمن، وزمن الوثيقة-حدث…) بإشراف TimeBank، بخصائص: الكلمات والتضمينات، ومسارات التحليل، والزمن والجهة. وتُستعمل أيضاً معمارية «الغرابيل» المرتبة بالدقة (الفصل ٢٤). ومن الأنظمة الكاملة: TARSQI، وClearTK، وCAEVO، وCATENA.</p>
+  <p class="note">ملاحظة على المسودة: «correct T: INK» خطأ مطبعي لـ TLINK.</p>
+</section>
+
+<!-- ============ 21.8 ============ -->
+<section class="sec" id="s21-8">
+  <header><div class="kicker">القسم ٢١٫٨ <span class="pg">p. 494</span></div><h2>ملء القوالب</h2></header>
+  <div class="brief"><b>باختصار</b>نصوص كثيرة تحكي مواقف نمطية («سيناريوهات» شانك وأبلسون): أحداث فرعية ومشاركون وأدوار. وأبسط تمثيل: قالب بخانات ثابتة. والتعلّم الآلي يقسمها: «التعرّف على القالب» (هل القالب في الجملة؟ تصنيف نصوص) و«استخراج الملء» (مصنّف لكل خانة). والأنظمة القديمة (FASTUS) سلسلة محوّلات محدودة الحالات بقواعد مكتوبة لقوالب هرمية معقدة.</div>
+  <div class="terms"><span>السيناريو <i>script</i></span><span>القالب / الخانة <i>template / slot</i></span><span>التعرّف على القالب <i>template recognition</i></span><span>استخراج الملء <i>role-filler extraction</i></span><span>MUC</span><span>FASTUS</span></div>
+  <p>المواقف النمطية مرتبطة بما يسمى <b>السيناريوهات</b> (شانك وأبلسون ١٩٧٧): تسلسلات نموذجية من أحداث فرعية ومشاركين وأدوارهم. وتوقعاتها القوية تساعد على تصنيف الكيانات، وإسنادها إلى الأدوار والعلاقات، والأهم: استنتاج ما لم يُذكر. وأبسط تمثيل لها <b>قالب</b> بخانات ثابتة، قيمها من فئات معيّنة. والمهمة: إيجاد الوثائق التي تستدعي سيناريو معيّناً، وملء خانات قالبه، بنصوص مستخرجة مباشرة أو بمفاهيم مستنتجة بمعالجة إضافية:</p>
+  <div class="w" id="tfBox"><div class="cap">قالب FARE-RAISE ATTEMPT (اضغط خانة لترى من أين جاءت)</div>
+    <div class="scroll" dir="ltr"><table class="tb" id="tfTab" dir="ltr"></table></div>
+    <div id="tfText" dir="ltr" style="margin-top:8px;line-height:2.1"></div><div class="calc" id="tfCalc"></div></div>
+  <h3>٢١٫٨٫١ · طرق التعلّم الآلي</h3>
+  <p>نُعطى وثائق تدريب فيها مقاطع موسومة بالقوالب وخاناتها، ونريد قالباً لكل حدث في المدخل. ونُدرّب نظامين: الأول <b>التعرّف على القالب</b> (ويسمى بإرباك «التعرّف على الحدث»): هل القالب موجود في الجملة؟ تصنيف نصوص بخصائص من كل سلسلة كلمات ملأت أي خانة في التدريب (الرموز، والتضمينات، وأشكال الكلمات، وأقسام الكلام، ووسوم التقطيع والكيانات). والثاني <b>استخراج الملء</b>: مصنّف منفصل لكل دور (الشركة الرائدة، المبلغ…)، ثنائي على كل عبارة اسمية أو نموذج سلاسل على الكلمات. وقد تُوسم مقاطع غير متطابقة بالخانة نفسها (United وUnited Airlines كلاهما الشركة الرائدة)، وليسا متعارضين، وحل الإحالة (الفصل ٢٤) طريق للحل. ومن البيانات المستعملة: إعلانات الوظائف، ودعوات المؤتمرات، وأدلة المطاعم، والنصوص البيولوجية. ومسألة مفتوحة: استخراج القوالب بلا بيانات تدريب ولا قوالب مسبقة، باستحثاثها مجموعات أحداث مترابطة (تشامبرز وجورافسكي ٢٠١١).</p>
+  <h3>٢١٫٨٫٢ · أنظمة المحوّلات القديمة</h3>
+  <p>القوالب أعلاه بسيطة. أما مهمة «المشاريع المشتركة» في MUC-5 (مؤتمرات فهم الرسائل، سلسلة تقييمات حكومية أمريكية) فطلبت قوالب هرمية مترابطة من نص مثل: «Bridgestone Sports Co. said Friday it has set up a joint venture in Taiwan with a local concern and a Japanese trading house to produce golf clubs to be shipped to Japan. The joint venture, Bridgestone Sports Taiwan Co., capitalized at 20 million new Taiwan dollars, will start production in January 1990 with production of 20,000 iron and “metal wood” clubs a month». ونظام FASTUS (هوبز وزملاؤه ١٩٩٧) أنتج قالب TIE-UP، خانة ACTIVITY فيه قالب آخر بخاناته (الشكل ٢١٫١٩)، عبر ست مراحل (الشكل ٢١٫٢٠):</p>
+  <div class="scroll" dir="ltr"><table class="tb" dir="ltr">
+    <tr><th>No.</th><th>Step</th><th>Description</th></tr>
+    <tr><td>1</td><td>Tokens</td><td>Tokenize input stream of characters</td></tr>
+    <tr><td>2</td><td>Complex Words</td><td>Multiword phrases, numbers, and proper names</td></tr>
+    <tr><td>3</td><td>Basic phrases</td><td>Segment sentences into noun and verb groups</td></tr>
+    <tr><td>4</td><td>Complex phrases</td><td>Identify complex noun groups and verb groups</td></tr>
+    <tr><td>5</td><td>Semantic Patterns</td><td>Identify entities and events, insert into templates</td></tr>
+    <tr><td>6</td><td>Merging</td><td>Merge references to the same entity or event</td></tr></table></div>
+  <p>المراحل ١–٤ قواعد تعابير نمطية ونحو مكتوبة يدوياً للتقطيع والتجزئة والتحليل. والمرحلة ٥ تتعرف على الكيانات والأحداث بمحوّلات محدودة الحالات (FST) وتضعها في الخانات، بتعابير نمطية مثل (NG مجموعة اسمية، VG مجموعة فعلية): <span dir="ltr" class="mono">NG(Company/ies) VG(Set-up) NG(Joint-Venture) with NG(Company/ies) VG(Produce) NG(Product)</span>. والنتيجة خمسة قوالب أولية (الشكل ٢١٫٢١) تُدمج في المرحلة ٦، بعد حل الإحالة، في البنية الهرمية: يُدمج النشاطان اللذان يصفان الحدث نفسه.</p>
+</section>
+
+<!-- ============ summary ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وتمارينه <span class="pg">pp. 496–498</span></div><h2>الخلاصة والتمارين</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>العلاقات بين الكيانات تُستخرج بالأنماط، وبالتعلّم الإشرافي إن توفرت بيانات موسومة، وبالإقلاع الذاتي الخفيف الإشراف إن توفرت بذور قليلة، وبالإشراف البعيد إن توفرت قاعدة علاقات، وبالطرق غير الإشرافية (Open IE).</li>
+    <li>الاستدلال عن الزمن يسهّله اكتشاف التعابير الزمنية وتطبيعها.</li>
+    <li>الأحداث تُرتَّب زمنياً بنماذج سلاسل ومصنّفات مدرَّبة على بيانات موسومة زمنياً كـ TimeBank.</li>
+    <li>تطبيقات ملء القوالب تتعرف على المواقف النمطية وتسند عناصر النص إلى أدوار ممثَّلة بخانات ثابتة.</li>
+  </ul>
+  <h3>من الحواشي التاريخية</h3>
+  <p>أول عمل في استخراج المعلومات كان ملء القوالب في نظام Frump (ديجونغ ١٩٨٢)، ثم حفّزت مؤتمرات MUC الحكومية الأمريكية الأعمال اللاحقة (CIRCUS، وSCISOR، ثم FASTUS). ولصعوبة نقل الأنظمة بين المجالات، تحوّل الاهتمام إلى التعلّم الآلي: أولاً لأتمتة اكتساب قواعد المحوّلات، ثم وسم السلاسل (HMM، وMEMM، وCRF)، ثم العصبية (كولوبيرت ٢٠١١: CRF فوق شبكة التفافية). واستمر التقدم بتقييمات مشتركة: ACE (٢٠٠٠–٢٠٠٧) للكيانات والعلاقات والتعابير الزمنية، وKBP لملء الخانات (استخراج خصائص مثل العمر ومكان الميلاد والزوج لكيان معيّن)، وSemEval. واقترحت هيرست (١٩٩٢) الاستخراج شبه الإشرافي، ثم AutoSlog-TS، وDIPRE، وSNOWBALL. ومصطلح «الإشراف البعيد» استعمله منتز وزملاؤه (٢٠٠٩) أولاً (باقتراح من كريس مانينغ)، وسبقته أفكار مشابهة باسم «البيانات الموسومة بضعف». ومن أنظمة Open IE: KnowItAll وTextRunner وReVerb، و«المخطط العالمي» (Riedel ٢٠١٣) يجمع مزايا الإشراف البعيد وOpen IE.</p>
+  <h3>تمارين الفصل</h3>
+  <ol class="clean">
+    <li><b>٢١٫١</b> توسيع الاختصارات (ربط عبارة باختصارها) نوع بسيط من تحليل العلاقات. طوّر نظاماً بطرق الفصل لملء قاعدة بيانات بتوسيعات الاختصارات، وقيّمه على الاختصارات الإنجليزية الثلاثية بمقارنته بصفحة TLA في ويكيبيديا.</li>
+    <li><b>٢١٫٢</b> احصل على مدوّنة ندوات CMU وطوّر نظام ملء قوالب بطرق القسم ٢١٫٨، وقارن بأفضل النتائج.</li>
+    <li><b>٢١٫٣</b> اجمع مدوّنة رسائل بريد فيها تعابير زمنية لتخطيط أحداث (مواعيد طبيب، اجتماعات، دعوات): كيف تختلف تعابيرها عن تعابير الأخبار؟</li>
+    <li><b>٢١٫٤</b> اكتب بمنطق الدرجة الأولى (FOL) العلاقات الزمنية بين الأحداث في: «When Mary’s flight departed, I ate lunch» و«When Mary’s flight departed, I had eaten lunch». <details><summary>تلميح (من عندنا، بعلاقات ألن بدل FOL كاملاً)</summary>في الأولى: الإقلاع هو R، وR يسبق بداية الأكل E أو يلاقيها (R ≤ start(E))، وكلاهما قبل U. وفي الثانية: E قبل R (الأكل انتهى قبل الإقلاع)، وR قبل U.</details></li>
+  </ol>
+  <h3>أسئلة للمراجعة</h3>
+  <ol class="clean">
+    <li>ما الفرق بين الإقلاع الذاتي والإشراف البعيد؟ ولماذا لا يعاني الثاني الانجراف الدلالي؟</li>
+    <li>نمط وجد ٥٠ ثلاثية، منها ٤٠ في T: احسب RlogF. وقارن بنمط وجد ٥ منها ٥.</li>
+    <li>ما علاقة ألن بين «الاجتماع من ٩ إلى ١٠» و«المحاضرة من ١٠ إلى ١١»؟</li>
+    <li>صنّف جهة: «She ran»، «She ran a mile»، «She noticed the sign»، «She owns a car».</li>
+    <li>لوثيقة بتاريخ 2024-12-30: ما قيمة ISO لـ «last week»؟ (جرّب في المطبِّع.)</li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="20-dependency-parsing.html">→ الفصل السابق: تحليل الاعتماديات</a><span>الفصل التالي: وسم الأدوار الدلالية (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch21.js"></script>
+</body>
+</html>
