@@ -368,3 +368,8 @@ table.co td.zero{color:var(--soft);opacity:.5}
 .pairs{margin-top:10px;display:flex;flex-direction:column;gap:6px}
 .pairs .ph{display:grid;grid-template-columns:150px 1fr;gap:10px;font-family:var(--f-head);font-size:12.5px;color:var(--soft);font-weight:600}
 .pairs .pr{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;direction:ltr}
+/* ch6 */
+table.emt td,table.emt th{white-space:nowrap}
+table.emt tr.pool td{background:var(--amber-soft)}
+#emVocab .chip,#emSent .chip{font-size:13.5px}
+#xnBtns .btn,#ceBtns .btn{font-family:var(--f-mono);font-size:13px}

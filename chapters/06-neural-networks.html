@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٦ · الشبكات العصبية | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل السادس من كتاب Speech and Language Processing: الوحدة العصبية، ومشكلة XOR، والشبكات الأمامية، ومصفوفة التضمين، والانتشار العكسي على مخطط الحساب.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="05-embeddings.html" style="text-decoration:none">→ الفصل ٥</a><b>الفصل ٦ من ٢٦</b><span class="pill">الفصل ٧ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الأول · النماذج اللغوية الكبيرة · الفصل السادس</div>
+  <h1>الشبكات العصبية</h1>
+  <div class="sub en" style="font-size:16px">Chapter 6 · Neural Networks · pp. 151–176</div>
+  <p class="epi">يفتتح الفصل بعبارة لآلان تورنغ سنة ١٩٤٨: «الآلات من هذا النوع يمكن أن تتصرف بطريقة معقدة جداً حين يكون عدد الوحدات كبيراً». والفكرة كلها في هذه الجملة: وحدة حسابية بسيطة جداً، لا تفعل إلا الضرب والجمع ثم «تليين» الناتج، فإذا وصلنا آلافاً منها في طبقات صارت قادرة على تعلّم أي دالة تقريباً.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>الوحدة العصبية تفعل ما يفعله الانحدار اللوجستي: مجموع موزون للمدخلات زائد انحياز، ثم «دالة تنشيط» غير خطية مثل σ أو tanh أو ReLU.</li>
+    <li>وحدة واحدة لا تستطيع إلا رسم خط فاصل مستقيم، ولذلك تعجز عن دالة بسيطة مثل XOR. والحل: طبقتان من الوحدات.</li>
+    <li>الطبقة المخفية تصنع «تمثيلاً» جديداً للمدخل يصبح فيه الفصل بخط مستقيم ممكناً. وهذه هي قوة الشبكات: تتعلم خصائصها بنفسها.</li>
+    <li>الشبكة الأمامية سلسلة من: ضرب مصفوفة في متجه، ثم إضافة انحياز، ثم دالة تنشيط، وفي النهاية سوفتماكس. ودالة التنشيط ضرورية، وبدونها تنهار الطبقات كلها إلى طبقة واحدة.</li>
+    <li>لإدخال كلمات إلى الشبكة نأخذ تضميناتها من «مصفوفة التضمين» E، ثم ندمجها بالمتوسط (للمشاعر) أو نلصقها متتابعة (للنموذج اللغوي).</li>
+    <li>التدريب: خسارة الإنتروبيا التقاطعية، والنزول التدرّجي، والتدرّجات تُحسب بـ«الانتشار العكسي»: قاعدة السلسلة مطبقة من آخر مخطط الحساب إلى أوله.</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 151</span></div><h2>شبكة من وحدات صغيرة</h2></header>
+  <div class="brief"><b>باختصار</b>الشبكات العصبية أداة قديمة وأساسية. اسمها جاء من نموذج مبسط للخلية العصبية في الأربعينيات، لكنها اليوم شبكة من وحدات حسابية صغيرة لا علاقة لها بالبيولوجيا. وهي تشارك الانحدار اللوجستي معظم رياضياته، لكنها أقوى منه، وتتعلم خصائصها من المدخلات الخام بدل أن نصممها يدوياً.</div>
+  <div class="terms"><span>شبكة أمامية <i>feedforward network</i></span><span>التعلّم العميق <i>deep learning</i></span><span>تعلّم التمثيل <i>representation learning</i></span></div>
+  <p>جاء اسم «عصبية» من <b>عصبون ماكالوك وبيتس</b> (١٩٤٣): نموذج مبسط للخلية العصبية الحية، يعاملها كعنصر حسابي يمكن وصفه بالمنطق. لكن الاستخدام الحديث في معالجة اللغة لم يعد يستلهم البيولوجيا. الشبكة العصبية الحديثة شبكة من <b>وحدات</b> حسابية صغيرة، كل وحدة تأخذ متجهاً من القيم وتُخرج قيمة واحدة.</p>
+  <p>والنوع الذي يقدمه هذا الفصل اسمه <span class="t">الشبكة الأمامية <i>feedforward network</i></span>، لأن الحساب يتقدم طبقةً بعد طبقة في اتجاه واحد، من المدخل إلى المخرج. ويسمى استخدام الشبكات الحديثة <span class="t">التعلّم العميق <i>deep learning</i></span>، لأنها «عميقة»: فيها طبقات كثيرة.</p>
+  <p>والشبكات العصبية أقوى من الانحدار اللوجستي (الفصل ٤). بل إن شبكة صغيرة جداً، فيها «طبقة مخفية» واحدة فقط، يمكن إثبات أنها قادرة على تعلّم <b>أي دالة</b>. والفرق الثاني أهم: في الفصل ٤ صمّمنا الخصائص يدوياً (كم كلمة إيجابية؟ هل توجد علامة تعجب؟). أما في الشبكات فالمعتاد أن نعطيها الكلمات الخام، فتتعلم الخصائص بنفسها أثناء تعلّم التصنيف. وهذا هو <span class="t">تعلّم التمثيل <i>representation learning</i></span> الذي رأيناه مع التضمينات في الفصل ٥. والشبكات العميقة جداً بارعة فيه، ولذلك تناسب المهام التي تتوفر لها بيانات كافية لتعلّم الخصائص تلقائياً.</p>
+  <p>وخطة الفصل: الشبكات الأمامية مصنّفاتٍ، أولاً بخصائص مصممة يدوياً، ثم بالتضمينات. وستأتي لاحقاً أنواع أخرى: المحوّلات والانتباه (الفصل ٧)، والشبكات التكرارية (الفصل ١٤)، والالتفافية (الفصل ١٦).</p>
+</section>
+
+<!-- ============ 6.1 ============ -->
+<section class="sec" id="s6-1">
+  <header><div class="kicker">القسم ٦٫١ <span class="pg">p. 152</span></div><h2>الوحدات</h2></header>
+  <div class="brief"><b>باختصار</b>الوحدة تحسب مجموعاً موزوناً لمدخلاتها زائد انحياز: z = w·x + b، ثم تمرره في دالة تنشيط غير خطية: a = f(z). أشهر الدوال: السيغمويد (بين ٠ و١)، وtanh (بين −١ و١)، وReLU (الصفر للسالب، والرقم نفسه للموجب). والسيغمويد وtanh «تتشبّعان» عند القيم الكبيرة فتصبح مشتقتهما قريبة من الصفر، وهذا يعطّل التعلّم. وReLU لا تعاني من ذلك.</div>
+  <div class="terms"><span>وحدة <i>unit</i></span><span>حد الانحياز <i>bias term</i></span><span>التنشيط <i>activation</i></span><span>tanh</span><span>ReLU</span><span>التشبّع <i>saturation</i></span><span>تلاشي التدرّج <i>vanishing gradient</i></span></div>
+  <p>لبنة الشبكة العصبية هي <span class="t">الوحدة <i>unit</i></span>: تأخذ مجموعة أرقام، وتُجري عليها حساباً، وتُخرج رقماً. وقلب هذا الحساب <b>مجموع موزون</b>: كل مدخل x<sub>i</sub> يُضرب في وزنه w<sub>i</sub>، وتُجمع النواتج، ويُضاف رقم إضافي اسمه <span class="t">الانحياز <i>bias</i></span> b:</p>
+  <div class="eq">z = b + Σ<sub>i</sub> w<sub>i</sub> x<sub>i</sub> &nbsp;&nbsp;=&nbsp;&nbsp; w · x + b &nbsp;&nbsp; (6.1–6.2)</div>
+  <div class="math"><div class="mh"><span class="sym">Σ · w·x</span>مفهوم رياضي · المجموع الموزون والضرب النقطي (تذكير)</div><div class="mb">
+    <p>الرمز <code>Σ</code> (سيغما) يعني «اجمع». و<code>Σ<sub>i</sub> w<sub>i</sub>x<sub>i</sub></code> تعني: لكل رقم i، اضرب الوزن رقم i في المدخل رقم i، ثم اجمع كل النواتج. وهذا بالضبط <b>الضرب النقطي</b> <code>w · x</code> بين متجهين (رأيناه في الفصلين ٤ و٥). و«المتجه» ليس إلا قائمة أرقام.</p>
+    <p>مثال: <code>w = [2, 3]</code> و<code>x = [4, 5]</code>. إذن <code>w · x = 2×4 + 3×5 = 8 + 15 = 23</code>. ولو كان <code>b = 1</code> فإن <code>z = 24</code>.</p>
+  </div></div>
+  <p>لكن z مجرد رقم قد يكون أي شيء. فبدل أن نستعمله كما هو، نمرره في دالة غير خطية f اسمها <span class="t">دالة التنشيط <i>activation function</i></span>، وناتجها <span class="t">التنشيط <i>activation</i></span> a. وفي وحدة واحدة يكون المخرج النهائي y هو a نفسه، لكن في الشبكات العميقة نحجز الرمز y لمخرج الشبكة كلها، وa لتنشيط كل عقدة. وأول دالة نعرفها: السيغمويد من الفصل ٤:</p>
+  <div class="eq">y = σ(z) = 1 ÷ (1 + e<sup>−z</sup>) &nbsp;&nbsp;&nbsp;&nbsp; y = σ(w·x + b) &nbsp;&nbsp; (6.3–6.4)</div>
+  <p>والشكل ٦٫٢ يرسم وحدة بثلاثة مدخلات. ويمثّل الانحياز كأنه وزن لمدخل إضافي قيمته ثابتة <b>+1</b> دائماً. وهذا مثال الكتاب: <code>w = [0.2, 0.3, 0.9]</code>، <code>b = 0.5</code>، والمدخل <code>x = [0.5, 0.6, 0.1]</code>. جرّبه وغيّر الأرقام:</p>
+  <div class="w" id="unBox"><div class="cap">وحدة عصبية واحدة (الشكل ٦٫٢ ومثال الكتاب)</div>
+    <div id="unSvg"></div>
+    <div class="row" style="gap:6px;margin-top:6px" dir="ltr">
+      <label class="note">x₁ <input class="wIn" id="unx1" value="0.5"></label><label class="note">x₂ <input class="wIn" id="unx2" value="0.6"></label><label class="note">x₃ <input class="wIn" id="unx3" value="0.1"></label>
+      <label class="note">w₁ <input class="wIn" id="unw1" value="0.2"></label><label class="note">w₂ <input class="wIn" id="unw2" value="0.3"></label><label class="note">w₃ <input class="wIn" id="unw3" value="0.9"></label>
+      <label class="note">b <input class="wIn" id="unb" value="0.5"></label></div>
+    <div class="row" style="margin-top:8px"><span class="note">دالة التنشيط:</span><span class="seg" id="unG"><button data-g="sig" class="on">σ</button><button data-g="tanh">tanh</button><button data-g="relu">ReLU</button></span><button class="btn" id="unReset">أرقام الكتاب</button></div>
+    <div class="calc" id="unCalc"></div></div>
+
+  <h3>دوال تنشيط أخرى</h3>
+  <p>في الواقع السيغمويد قليلة الاستعمال اليوم. والأفضل منها تقريباً دائماً <b>tanh</b>، وهي نسخة من السيغمويد تمتد من −١ إلى +١ بدل ٠ إلى ١:</p>
+  <div class="eq">tanh(z) = (e<sup>z</sup> − e<sup>−z</sup>) ÷ (e<sup>z</sup> + e<sup>−z</sup>) &nbsp;&nbsp; (6.5)</div>
+  <p>وأبسط الدوال، وربما أكثرها استعمالاً، هي <span class="t">الوحدة الخطية المقوَّمة <i>Rectified Linear Unit, ReLU</i></span>: إذا كان z موجباً فالناتج z نفسه، وإلا فالناتج صفر:</p>
+  <div class="eq">ReLU(z) = max(z, 0) &nbsp;&nbsp; (6.6)</div>
+  <div class="math"><div class="mh"><span class="sym">eᶻ · max</span>مفهوم رياضي · قراءة tanh وmax</div><div class="mb">
+    <p><b>e</b> رقم ثابت يساوي تقريباً 2.718، و<code>e<sup>z</sup></code> يعني «e مضروباً في نفسه z مرة» (ويعمل حتى لو كان z كسراً أو سالباً). وأهم صفاته: <code>e<sup>z</sup></code> موجب دائماً، وينمو بسرعة هائلة حين يكبر z، ويقترب من الصفر حين يصغر z. و<code>e<sup>−z</sup></code> عكسه تماماً.</p>
+    <p>في tanh: حين يكون z كبيراً جداً يصير <code>e<sup>−z</sup></code> صغيراً جداً فلا يؤثر، فيبقى تقريباً <code>e<sup>z</sup> ÷ e<sup>z</sup> = 1</code>. وحين يكون z سالباً كبيراً ينعكس كل شيء فيقترب الناتج من −١. وحين z = 0 يكون البسط <code>1 − 1 = 0</code>، فـ tanh(0) = 0.</p>
+    <p>و<code>max(z, 0)</code> تعني «الأكبر من الرقمين». max(3, 0) = 3، وmax(−2, 0) = 0. أي إن ReLU «تقصّ» كل ما هو سالب.</p>
+  </div></div>
+  <h3>التشبّع وتلاشي التدرّج</h3>
+  <p>لكل دالة صفات تناسب مهام مختلفة. tanh ناعمة وقابلة للاشتقاق، وتدفع القيم المتطرفة نحو المتوسط. وReLU قريبة جداً من الخطية، ولهذا مزاياه. والمشكلة في السيغمويد وtanh: عند قيم z الكبيرة يكون الناتج <span class="t">متشبّعاً <i>saturated</i></span>، أي قريباً جداً من ١، و<b>مشتقته قريبة جداً من الصفر</b>.</p>
+  <div class="math"><div class="mh"><span class="sym">f′(z)</span>مفهوم رياضي · المشتقة بوصفها «الميل»، ولماذا يضرّ الصفر</div><div class="mb">
+    <p><b>المشتقة</b> <code>f′(z)</code> عند نقطة هي <b>ميل</b> المنحنى عندها: كم يتغير الناتج إذا حرّكنا z قليلاً. ميل كبير يعني أن تحريكاً صغيراً لـ z يغيّر الناتج كثيراً. وميل صفر يعني أن المنحنى مسطّح هنا، فتحريك z لا يغيّر شيئاً تقريباً.</p>
+    <p>والتعلّم (كما رأينا في النزول التدرّجي في الفصل ٤) يعتمد على الميل ليعرف في أي اتجاه يحرّك الأوزان. فإذا كان الميل صفراً تقريباً «ضاع» الاتجاه. وفي الشبكة العميقة سنرى (القسم ٦٫٦) أن إشارة الخطأ تمر راجعةً عبر الطبقات <b>وتُضرب في المشتقة عند كل طبقة</b>. وضرب أرقام صغيرة بعضها في بعض يعطي رقماً أصغر فأصغر: 0.1 × 0.1 × 0.1 = 0.001. هذا هو <span class="t">تلاشي التدرّج <i>vanishing gradient</i></span>.</p>
+    <p>ومشتقات الدوال الثلاث (سنحتاجها في القسم ٦٫٦): <code>σ′(z) = σ(z)(1 − σ(z))</code>، وأعلى قيمة لها 0.25 عند الصفر. و<code>tanh′(z) = 1 − tanh²(z)</code>. وReLU مشتقتها ٠ للسالب و١ للموجب. أي إن مشتقة ReLU للقيم الكبيرة تبقى ١ ولا تقترب من الصفر.</p>
+  </div></div>
+  <div class="w"><div class="cap">دوال التنشيط الثلاث ومشتقاتها (المشتقة بخط متقطع)</div>
+    <div class="row"><span class="seg" id="acF"><button data-f="sig" class="on">σ</button><button data-f="tanh">tanh</button><button data-f="relu">ReLU</button></span>
+      <label class="note">z = <b class="mono" id="acZo"></b><br><input type="range" id="acZ" min="-6" max="6" step="0.05" value="3"></label>
+      <label class="note">عدد الطبقات n = <b class="mono" id="acNo"></b><br><input type="range" id="acN" min="1" max="10" step="1" value="5"></label></div>
+    <div id="acPlot" style="margin-top:8px"></div>
+    <div class="calc" id="acCalc"></div>
+    <p class="note" style="margin:6px 0 0">السطر الأخير في الحساب تبسيط: يفترض أن كل طبقة من الطبقات n فيها القيمة z نفسها، ويضرب مشتقاتها بعضها في بعض كما يفعل الانتشار العكسي تقريباً. حرّك z إلى ٥ مع σ ثم مع ReLU لترى الفرق.</p></div>
+</section>
+
+<!-- ============ 6.2 ============ -->
+<section class="sec" id="s6-2">
+  <header><div class="kicker">القسم ٦٫٢ <span class="pg">p. 154</span></div><h2>مشكلة XOR</h2></header>
+  <div class="brief"><b>باختصار</b>«البيرسبترون» وحدة ناتجها ٠ أو ١ فقط. يسهل بناء بيرسبترون يحسب AND أو OR، لكن يستحيل أن يحسب XOR، لأن البيرسبترون لا يرسم إلا خطاً مستقيماً يفصل الصنفين، ونقاط XOR لا يفصلها خط مستقيم. أثبت ذلك منسكي وبابرت سنة ١٩٦٩، وكان من أسباب تراجع البحث في الشبكات عقدين.</div>
+  <div class="terms"><span>البيرسبترون <i>perceptron</i></span><span>جدول الحقيقة <i>truth table</i></span><span>حد القرار <i>decision boundary</i></span><span>قابل للفصل خطياً <i>linearly separable</i></span><span>المستوي الفائق <i>hyperplane</i></span></div>
+  <p>أدرك الباحثون مبكراً أن قوة الشبكات، مثل الخلايا العصبية التي ألهمتها، تأتي من <b>جمع</b> الوحدات في شبكات أكبر. ومن أذكى الأدلة على ذلك برهان منسكي وبابرت (١٩٦٩) أن وحدة واحدة <b>لا تستطيع</b> حساب دوال بسيطة جداً لمدخلين. خذ الدوال المنطقية الثلاث:</p>
+  <div class="grid2" style="grid-template-columns:repeat(3,1fr)">
+    <table class="tb" dir="ltr"><tr><th colspan="3">AND</th></tr><tr><th>x₁</th><th>x₂</th><th>y</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td><b>1</b></td></tr></table>
+    <table class="tb" dir="ltr"><tr><th colspan="3">OR</th></tr><tr><th>x₁</th><th>x₂</th><th>y</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td><b>1</b></td></tr><tr><td>1</td><td>0</td><td><b>1</b></td></tr><tr><td>1</td><td>1</td><td><b>1</b></td></tr></table>
+    <table class="tb" dir="ltr"><tr><th colspan="3">XOR</th></tr><tr><th>x₁</th><th>x₂</th><th>y</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td><b>1</b></td></tr><tr><td>1</td><td>0</td><td><b>1</b></td></tr><tr><td>1</td><td>1</td><td>0</td></tr></table>
+  </div>
+  <div class="math"><div class="mh"><span class="sym">∧ ∨ ⊕</span>مفهوم رياضي · جداول الحقيقة</div><div class="mb">
+    <p>في المنطق نرمز للصحيح بـ ١ وللخاطئ بـ ٠. و<b>جدول الحقيقة</b> يعدّد كل التركيبات الممكنة للمدخلين (أربع تركيبات) ويعطي الناتج لكل منها.</p>
+    <ul class="clean"><li><b>AND</b> («و»): صحيح فقط إذا كان المدخلان كلاهما صحيحين. «سأخرج إذا توقف المطر <b>و</b>انتهى العمل».</li>
+    <li><b>OR</b> («أو»): صحيح إذا كان أحدهما على الأقل صحيحاً.</li>
+    <li><b>XOR</b> («أو الحصرية»، exclusive or): صحيح إذا كان <b>واحد بالضبط</b> صحيحاً، لا كلاهما. كأن تقول «إما شاي أو قهوة» وتقصد واحداً فقط. وبعبارة أخرى: XOR يسأل «هل المدخلان مختلفان؟».</li></ul>
+  </div></div>
+  <p>وأظهروا ذلك على <span class="t">البيرسبترون <i>perceptron</i></span>: وحدة بسيطة جداً ناتجها ٠ أو ١، ودالة تنشيطها «دالة الدرجة»: ١ إذا كان المجموع موجباً، و٠ غير ذلك:</p>
+  <div class="eq">y = 0 if w·x + b ≤ 0 &nbsp;&nbsp;&nbsp;&nbsp; y = 1 if w·x + b &gt; 0 &nbsp;&nbsp; (6.7)</div>
+  <p>من السهل بناء بيرسبترون لـ AND: <code>w₁ = 1, w₂ = 1, b = −1</code>. تحقق: للمدخل [1, 1] المجموع 1 + 1 − 1 = 1 &gt; 0 فالناتج ١، ولـ [1, 0] المجموع 0 فالناتج ٠. ولـ OR: <code>w₁ = 1, w₂ = 1, b = 0</code>. (وهذه مجموعة واحدة من عدد لا نهائي من الأوزان التي تنجح.) لكن لا يوجد بيرسبترون يحسب XOR! والكتاب يقترح أن تجرّب بنفسك قليلاً:</p>
+
+  <h3>حد القرار: لماذا يستحيل XOR؟</h3>
+  <p>البيرسبترون يقسم المستوي بخط مستقيم: نقاط على جانب ناتجها ١، وعلى الجانب الآخر ٠. وهذا الخط اسمه <span class="t">حد القرار <i>decision boundary</i></span>، ومعادلته حيث يساوي المجموع صفراً تماماً:</p>
+  <div class="eq">w₁x₁ + w₂x₂ + b = 0 &nbsp;&nbsp;⟺&nbsp;&nbsp; x₂ = (−w₁ ÷ w₂) x₁ + (−b ÷ w₂)</div>
+  <div class="math"><div class="mh"><span class="sym">y = mx + c</span>مفهوم رياضي · معادلة الخط المستقيم والمستوي الفائق</div><div class="mb">
+    <p>أي خط مستقيم في المستوي يُكتب <code>y = m·x + c</code>: <b>m الميل</b> (كم يرتفع الخط حين نتقدم خطوة إلى اليمين)، و<b>c نقطة التقاطع</b> (أين يقطع الخط المحور الرأسي). مثال: <code>y = 2x + 1</code> يمر بـ (0, 1) و(1, 3).</p>
+    <p>ولو حلّلنا <code>w₁x₁ + w₂x₂ + b = 0</code> لنعزل x₂ (اطرح ثم اقسم على w₂) لحصلنا على الصيغة أعلاه: الميل <code>−w₁/w₂</code> ونقطة التقاطع <code>−b/w₂</code>. فلـ AND (w = [1, 1], b = −1): <code>x₂ = −x₁ + 1</code>، خط يمر بـ (0, 1) و(1, 0). والنقطة الوحيدة فوقه [1, 1].</p>
+    <p>ومع ٣ مدخلات يصير الحد <b>مستوى</b> مسطحاً في فضاء ثلاثي الأبعاد، ومع أكثر يسمى <span class="t">المستوي الفائق <i>hyperplane</i></span>. لكن الفكرة واحدة: حد «مسطح» لا يلتوي.</p>
+  </div></div>
+  <p>والبيانات التي يفصلها خط كهذا اسمها <span class="t">قابلة للفصل خطياً <i>linearly separable</i></span>. AND وOR كذلك. أما XOR فنقطتاه الموجبتان [0, 1] و[1, 0] على قطر، والسالبتان [0, 0] و[1, 1] على القطر الآخر. وأي خط يضع النقطتين الموجبتين في جهة سيأخذ معهما سالبة واحدة على الأقل. جرّب (الشكل ٦٫٥):</p>
+  <div class="w" id="pcBox"><div class="cap">بيرسبترون واحد: حرّك الأوزان وحاول فصل النقاط</div>
+    <div class="row"><span class="seg" id="pcF"><button data-f="AND" class="on">AND</button><button data-f="OR">OR</button><button data-f="XOR">XOR</button></span>
+      <button class="btn" id="pcBook">أوزان الكتاب</button><button class="btn" id="pcSearch">ابحث عشوائياً ٢٠٠٠٠ مرة</button></div>
+    <div class="row" style="margin-top:6px">
+      <label class="note">w₁ = <b class="mono" id="pcW1o"></b><br><input type="range" id="pcW1" min="-2" max="2" step="0.1" value="1"></label>
+      <label class="note">w₂ = <b class="mono" id="pcW2o"></b><br><input type="range" id="pcW2" min="-2" max="2" step="0.1" value="1"></label>
+      <label class="note">b = <b class="mono" id="pcBo"></b><br><input type="range" id="pcB" min="-2" max="2" step="0.1" value="-1"></label></div>
+    <div id="pcPlot" style="max-width:340px;margin:8px auto 0"></div><div class="calc" id="pcCalc"></div>
+    <p class="note" style="margin:6px 0 0">النقطة الممتلئة صحيحها ١ والفارغة صحيحها ٠. المنطقة الملونة هي التي يقول فيها البيرسبترون ١. والحلقة الحمراء تعني أن البيرسبترون أخطأ في هذه النقطة.</p></div>
+</section>
+
+<!-- ============ 6.2.1 ============ -->
+<section class="sec" id="s6-2-1">
+  <header><div class="kicker">القسم ٦٫٢٫١ <span class="pg">p. 156</span></div><h2>الحل: شبكة من طبقتين</h2></header>
+  <div class="brief"><b>باختصار</b>ما يعجز عنه بيرسبترون واحد تحسبه شبكة من طبقتين. والمثال من كتاب غودفيلو: وحدتان مخفيتان h₁ وh₂ بدالة ReLU، ثم وحدة مخرج. السر: الطبقة المخفية تحوّل النقاط إلى «فضاء جديد» تندمج فيه [0, 1] و[1, 0] في نقطة واحدة، فيصير الفصل بخط مستقيم ممكناً. أي إن الطبقة المخفية صنعت تمثيلاً جديداً للمدخل.</div>
+  <div class="terms"><span>طبقة مخفية <i>hidden layer</i></span><span>تمثيل <i>representation</i></span></div>
+  <p>الشكل ٦٫٦ (عن غودفيلو وزملائه، ٢٠١٦) يعرض شبكة فيها ثلاث وحدات ReLU في طبقتين. الطبقة الوسطى، واسمها h، فيها وحدتان، وطبقة المخرج y فيها وحدة واحدة. والأوزان:</p>
+  <div class="eq">h₁ = ReLU(1·x₁ + 1·x₂ + 0) &nbsp;&nbsp;&nbsp; h₂ = ReLU(1·x₁ + 1·x₂ − 1) &nbsp;&nbsp;&nbsp; y = ReLU(1·h₁ − 2·h₂ + 0)</div>
+  <p>تتبّع الكتاب المدخل [0, 0]: المجموعان قبل ReLU هما [0, −1]، وبعد ReLU [0, 0]، ثم المخرج 0. ويترك الباقي للقارئ: اضغط على كل مدخل لترى الحساب، وانظر كيف تتحرك النقاط من فضاء x إلى فضاء h (الشكل ٦٫٧):</p>
+  <div class="w" id="xnBox"><div class="cap">شبكة XOR: من فضاء المدخل x إلى فضاء الطبقة المخفية h</div>
+    <div class="row" id="xnBtns" dir="ltr"></div>
+    <div class="calc" id="xnCalc"></div>
+    <div class="grid2" style="margin-top:8px"><div><div class="note" style="text-align:center">(أ) فضاء المدخل x: لا يفصله خط</div><div id="xnX"></div></div><div><div class="note" style="text-align:center">(ب) فضاء h: يفصله خط</div><div id="xnH"></div></div></div></div>
+  <p>لاحظ أن المدخلين [0, 1] و[1, 0]، وناتجهما في XOR ١، <b>اندمجا</b> في نقطة واحدة h = [1, 0]. وهذا الاندماج يجعل الفصل الخطي سهلاً: الخط المتقطع في الرسم (ب) يفصل الموجب عن السالب. فالطبقة المخفية صنعت <b>تمثيلاً</b> جديداً للمدخل.</p>
+  <p>في هذا المثال اخترنا الأوزان بأيدينا. لكن في الواقع تتعلمها الشبكة تلقائياً بخوارزمية «الانتشار العكسي» (القسم ٦٫٦). أي إن الطبقات المخفية <b>تتعلم</b> أن تصنع تمثيلات مفيدة. وهذه من أهم مزايا الشبكات، وسيعود إليها الكتاب مراراً. (وفي آخر هذا الفصل أداة تدرّب شبكة على XOR من الصفر.)</p>
+</section>
+
+<!-- ============ 6.3 ============ -->
+<section class="sec" id="s6-3">
+  <header><div class="kicker">القسم ٦٫٣ <span class="pg">p. 158</span></div><h2>الشبكات الأمامية</h2></header>
+  <div class="brief"><b>باختصار</b>الشبكة الأمامية طبقات متصلة بلا حلقات: مدخل x، ثم طبقة مخفية h = σ(Wx + b)، ثم مخرج y = softmax(Uh). كل وحدة متصلة بكل وحدات الطبقة السابقة («متصلة كلياً»)، وأوزان الطبقة كلها في مصفوفة واحدة. ويمكن أن ننظر إلى الشبكة كأنها انحدار لوجستي متعدد الأصناف يعمل على خصائص h التي صنعتها الشبكة بنفسها. وهذه شبكة «من طبقتين»، لأننا لا نعدّ طبقة المدخل.</div>
+  <div class="terms"><span>متصلة كلياً <i>fully-connected</i></span><span>MLP</span><span>مصفوفة الأوزان <i>weight matrix</i></span><span>متجه الانحياز <i>bias vector</i></span><span>عنصراً بعنصر <i>element-wise</i></span><span>التطبيع <i>normalizing</i></span></div>
+  <p>الشبكة الأمامية شبكة متعددة الطبقات <b>بلا حلقات</b>: مخرجات كل طبقة تذهب إلى الطبقة التي فوقها، ولا يعود شيء إلى طبقة أدنى. (الشبكات ذات الحلقات، «التكرارية»، في الفصل ١٤.) ولأسباب تاريخية تسمى أحياناً <b>البيرسبترون متعدد الطبقات</b> <span class="en">(MLP)</span>، وهي تسمية غير دقيقة: وحداتها الحديثة ليست بيرسبترونات، فدوال تنشيطها ReLU وσ وأمثالها، لا دالة الدرجة.</p>
+  <p>فيها ثلاثة أنواع من العقد: وحدات <b>المدخل</b> (أرقام بسيطة)، ووحدات <b>مخفية</b>، ووحدات <b>المخرج</b>. والقلب هو الطبقة المخفية h: كل وحدة فيها وحدة عصبية كالتي في القسم ٦٫١. وفي التصميم القياسي تكون كل طبقة <span class="t">متصلة كلياً <i>fully-connected</i></span>: كل وحدة تأخذ مخرجات <b>كل</b> وحدات الطبقة السابقة.</p>
+  <p>وبدل أن نكتب متجه أوزان وانحيازاً لكل وحدة على حدة، نجمع أوزان الطبقة كلها في <b>مصفوفة</b> واحدة W وانحيازاتها في متجه واحد b. والعنصر W<sub>ji</sub> هو وزن الوصلة من المدخل i إلى الوحدة المخفية j. فيصير حساب الطبقة المخفية ثلاث خطوات: اضرب المصفوفة في المتجه، وأضف الانحياز، وطبّق دالة التنشيط:</p>
+  <div class="eq">h = σ(W x + b) &nbsp;&nbsp; (6.8)</div>
+  <div class="math"><div class="mh"><span class="sym">W ∈ ℝ<sup>n₁×n₀</sup></span>مفهوم رياضي · ضرب مصفوفة في متجه، وقراءة الأشكال</div><div class="mb">
+    <p><b>المصفوفة</b> جدول أرقام. و<code>ℝ</code> رمز «الأعداد الحقيقية» (كل الأرقام العادية: الكسور والسالبة وغيرها). و<code>W ∈ ℝ<sup>n₁×n₀</sup></code> تُقرأ: «W جدول أرقام فيه n₁ صفاً وn₀ عموداً». و<code>x ∈ ℝ<sup>n₀</sup></code>: «x متجه فيه n₀ رقماً».</p>
+    <p><b>ضرب المصفوفة في المتجه</b>: كل <b>صف</b> في W يُضرب ضرباً نقطياً في x. فالصف رقم j يحتوي أوزان الوحدة المخفية j، وناتج ضربه في x هو مجموعها الموزون. أي إن المصفوفة ليست إلا n₁ وحدة مكدّسة فوق بعض:</p>
+    <div class="calc" dir="ltr">W = [ 1  2 ]   x = [ 3 ]   Wx = [ 1×3 + 2×4 ]  = [ 11 ]
+    [ 0 −1 ]       [ 4 ]        [ 0×3 − 1×4 ]    [ −4 ]
+    [ 2  1 ]                    [ 2×3 + 1×4 ]    [ 10 ]
+shape: (3×2) times (2×1)  →  (3×1)</div>
+    <p><b>قاعدة الأشكال</b>: <code>(a×b)</code> مضروبة في <code>(b×c)</code> تعطي <code>(a×c)</code>. والرقمان الداخليان يجب أن يتساويا (عدد أعمدة W = طول x). ولهذا يقول الكتاب لاحقاً إن الانتباه إلى أشكال المصفوفات مهم جداً.</p>
+    <p>و<b>تطبيق σ على متجه</b> يعني تطبيقها على كل عنصر وحده <span class="en">(element-wise)</span>: <code>g([z₁, z₂, z₃]) = [g(z₁), g(z₂), g(z₃)]</code>.</p>
+  </div></div>
+  <p>ونسمي طبقة المدخل «الطبقة ٠»، وn₀ عدد المدخلات، فـ x ∈ ℝ<sup>n₀</sup>. والطبقة المخفية «الطبقة ١» وفيها n₁ وحدة، فـ h وb ∈ ℝ<sup>n₁</sup>، وW ∈ ℝ<sup>n₁×n₀</sup>. والقيمة h (حرف h من hidden «مخفي»، ومن hypothesis «فرضية» أيضاً) تمثيلٌ للمدخل.</p>
+  <h3>طبقة المخرج</h3>
+  <p>دور طبقة المخرج أن تأخذ التمثيل h وتحسب الناتج النهائي. وفي التصنيف الثنائي (كالمشاعر) قد تكفي عقدة واحدة: احتمال الإيجابي. وفي تعدد الأصناف (كأقسام الكلام) عقدة لكل صنف، ومجموع قيمها يجب أن يكون ١. ولطبقة المخرج مصفوفة أوزان U (ونحذف انحيازها هنا للتبسيط)، فـ <code>z = Uh</code>، وU ∈ ℝ<sup>n₂×n₁</sup>. لكن z أرقام حقيقية أياً كانت، لا احتمالات. فنطبّعها بالسوفتماكس من الفصل ٤:</p>
+  <div class="eq">softmax(z<sub>i</sub>) = exp(z<sub>i</sub>) ÷ Σ<sub>j=1..d</sub> exp(z<sub>j</sub>) &nbsp;&nbsp; (6.9)</div>
+  <div class="w"><div class="cap">مثال الكتاب: z = [0.6, 1.1, −1.5, 1.2, 3.2, −1.1]</div>
+    <input type="text" id="smIn" value="0.6, 1.1, -1.5, 1.2, 3.2, -1.1" dir="ltr" style="width:100%">
+    <div class="bars" id="smBars" style="margin-top:8px"></div>
+    <div class="calc" id="smCalc"></div></div>
+  <p>فالشبكة ذات الطبقة المخفية الواحدة تبني تمثيلاً h، ثم تُجري عليه انحداراً لوجستياً متعدد الأصناف عادياً. والفرق عن الفصل ٤: (أ) فيها طبقات كثيرة، كأنها انحدار لوجستي فوق انحدار لوجستي؛ (ب) طبقاتها الوسطى قد تستعمل دوال تنشيط مختلفة (والكتاب يستعمل الرمز σ لأي دالة منها للتبسيط)؛ (ج) <b>الخصائص لا تُصمَّم يدوياً</b>، بل تصنعها الطبقات السابقة. والمعادلات النهائية:</p>
+  <div class="eq">h = σ(Wx + b) &nbsp;&nbsp;&nbsp; z = Uh &nbsp;&nbsp;&nbsp; y = softmax(z) &nbsp;&nbsp; (6.12)<br><span class="c">x ∈ ℝ<sup>n₀</sup> · h, b ∈ ℝ<sup>n₁</sup> · W ∈ ℝ<sup>n₁×n₀</sup> · U ∈ ℝ<sup>n₂×n₁</sup> · y ∈ ℝ<sup>n₂</sup></span></div>
+  <p>وهذه شبكة «من طبقتين»: لا نعدّ طبقة المدخل، ونعدّ طبقة المخرج. وبهذا الاصطلاح <b>الانحدار اللوجستي شبكة من طبقة واحدة</b>.</p>
+
+  <h3>٦٫٣٫١ · ترقيم الطبقات، ولماذا نحتاج اللاخطية</h3>
+  <p>لشبكات أعمق نكتب رقم الطبقة بين قوسين مربعين فوق الرمز: <code>W<sup>[1]</sup></code> مصفوفة الطبقة الأولى، و<code>b<sup>[1]</sup></code> انحيازها، وn<sub>j</sub> عدد وحدات الطبقة j، و<code>g(·)</code> دالة التنشيط (عادةً ReLU أو tanh في الوسط، وسوفتماكس في المخرج). و<code>a<sup>[i]</sup></code> مخرج الطبقة i، و<code>z<sup>[i]</sup></code> المجموع قبل التنشيط. والمدخل نفسه <code>a<sup>[0]</sup></code>. (الأرقام العلوية هنا أسماء لا أُسس: <code>W<sup>[2]</sup></code> لا تعني W تربيع.) فتصير الخطوة واحدة لكل طبقة، ونكررها:</p>
+  <div class="eq">for i in 1..n: &nbsp;&nbsp; z<sup>[i]</sup> = W<sup>[i]</sup> a<sup>[i−1]</sup> + b<sup>[i]</sup> &nbsp;&nbsp;&nbsp; a<sup>[i]</sup> = g<sup>[i]</sup>(z<sup>[i]</sup>) &nbsp;&nbsp;&nbsp;&nbsp; ŷ = a<sup>[n]</sup> &nbsp;&nbsp; (6.13–6.14)</div>
+  <p>ونسمي القيم الأخيرة قبل السوفتماكس <code>z<sup>[n]</sup></code> <span class="t">اللوجِتات <i>logits</i></span>. والآن الجواب عن سؤال مهم: <b>لماذا لا نستغني عن دالة التنشيط؟</b> لأن الشبكة بلا لاخطية تساوي تماماً شبكة من طبقة واحدة. لنرَ طبقتين خطيتين:</p>
+  <div class="eq">z<sup>[2]</sup> = W<sup>[2]</sup>(W<sup>[1]</sup>x + b<sup>[1]</sup>) + b<sup>[2]</sup> = (W<sup>[2]</sup>W<sup>[1]</sup>) x + (W<sup>[2]</sup>b<sup>[1]</sup> + b<sup>[2]</sup>) = W′x + b′ &nbsp;&nbsp; (6.15–6.17)</div>
+  <div class="math"><div class="mh"><span class="sym">W′ = W₂W₁</span>مفهوم رياضي · لماذا تنهار الطبقات الخطية</div><div class="mb">
+    <p>«الخطي» يعني: ضرب في أرقام ثم جمع. وضرب مصفوفة في مصفوفة ينتج مصفوفة واحدة. فكأنك قلت: «ضاعف الرقم ثم ضاعفه ثلاث مرات»، وهذا يساوي «اضربه في ٦». مهما كدّست من تحويلات خطية فالمجموع تحويل خطي واحد، يمكن أن تقوم به طبقة واحدة بمصفوفة W′ = W<sup>[2]</sup>W<sup>[1]</sup>.</p>
+    <p>ودالة التنشيط تكسر هذا: ReLU مثلاً «تقصّ» السالب، وهذا لا يمكن كتابته ضرباً في رقم ثابت. فكل طبقة تضيف «انثناءً» جديداً. ارسم الشبكة الصغيرة أدناه بلا تنشيط ثم مع ReLU:</p>
+    <div class="w"><div class="cap">شبكة بمدخل واحد x، و٣ وحدات مخفية، ومخرج واحد y</div>
+      <div class="row"><span class="seg" id="lcG"><button data-g="lin" class="on">بلا تنشيط (خطي)</button><button data-g="relu">ReLU</button><button data-g="tanh">tanh</button></span></div>
+      <div id="lcPlot" style="margin-top:8px"></div>
+      <div class="calc" id="lcCalc"></div></div>
+  </div></div>
+  <h3>تبسيط: الانحياز عقدةً وهمية</h3>
+  <p>كثيراً ما نخفي الانحياز: نضيف لكل طبقة عقدة إضافية قيمتها <b>١ دائماً</b> (x₀ = 1، وa<sub>0</sub><sup>[i]</sup> = 1)، فيصير الانحياز b<sub>j</sub> مجرد وزن W<sub>j0</sub> لهذه العقدة. فبدل <code>h = σ(Wx + b)</code> نكتب <code>h = σ(Wx)</code>، وتبدأ المجاميع من 0 بدل 1. (والشكل ٦٫٩ يرسم ذلك.) وهذا يجعل المعادلات أقصر فقط، والحساب نفسه لا يتغير.</p>
+</section>
+
+<!-- ============ 6.4 ============ -->
+<section class="sec" id="s6-4">
+  <header><div class="kicker">القسم ٦٫٤ <span class="pg">p. 161</span></div><h2>شبكات أمامية لتصنيف النصوص</h2></header>
+  <div class="brief"><b>باختصار</b>أبسط تطبيق: نأخذ مصنّف المشاعر من الفصل ٤، بخصائصه اليدوية نفسها، ونضيف إليه طبقة مخفية. هذه الطبقة تسمح بتمثيل «التفاعلات غير الخطية» بين الخصائص. ولتصنيف مجموعة اختبار كاملة دفعة واحدة نضع كل الأمثلة صفوفاً في مصفوفة X ونحسب H = σ(XWᵀ + b).</div>
+  <div class="terms"><span>خصائص يدوية <i>hand-built features</i></span><span>التوجيه <i>vectorizing</i></span><span>المنقول <i>transpose ᵀ</i></span></div>
+  <p>في الواقع لا تُصنَّف النصوص بشبكات أمامية بسيطة، بل بمعماريات أقوى مثل محوّلات BERT (الفصل ٩). لكن هذا المثال يقدّم أفكاراً تتكرر في بقية الكتاب: مصفوفة التضمين، ودمج التمثيلات، وتعلّم التمثيل.</p>
+  <h3>٦٫٤٫١ · مصنّف عصبي بخصائص يدوية</h3>
+  <p>المدخلات x<sub>i</sub> خصائص كالتي في الشكل ٤٫٢: <code>x₁</code> عدد الكلمات، و<code>x₂</code> عدد كلمات المعجم الإيجابي، و<code>x₃</code> = ١ إذا وُجدت «no»، وهكذا حتى d خاصية. والمخرج ثلاث عقد: ŷ₁ احتمال الإيجابي، وŷ₂ السلبي، وŷ₃ المحايد:</p>
+  <div class="eq">x = [x₁, …, x<sub>d</sub>] &nbsp;&nbsp; h = σ(Wx + b) &nbsp;&nbsp; z = Uh &nbsp;&nbsp; ŷ = softmax(z) &nbsp;&nbsp; (6.19)</div>
+  <p>والشكل ٦٫١٠ يرسم ذلك لنص «dessert was great»: عدد الكلمات ٣، وكلمات إيجابية ١، وعدد «no» صفر. والأداة التالية تُجري الحساب كاملاً بشبكة صغيرة. <b>تنبيه</b>: الأوزان هنا من اختيارنا للتوضيح، فالكتاب لا يعطي أوزاناً لهذا الشكل.</p>
+  <div class="w" id="ffBox"><div class="cap">التمرير الأمامي: d = 3 خصائص → d<sub>h</sub> = 4 وحدات مخفية → 3 أصناف</div>
+    <div class="row" dir="ltr" style="gap:10px">
+      <label class="note">x₁ word count <input class="wIn" id="ffx1" value="3"></label>
+      <label class="note">x₂ positive words <input class="wIn" id="ffx2" value="1"></label>
+      <label class="note">x₃ count of “no” <input class="wIn" id="ffx3" value="0"></label></div>
+    <div class="row" style="margin-top:6px"><span class="note">التنشيط في الطبقة المخفية:</span><span class="seg" id="ffG"><button data-g="relu" class="on">ReLU</button><button data-g="sig">σ</button><button data-g="tanh">tanh</button></span>
+      <button class="btn" id="ffNeg">جرّب نصاً سلبياً: x = [5, 0, 2]</button></div>
+    <div class="calc" id="ffCalc"></div>
+    <div class="bars" id="ffBars"></div></div>
+  <p>وإضافة الطبقة المخفية تسمح للشبكة بتمثيل <b>التفاعلات غير الخطية</b> بين الخصائص. مثلاً: «no» مع كلمة إيجابية (not good) قد تعني شيئاً مختلفاً عن كل منهما وحده. وهذا وحده قد يعطي مصنّفاً أفضل.</p>
+  <h3>٦٫٤٫٢ · التوجيه: تصنيف أمثلة كثيرة دفعة واحدة</h3>
+  <p>المعادلة ٦٫١٩ تصنّف مثالاً واحداً. وكما في الفصل ٤، الأسرع أن نجمع m مثالاً في مصفوفة X شكلها [m × d]، كل <b>صف</b> فيها مثال. ولأن كل مثال صار متجه صف لا عموداً، نعيد ترتيب الضرب ونستعمل <b>منقول</b> W:</p>
+  <div class="eq">H = σ(X Wᵀ + b) &nbsp;&nbsp;&nbsp; Z = H Uᵀ &nbsp;&nbsp;&nbsp; Ŷ = softmax(Z) &nbsp;&nbsp; (6.20)<br><span class="c">[m×d]·[d×d<sub>h</sub>] → H [m×d<sub>h</sub>] · [m×d<sub>h</sub>]·[d<sub>h</sub>×3] → Ŷ [m×3]</span></div>
+  <div class="math"><div class="mh"><span class="sym">Wᵀ</span>مفهوم رياضي · منقول المصفوفة</div><div class="mb">
+    <p><b>المنقول</b> <code>Wᵀ</code> هو W بعد قلبها: الصفوف تصير أعمدة والأعمدة صفوفاً. فإذا كان شكل W هو [d<sub>h</sub> × d] صار شكل Wᵀ هو [d × d<sub>h</sub>].</p>
+    <div class="calc" dir="ltr">W = [ 1 2 3 ]      Wᵀ = [ 1 4 ]
+    [ 4 5 6 ]           [ 2 5 ]
+                        [ 3 6 ]</div>
+    <p>لماذا نحتاجه؟ قاعدة الأشكال: X شكلها [m × d]، فلكي نضربها من اليمين نحتاج مصفوفة عدد صفوفها d، وهذه Wᵀ. والناتج [m × d<sub>h</sub>]: لكل مثال صف من القيم المخفية. والانحياز b (شكله [1 × d<sub>h</sub>]) يُكرَّر لكل صف من الصفوف m. ولهذا ينبّه الكتاب: سترى أحياناً <code>WX + b</code> وأحياناً <code>XW + b</code>، فانتبه دائماً إلى الأشكال.</p>
+  </div></div>
+</section>
+
+<!-- ============ 6.5 ============ -->
+<section class="sec" id="s6-5">
+  <header><div class="kicker">القسم ٦٫٥ <span class="pg">p. 163</span></div><h2>التضمينات مدخلاً للمصنّف العصبي</h2></header>
+  <div class="brief"><b>باختصار</b>بدل الخصائص اليدوية نعطي الشبكة الكلمات نفسها. كل كلمة رقم في المفردات، ونأخذ تضمينها من صف في «مصفوفة التضمين» E (وهذا يساوي ضرب متجه أحادي الواحد في E). ثم نحوّل التضمينات N إلى مدخل واحد بإحدى طريقتين: الدمج بالمتوسط أو الأقصى (للمشاعر: يهمنا ما الكلمات لا ترتيبها)، أو اللصق المتتابع (للنموذج اللغوي: الترتيب مهم). والنموذج اللغوي العصبي يعمّم أفضل من N-gram لأن «قط» و«كلب» تضميناهما متقاربان.</div>
+  <div class="terms"><span>مصفوفة التضمين <i>embedding matrix E</i></span><span>معرّف الرمز <i>token id</i></span><span>أحادي الواحد <i>one-hot</i></span><span>الدمج <i>pooling</i></span><span>دمج المتوسط <i>mean-pooling</i></span><span>دمج الأقصى <i>max-pooling</i></span><span>اللصق <i>concatenation</i></span><span>نموذج لغوي عصبي أمامي <i>feedforward neural LM</i></span></div>
+  <p>في معظم التطبيقات لا نستعمل خصائص يدوية، بل نعطي الشبكة <b>الكلمات</b>، أو بدقة: <b>تضمينات</b> الكلمات (الفصل ٥). وقد تكون تضمينات مدرّبة مسبقاً مثل word2vec، أو تتعلمها الشبكة أثناء تدريبها.</p>
+  <h3>مصفوفة التضمين E</h3>
+  <p>التضمينات كلها مخزّنة في <span class="t">مصفوفة التضمين <i>embedding matrix</i></span> E: صف لكل كلمة في المفردات V، وطول كل صف d. فشكل E هو [|V| × d]. ولكل كلمة <b>معرّف</b> هو رقمها في المفردات. فإذا كانت المفردات مرتبة أبجدياً فقد يكون رقم «aardvark» ١. فالنص «dessert was great» يُرمَّز أولاً (الفصل ٢) ثم يتحول إلى أرقام: [3, 524, 902]. ونأخذ تضمين كل كلمة بأخذ صفها من E. (والكتاب يختار هنا عدّ الصفوف من ١ كما في الشكل.)</p>
+  <p>وطريقة أخرى للتفكير في الشيء نفسه: نمثّل كل كلمة بمتجه <span class="t">أحادي الواحد <i>one-hot</i></span>: طوله |V|، وكله أصفار إلا خانة واحدة فيها ١ هي رقم الكلمة. فـ «dessert» (رقمها ٣) هي [0 0 1 0 0 … 0]. وضرب هذا المتجه في E <b>يختار</b> الصف ٣ تماماً (الشكلان ٦٫١١ و٦٫١٢).</p>
+  <div class="math"><div class="mh"><span class="sym">[0 0 1 0]·E</span>مفهوم رياضي · لماذا يختار المتجه أحادي الواحد صفاً</div><div class="mb">
+    <p>ضرب متجه صف [1 × |V|] في مصفوفة [|V| × d] يعطي [1 × d]. وكل عنصر k في الناتج = مجموع (عنصر المتجه رقم i × عنصر المصفوفة في الصف i والعمود k) لكل i. لكن كل عناصر المتجه أصفار إلا رقم ٣. فكل الحدود تساوي صفراً إلا حد الصف ٣، المضروب في ١. فالناتج هو الصف ٣ نفسه، كما هو.</p>
+    <p>ولماذا نكتبه ضرباً ما دام مجرد «اختيار صف»؟ لأن كتابته ضرباً تجعل E طبقة عادية في الشبكة، أوزانها تُتعلَّم بالنزول التدرّجي مثل غيرها. ولـ N كلمة نكدّس متجهاتها في مصفوفة [N × |V|]، فضربها في E يعطي [N × d]: صف لكل كلمة.</p>
+  </div></div>
+  <h3>من N تضميناً إلى مدخل واحد: الدمج أو اللصق</h3>
+  <p>صار عندنا N متجهاً، كل منها [1 × d]، ونريد صنفاً واحداً (إيجابي أو سلبي). وهناك طريقتان شائعتان:</p>
+  <ul class="clean">
+    <li><b>اللصق</b> <span class="en">(concatenation)</span>: نضع المتجهات بعضها بعد بعض في متجه واحد طويل [1 × dN]. معلومات كثيرة، لكن الشبكة كبيرة.</li>
+    <li><b>الدمج</b> <span class="en">(pooling)</span>: نحوّل المتجهات N إلى متجه واحد طوله d. معلومات أقل، لكنه صغير وفعّال، ومفيد خصوصاً حين لا يهمنا ترتيب الكلمات كثيراً.</li>
+  </ul>
+  <p><b>الدمج للمشاعر.</b> الحدس: في المشاعر لا يهم كثيراً هل جاءت «great» أولاً أم ثانياً، بل وجودها. وأبسط دمج هو <span class="t">دمج المتوسط <i>mean-pooling</i></span>: اجمع التضمينات واقسم على N:</p>
+  <div class="eq">x<sub>mean</sub> = (1/N) Σ<sub>i=1..N</sub> e(w<sub>i</sub>) &nbsp;&nbsp; (6.21)</div>
+  <div class="eq">x = mean(e(w₁), …, e(w<sub>N</sub>)) &nbsp;&nbsp; h = σ(xW + b) &nbsp;&nbsp; z = hU &nbsp;&nbsp; ŷ = softmax(z) &nbsp;&nbsp; (6.22)<br><span class="c">x [1×d] · W [d×d<sub>h</sub>] · h [1×d<sub>h</sub>] · U [d<sub>h</sub>×3] · y [1×3] &nbsp;— متجهات صفوف الآن</span></div>
+  <p>ومن البدائل <span class="t">دمج الأقصى <i>max-pooling</i></span>: لكل بُعد k نأخذ أكبر قيمة بين المتجهات N في البُعد k. جرّب الطرق الثلاث (التضمينات هنا مختصرة إلى ٤ أبعاد وقيمها من اختيارنا للتوضيح):</p>
+  <div class="w" id="emBox"><div class="cap">من الكلمات إلى مدخل الشبكة (الشكلان ٦٫١٣ و٦٫١٤)</div>
+    <div class="note">اضغط كلمة لتضيفها إلى النص، أو اضغط كلمة في النص لتحذفها:</div>
+    <div class="chips" id="emVocab" dir="ltr"></div>
+    <div class="chips" id="emSent" dir="ltr" style="margin-top:6px;min-height:34px"></div>
+    <div class="row" style="margin-top:6px"><span class="seg" id="emM"><button data-m="mean" class="on">دمج المتوسط</button><button data-m="max">دمج الأقصى</button><button data-m="cat">لصق</button></span><button class="btn" id="emSwap">اعكس الترتيب</button></div>
+    <div class="scroll"><table class="tb emt" id="emTab" dir="ltr"></table></div>
+    <div class="calc" id="emCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">mean · max · ;</span>مفهوم رياضي · المتوسط والأقصى عنصراً بعنصر، واللصق</div><div class="mb">
+    <p><b>المتوسط عنصراً بعنصر</b>: لمتجهين [2, 4] و[6, 0] نجمع الخانات المتقابلة ونقسم على ٢: [(2+6)/2, (4+0)/2] = [4, 2]. و<b>الأقصى عنصراً بعنصر</b>: [max(2,6), max(4,0)] = [6, 4]. لاحظ أن الأقصى قد يأخذ كل خانة من متجه مختلف.</p>
+    <p>و<b>اللصق</b>، ويُكتب بفاصلة منقوطة داخل قوسين: <code>[a ; b]</code> = [2, 4, 6, 0]. الطول صار ٤ بدل ٢، والترتيب محفوظ. جرّب «اعكس الترتيب» في الأداة: المتوسط والأقصى لا يتغيران، أما اللصق فيتغير.</p>
+  </div></div>
+  <h3>اللصق للنمذجة اللغوية</h3>
+  <p>والآن مهمة أخرى: <b>النموذج اللغوي</b>، أي التنبؤ بالكلمة التالية من الكلمات السابقة. والكتاب يرسم نموذجاً لغوياً عصبياً أمامياً بسيطاً من عمل بنجيو وزملائه (٢٠٠٣)، يقدّم مفاهيم كثيرة سنعود إليها في الفصل ٧. ومثل نموذج N-gram (الفصل ٣) يقرّب الاحتمال بالكلمات N − 1 السابقة فقط:</p>
+  <div class="eq">P(w<sub>t</sub> | w<sub>1</sub>, …, w<sub>t−1</sub>) ≈ P(w<sub>t</sub> | w<sub>t−N+1</sub>, …, w<sub>t−1</sub>) &nbsp;&nbsp; (6.23)</div>
+  <p>لكنه يمثّل الكلمات السابقة بتضميناتها لا بهويتها، وهذا يجعله <b>يعمّم</b> أفضل. مثال الكتاب: رأينا في التدريب «I have to make sure that the cat gets fed»، ولم نرَ «gets fed» بعد «dog» أبداً. وفي الاختبار: «I forgot to make sure that the dog gets ___». نموذج N-gram يتنبأ بـ fed بعد «that the cat gets» لا بعد «that the dog gets». أما النموذج العصبي فيعرف أن تضميني cat وdog متقاربان، فيعطي fed احتمالاً كافياً بعد dog أيضاً.</p>
+  <p>والمخرج هنا متجه احتمالات بطول |V| (من ٦٠ ألفاً إلى ٣٠٠ ألف رمز): احتمال لكل كلمة ممكنة. والمدخلات لا تُدمج بل <b>تُلصق</b>، لأن معرفة كل كلمة سابقة <b>وترتيبها</b> يساعد على التنبؤ. ومثال الشكل ٦٫١٤ بنافذة N = 3: «… and thanks for all the ?»، والكلمات for (V₃₅) وall (V₉₉₂) وthe (V₄₅₁)، والعقدة y₄₂ هي احتمال أن تكون التالية الكلمة رقم ٤٢ (fish في المثال). والمعادلات (والفاصلة المنقوطة تعني اللصق):</p>
+  <div class="eq">e = [E x<sub>t−3</sub> ; E x<sub>t−2</sub> ; E x<sub>t−1</sub>] &nbsp;&nbsp; h = σ(We + b) &nbsp;&nbsp; z = Uh &nbsp;&nbsp; ŷ = softmax(z) &nbsp;&nbsp; (6.24)<br><span class="c">e [1×Nd] · W [Nd×d<sub>h</sub>] · h [1×d<sub>h</sub>] · U [d<sub>h</sub>×|V|] · ŷ [1×|V|]</span></div>
+  <p>ومزايا النماذج العصبية على N-gram: تاريخ أطول، وتعميم أفضل على سياقات الكلمات المتشابهة، ودقة أعلى بكثير. وعيوبها: أبطأ، وأعقد، وتحتاج طاقة هائلة للتدريب، وأصعب تفسيراً. ولذلك قد يبقى نموذج N-gram الأداة المناسبة لبعض المهام الصغيرة. (والنافذة N = 3 في الشكل للتوضيح فقط، والنمذجة اللغوية في الواقع تحتاج سياقاً أطول بكثير.)</p>
+</section>
+
+<!-- ============ 6.6 ============ -->
+<section class="sec" id="s6-6">
+  <header><div class="kicker">القسم ٦٫٦ <span class="pg">p. 168</span></div><h2>تدريب الشبكات العصبية</h2></header>
+  <div class="brief"><b>باختصار</b>التدريب كما في الانحدار اللوجستي: خسارة الإنتروبيا التقاطعية (سالب لوغاريتم احتمال الصنف الصحيح)، ثم النزول التدرّجي. والصعب هو حساب التدرّج لأوزان الطبقات المبكرة، لأن الخسارة تُحسب في آخر الشبكة. والحل خوارزمية «الانتشار العكسي»: نرسم الحساب مخططاً من عمليات صغيرة، ثم نمرر المشتقات من الآخر إلى الأول بقاعدة السلسلة.</div>
+  <div class="terms"><span>الإنتروبيا التقاطعية <i>cross-entropy loss</i></span><span>سالب لوغاريتم الأرجحية <i>negative log likelihood</i></span><span>الانتشار العكسي <i>backpropagation</i></span><span>التفاضل العكسي <i>backward differentiation</i></span></div>
+  <p>الشبكة الأمامية تعلّم موجَّه: نعرف الجواب الصحيح y لكل مثال x، والشبكة تُخرج تقديرها ŷ. والهدف: نتعلم <code>W<sup>[i]</sup></code> و<code>b<sup>[i]</sup></code> لكل طبقة بحيث يقترب ŷ من y قدر الإمكان. ونحتاج ثلاثة أشياء، كلها من الفصل ٤ (فراجعه إن احتجت): <b>دالة خسارة</b> تقيس بُعد المخرج عن الجواب، و<b>النزول التدرّجي</b> لإيجاد الأوزان التي تقلل الخسارة، و<b>التدرّج</b>: المشتقة الجزئية للخسارة بالنسبة لكل وزن. وفي الانحدار اللوجستي كان حسابه مباشراً. أما في شبكة فيها ملايين الأوزان في طبقات كثيرة، فكيف نعرف أثر وزن في الطبقة الأولى على خسارة تُحسب في آخر الشبكة؟ الجواب: <span class="t">الانتشار العكسي للخطأ <i>error backpropagation</i></span>.</p>
+
+  <h3>٦٫٦٫١ · دالة الخسارة</h3>
+  <p>هي نفسها خسارة الانحدار اللوجستي. للتصنيف الثنائي مع سيغمويد في المخرج:</p>
+  <div class="eq">L<sub>CE</sub>(ŷ, y) = −log p(y|x) = −[ y log ŷ + (1 − y) log(1 − ŷ) ] &nbsp;&nbsp; (6.25)</div>
+  <p>ولثلاثة أصناف أو أكثر نمثّل y وŷ متجهين. ولو كان صنف واحد فقط صحيحاً، فـ y متجه أحادي الواحد: ١ في خانة الصنف الصحيح c وأصفار في الباقي. وŷ<sub>k</sub> تقدير الشبكة لاحتمال الصنف k:</p>
+  <div class="eq">L<sub>CE</sub>(ŷ, y) = − Σ<sub>k=1..K</sub> y<sub>k</sub> log ŷ<sub>k</sub> = − Σ<sub>k</sub> 1{y<sub>k</sub> = 1} log ŷ<sub>k</sub> = − log ŷ<sub>c</sub> &nbsp;&nbsp; (6.26–6.27)</div>
+  <div class="math"><div class="mh"><span class="sym">1{ } · −log</span>مفهوم رياضي · دالة المؤشر، ولماذا يبقى حد واحد</div><div class="mb">
+    <p><code>1{شرط}</code> اسمها <b>دالة المؤشر</b>: تساوي ١ إذا كان الشرط صحيحاً و٠ إذا كان خاطئاً. وفي المجموع أعلاه، كل حد مضروب في y<sub>k</sub>، وy<sub>k</sub> صفر لكل الأصناف إلا الصحيح. فكل الحدود تختفي إلا حداً واحداً: <code>−log ŷ<sub>c</sub></code>. ولهذا تسمى أيضاً <span class="t">خسارة سالب لوغاريتم الأرجحية <i>negative log likelihood</i></span>.</p>
+    <p>و<b>اللوغاريتم</b> <code>log</code> هنا الطبيعي (أساسه e). log 1 = 0، واللوغاريتم سالب لكل رقم أصغر من ١، ويهبط نحو سالب ما لا نهاية حين يقترب الرقم من الصفر. فـ <code>−log</code> يبدأ من ٠ عند الاحتمال ١ (لا خسارة) ويصعد إلى ما لا نهاية عند الاحتمال ٠.</p>
+  </div></div>
+  <p>وبالتعويض عن السوفتماكس، حيث K عدد الأصناف:</p>
+  <div class="eq">L<sub>CE</sub>(ŷ, y) = − log [ exp(z<sub>c</sub>) ÷ Σ<sub>j=1..K</sub> exp(z<sub>j</sub>) ] &nbsp;&nbsp; (6.28)</div>
+  <p>لماذا هذه خسارة جميلة؟ المصنّف المثالي يعطي الصنف الصحيح احتمال ١ والباقي ٠. وسالب اللوغاريتم يمتد من ٠ (−log 1، لا خسارة) إلى ما لا نهاية (−log 0). ولأن الاحتمالات مجموعها ١، فكل زيادة لاحتمال الصحيح تأتي على حساب الخاطئة. وعدد الأصناف K قد يكون ٣ (مشاعر)، أو ١٧ (أقسام الكلام في الفصل ١٨)، أو ٥٠ ألفاً إلى ١٠٠ ألف (كلمات المفردات في النموذج اللغوي). اختر الصنف الصحيح لمثال السوفتماكس السابق:</p>
+  <div class="w"><div class="cap">الخسارة = −log(احتمال الصنف الصحيح)، على مخرج مثال الكتاب</div>
+    <div class="row" id="ceBtns" dir="ltr"></div>
+    <div class="calc" id="ceCalc"></div></div>
+
+  <h3>٦٫٦٫٢ · حساب التدرّج</h3>
+  <p>لشبكة من طبقة واحدة (أي الانحدار اللوجستي) نعرف التدرّج من الفصل ٤ (القسم ٤٫١٥):</p>
+  <div class="eq">∂L<sub>CE</sub>/∂w<sub>j</sub> = (ŷ − y) x<sub>j</sub> = (σ(w·x + b) − y) x<sub>j</sub> &nbsp;&nbsp; (6.29)</div>
+  <p>ومع سوفتماكس (انحدار لوجستي متعدد الأصناف)، لوزن w<sub>k,i</sub> بين المدخل i والصنف k:</p>
+  <div class="eq">∂L<sub>CE</sub>/∂w<sub>k,i</sub> = −(y<sub>k</sub> − ŷ<sub>k</sub>) x<sub>i</sub> = −(y<sub>k</sub> − p(y<sub>k</sub> = 1|x)) x<sub>i</sub> &nbsp;&nbsp; (6.30)</div>
+  <p>لكن هاتين لا تصلحان إلا <b>لطبقة الأوزان الأخيرة</b>. أما الطبقات الأقدم فحسابها أعقد بكثير. والحل خوارزمية <b>الانتشار العكسي</b> (روملهارت وزملاؤه، ١٩٨٦). وقد اختُرعت خصيصاً للشبكات العصبية، ثم اتضح أنها حالة من طريقة أعم اسمها <span class="t">التفاضل العكسي <i>backward differentiation</i></span>، تعتمد على «مخططات الحساب».</p>
+
+  <h3>٦٫٦٫٣ · مخططات الحساب</h3>
+  <p><span class="t">مخطط الحساب <i>computation graph</i></span> رسم لعملية حساب معادلة، يقسمها إلى عمليات منفصلة، كل عملية عقدة. مثال الكتاب: <code>L(a, b, c) = c(a + 2b)</code>. نجعل كل عملية صريحة ونسمّي النواتج الوسيطة d وe:</p>
+  <div class="eq">d = 2 × b &nbsp;&nbsp;&nbsp; e = a + d &nbsp;&nbsp;&nbsp; L = c × e</div>
+  <p>وأبسط استعمال للمخطط: حساب القيمة. هذا هو <span class="t">التمرير الأمامي <i>forward pass</i></span>: نطبق كل عملية من اليسار إلى اليمين، ونمرر ناتجها مدخلاً لما بعدها. بالقيم a = 3، b = 1، c = −2 يكون L = −10 (الشكل ٦٫١٥).</p>
+
+  <h3>٦٫٦٫٤ · التفاضل العكسي على المخطط</h3>
+  <p>وأهمية المخطط في <span class="t">التمرير العكسي <i>backward pass</i></span>، الذي يحسب المشتقات اللازمة لتحديث الأوزان. نريد هنا <code>∂L/∂a</code> و<code>∂L/∂b</code> و<code>∂L/∂c</code>. و<code>∂L/∂a</code> تخبرنا: كم يتغير L إذا غيّرنا a قليلاً؟ والأداة هي <span class="t">قاعدة السلسلة <i>chain rule</i></span>:</p>
+  <div class="eq">f(x) = u(v(x)) &nbsp;⟹&nbsp; df/dx = du/dv · dv/dx &nbsp;&nbsp; (6.31) &nbsp;&nbsp;&nbsp;&nbsp; f(x) = u(v(w(x))) &nbsp;⟹&nbsp; df/dx = du/dv · dv/dw · dw/dx &nbsp;&nbsp; (6.32)</div>
+  <div class="math"><div class="mh"><span class="sym">∂ · du/dv · dv/dx</span>مفهوم رياضي · المشتقة الجزئية وقاعدة السلسلة</div><div class="mb">
+    <ol class="steps">
+      <li><b>المشتقة الجزئية</b> <code>∂L/∂a</code> (الرمز ∂ يُقرأ «دِل» أو «جزئية»): حين تعتمد L على أكثر من متغير، نسأل عن أثر متغير واحد بينما نثبّت الباقي. هي «الميل» في اتجاه a وحده.</li>
+      <li><b>المشتقة كمعدّل تحويل</b>: <code>dv/dx = 3</code> يعني: «حرّك x بمقدار صغير، فيتحرك v بثلاثة أضعافه».</li>
+      <li><b>قاعدة السلسلة</b>: إذا كان x يحرّك v، وv يحرّك u، فأثر x على u هو <b>حاصل ضرب</b> المعدّلين. مثال يومي: إذا كان كل كيلو من الفاكهة بـ ٥ ريالات، وكل ريال يساوي ٠٫٢٧ دولار، فكل كيلو يساوي ٥ × ٠٫٢٧ = ١٫٣٥ دولار. نضرب المعدّلات على طول السلسلة.</li>
+      <li><b>مثال رياضي</b>: <code>f(x) = (3x)²</code>. خذ <code>v = 3x</code> و<code>u = v²</code>. إذن <code>dv/dx = 3</code> و<code>du/dv = 2v</code>. فـ <code>df/dx = 2v × 3 = 6v = 18x</code>. وعند x = 1: الميل ١٨.</li>
+      <li>ومشتقات بسيطة سنحتاجها: مشتقة <code>c × e</code> بالنسبة لـ e هي c (وبالنسبة لـ c هي e)؛ ومشتقة <code>a + d</code> بالنسبة لكل منهما ١ («مشتقة المجموع مجموع المشتقات»)؛ ومشتقة <code>2b</code> بالنسبة لـ b هي ٢.</li>
+    </ol>
+  </div></div>
+  <p>والحدس: نمرر التدرّجات <b>من العقدة الأخيرة رجوعاً</b> إلى كل العقد. كل عقدة تستقبل من يمينها <b>تدرّجاً قادماً</b> <span class="en">(upstream)</span>، وتحسب لكل مدخل من مدخلاتها <b>تدرّجاً محلياً</b> <span class="en">(local)</span>: مشتقة مخرجها بالنسبة لذلك المدخل. وتضربهما معاً (قاعدة السلسلة) لتعطي <b>تدرّجاً نازلاً</b> <span class="en">(downstream)</span> تمرره إلى العقدة السابقة (الشكل ٦٫١٦):</p>
+  <div class="eq">∂L/∂d &nbsp;=&nbsp; ∂L/∂e &nbsp;×&nbsp; ∂e/∂d &nbsp;&nbsp;&nbsp;&nbsp; <span class="c">downstream = upstream × local</span></div>
+  <p>فنحسب: <code>∂L/∂c = e</code> مباشرة (المعادلة ٦٫٣٣)، و<code>∂L/∂a = ∂L/∂e · ∂e/∂a</code>، و<code>∂L/∂b = ∂L/∂e · ∂e/∂d · ∂d/∂b</code> (المعادلة ٦٫٣٤). والمشتقات الوسيطة: <code>∂L/∂e = c</code>، <code>∂L/∂c = e</code>، <code>∂e/∂a = 1</code>، <code>∂e/∂d = 1</code>، <code>∂d/∂b = 2</code>. ولاحظ أن التمرير الأمامي حسب مسبقاً القيم الوسيطة (d وe) التي نحتاجها. شغّل المخطط بنفسك (الشكلان ٦٫١٥ و٦٫١٧):</p>
+  <div class="w" id="cgBox"><div class="cap">مخطط حساب L = c(a + 2b): تمرير أمامي ثم عكسي</div>
+    <div class="row" dir="ltr" style="gap:10px"><label class="note">a <input class="wIn" id="cga" value="3"></label><label class="note">b <input class="wIn" id="cgb" value="1"></label><label class="note">c <input class="wIn" id="cgc" value="-2"></label></div>
+    <div class="row" style="margin-top:6px"><button class="btn pri" id="cgF">التمرير الأمامي</button><button class="btn pri" id="cgB">خطوة عكسية</button><button class="btn" id="cgR">من البداية</button></div>
+    <div id="cgSvg" style="margin-top:8px"></div>
+    <div class="calc" id="cgCalc"></div></div>
+
+  <h3>التفاضل العكسي لشبكة عصبية</h3>
+  <p>مخططات الشبكات الحقيقية أعقد بكثير. والشكل ٦٫١٨ يرسم مخطط شبكة من طبقتين: n₀ = 2 مدخلان، وn₁ = 2 وحدتان مخفيتان، وn₂ = 1 مخرج بسيغمويد (تصنيف ثنائي):</p>
+  <div class="eq">z<sup>[1]</sup> = W<sup>[1]</sup>x + b<sup>[1]</sup> &nbsp;&nbsp; a<sup>[1]</sup> = ReLU(z<sup>[1]</sup>) &nbsp;&nbsp; z<sup>[2]</sup> = W<sup>[2]</sup>a<sup>[1]</sup> + b<sup>[2]</sup> &nbsp;&nbsp; a<sup>[2]</sup> = σ(z<sup>[2]</sup>) &nbsp;&nbsp; ŷ = a<sup>[2]</sup> &nbsp;&nbsp; (6.35)</div>
+  <div class="eq">L<sub>CE</sub>(a<sup>[2]</sup>, y) = −[ y log a<sup>[2]</sup> + (1 − y) log(1 − a<sup>[2]</sup>) ] &nbsp;&nbsp; (6.37)</div>
+  <p>والأوزان التي نحتاج تدرّجها (الملوّنة في الشكل) هي كل W وb. ولذلك نحتاج مشتقات كل دوال المخطط: σ′(z) = σ(z)(1 − σ(z)) (المعادلة ٦٫٣٨)، وtanh′(z) = 1 − tanh²(z) (٦٫٣٩)، وReLU′(z) = 0 إذا z &lt; 0 و1 إذا z ≥ 0 (٦٫٤٠). (مشتقة ReLU غير معرّفة رياضياً عند الصفر تماماً، والعُرف أن نعدّها ١.) ويبدأ الكتاب الحساب بـ <code>∂L/∂z</code> لعقدة المخرج، ويترك الباقي تمريناً:</p>
+  <div class="math"><div class="mh"><span class="sym">∂L/∂z = a − y</span>مفهوم رياضي · اشتقاق خطوة المخرج خطوةً خطوة</div><div class="mb">
+    <ol class="steps">
+      <li>قاعدة السلسلة: <code>∂L/∂z = ∂L/∂a<sup>[2]</sup> · ∂a<sup>[2]</sup>/∂z</code> (المعادلة ٦٫٤١). أي: أثر z على L = أثر z على a × أثر a على L.</li>
+      <li>مشتقة اللوغاريتم: <code>d(log a)/da = 1/a</code>. ومشتقة <code>log(1 − a)</code> = <code>1/(1 − a) × (−1)</code>، والـ (−1) من قاعدة السلسلة نفسها، لأن مشتقة (1 − a) هي −1.</li>
+      <li>إذن: <code>∂L/∂a = −[ y/a + (1 − y)(−1)/(1 − a) ] = −y/a + (1 − y)/(1 − a)</code>، ويكتبها الكتاب <code>−y/a + (y − 1)/(1 − a)</code> بعد إخراج إشارة السالب، والمعنى واحد (٦٫٤٢).</li>
+      <li>مشتقة السيغمويد: <code>∂a/∂z = a(1 − a)</code>.</li>
+      <li>نضرب: <code>[−y/a + (1 − y)/(1 − a)] × a(1 − a) = −y(1 − a) + (1 − y)a = −y + ya + a − ya = <b>a − y</b></code> (٦٫٤٣).</li>
+    </ol>
+    <p>نتيجة أنيقة جداً: تدرّج الخسارة بالنسبة لمجموع المخرج هو ببساطة <b>«التقدير ناقص الجواب»</b>. إذا قالت الشبكة 0.9 والجواب ١، فالتدرّج −0.1: ارفع z قليلاً. وهي نفسها <code>(ŷ − y)</code> في المعادلة ٦٫٢٩. ومن هنا يستمر الانتشار العكسي: عبر b<sup>[2]</sup> وعقد الضرب، ثم ReLU، وهكذا إلى كل الأوزان.</p>
+  </div></div>
+
+  <h3>٦٫٦٫٥ · تفاصيل أخرى في التعلّم</h3>
+  <p>تحسين الشبكات العصبية مسألة <span class="t">غير محدّبة <i>non-convex</i></span>: لدالة الخسارة قيعان كثيرة، لا قاع واحد كما في الانحدار اللوجستي (الفصل ٤). ولهذا ولأسباب أخرى تراكمت ممارسات جيدة:</p>
+  <ul class="clean">
+    <li><b>التهيئة العشوائية</b>: في الانحدار اللوجستي نبدأ بأوزان كلها أصفار. أما في الشبكات فيجب أن نبدأ بـ<b>أرقام عشوائية صغيرة</b>. (السبب، وهو خارج نص الكتاب: لو تساوت أوزان الوحدات المخفية لحسبت كلها الشيء نفسه وتلقت التحديث نفسه، فتبقى متطابقة إلى الأبد. جرّب «ابدأ بأصفار» في الأداة أدناه.) ومن المفيد أيضاً تطبيع المدخلات لتكون بمتوسط ٠ وتباين ١.</li>
+    <li><b>التنظيم بالإسقاط</b> <span class="en">(dropout)</span>: لمنع الإفراط في التعلّم. في كل تكرار تدريب (كل دفعة صغيرة) نختار احتمالاً p، ونستبدل مخرج كل وحدة بصفر باحتمال p، ثم نعيد تطبيع مخرجات الطبقة الباقية. (هينتون وزملاؤه ٢٠١٢، وسريفاستافا وزملاؤه ٢٠١٤.)</li>
+    <li><b>ضبط المعاملات الفائقة</b>: <b>المعاملات</b> هي الأوزان W والانحيازات b، وتُتعلَّم بالنزول التدرّجي. أما <b>المعاملات الفائقة</b> فيختارها المصمم، وتُضبط على مجموعة التطوير لا على التدريب: معدل التعلّم η، وحجم الدفعة الصغيرة، والمعمارية (عدد الطبقات، وعدد الوحدات في كل طبقة، ودوال التنشيط)، وطريقة التنظيم، وغيرها. وللنزول التدرّجي نفسه بدائل كثيرة مثل <b>Adam</b> (كينغما وبا، ٢٠١٥).</li>
+    <li><b>أطر العمل</b>: معظم الشبكات الحديثة تُبنى بأطر تقوم على مخططات الحساب، فتحسب التدرّجات تلقائياً وتوزّع العمل على وحدات معالجة الرسوميات (GPU). وأشهرها PyTorch وTensorFlow.</li>
+  </ul>
+  <p>والآن كل شيء معاً: شبكة صغيرة تتعلم XOR من الصفر بالانتشار العكسي والنزول التدرّجي، بدل أن نعطيها الأوزان كما في القسم ٦٫٢٫١. الأداة تُجري لكل خطوة تمريراً أمامياً على الأمثلة الأربعة، وتحسب الخسارة، ثم تمريراً عكسياً، وتحدّث الأوزان.</p>
+  <div class="w" id="trBox"><div class="cap">درّب شبكة على XOR: مدخلان → وحدات مخفية → سيغمويد</div>
+    <div class="row"><span class="note">وحدات مخفية:</span><span class="seg" id="trH"><button data-h="2">2</button><button data-h="3" class="on">3</button><button data-h="8">8</button></span>
+      <span class="note">التنشيط:</span><span class="seg" id="trG"><button data-g="tanh" class="on">tanh</button><button data-g="relu">ReLU</button><button data-g="sig">σ</button></span></div>
+    <div class="row" style="margin-top:6px"><label class="note">معدل التعلّم η = <b class="mono" id="trEo"></b><br><input type="range" id="trE" min="0.05" max="3" step="0.05" value="0.5"></label>
+      <button class="btn pri" id="trRun">درّب</button><button class="btn" id="trStep">١٠ خطوات</button><button class="btn" id="trRand">أوزان عشوائية جديدة</button><button class="btn" id="trZero">ابدأ بأصفار</button></div>
+    <div class="grid2" style="margin-top:8px;align-items:start"><div><div class="note" style="text-align:center">قرار الشبكة على المستوي كله</div><div id="trMap"></div></div><div><div class="note" style="text-align:center">الخسارة عبر الخطوات</div><div id="trLoss"></div></div></div>
+    <div class="calc" id="trCalc"></div>
+    <p class="note" style="margin:6px 0 0">التدريب هنا بالنزول التدرّجي على الأمثلة الأربعة معاً، والتهيئة أرقام عشوائية صغيرة. ومع وحدتين فقط وReLU قد «تعلق» الشبكة أحياناً في قاع سيئ، وهذه صورة صغيرة لمشكلة اللاتحدّب: جرّب أوزاناً عشوائية جديدة.</p></div>
+</section>
+
+<!-- ============ summary/exercises ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وحواشيه <span class="pg">pp. 175–176</span></div><h2>الخلاصة</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>الشبكات العصبية مبنية من وحدات عصبية. ألهمتها الخلايا العصبية الحية في الأصل، لكنها اليوم أداة حسابية مجردة لا نموذج بيولوجي.</li>
+    <li>كل وحدة تضرب مدخلاتها في متجه أوزان، وتضيف انحيازاً، ثم تطبق دالة تنشيط غير خطية مثل σ أو tanh أو ReLU.</li>
+    <li>في الشبكة الأمامية المتصلة كلياً تتصل كل وحدة في الطبقة i بكل وحدة في الطبقة i + 1، ولا حلقات.</li>
+    <li>قوة الشبكات تأتي من قدرة الطبقات المبكرة على تعلّم تمثيلات تستفيد منها الطبقات اللاحقة.</li>
+    <li>تُدرَّب الشبكات بخوارزميات تحسين مثل النزول التدرّجي.</li>
+    <li>الانتشار العكسي للخطأ، أي التفاضل العكسي على مخطط الحساب، يحسب تدرّجات دالة الخسارة لكل أوزان الشبكة.</li>
+    <li>النماذج اللغوية العصبية تستعمل شبكة عصبية مصنّفاً احتمالياً، يحسب احتمال الكلمة التالية من الكلمات n السابقة.</li>
+    <li>ويمكنها أن تستعمل تضمينات مدرّبة مسبقاً، أو أن تتعلم التضمينات من الصفر أثناء النمذجة اللغوية.</li>
+  </ul>
+  <h3>من الحواشي التاريخية</h3>
+  <p>تعود الشبكات إلى <b>عصبون ماكالوك وبيتس</b> (١٩٤٣). وفي أواخر الخمسينيات وأوائل الستينيات طوّرت مختبرات عدة البحث فيها، منها فرانك روزنبلات في كورنيل وبرنارد ويدرو في ستانفورد، فظهر <b>البيرسبترون</b> (روزنبلات ١٩٥٨)، وتحوّلت «العتبة» إلى «انحياز»، وهو الترميز الذي ما زلنا نستعمله (ويدرو وهوف ١٩٦٠).</p>
+  <p>ثم تراجع الحقل بعد أن أثبت <b>منسكي وبابرت</b> (١٩٦٩) أن بيرسبترون واحداً لا يستطيع حتى XOR. واستمر عمل قليل عقدين، حتى جاءت النهضة في الثمانينيات حين انتشرت أدوات عملية لبناء شبكات أعمق، وأهمها <b>الانتشار العكسي</b> (روملهارت وزملاؤه ١٩٨٦). وفي الثمانينيات تنوعت المعماريات، خصوصاً في علم النفس والعلوم المعرفية، وشاع اسم <span class="t">الاتصالية <i>connectionist</i></span> أو «المعالجة الموزعة المتوازية». ومن أفكار تلك الفترة التي ما زالت أساسية: التمثيلات الموزعة (هينتون ١٩٨٦)، والشبكات التكرارية (إلمان ١٩٩٠)، والموترات للتركيب (سمولنسكي ١٩٩٠).</p>
+  <p>وفي التسعينيات طُبقت شبكات أكبر على مهام عملية كالتعرف على خط اليد (لوكون ١٩٨٩) والتعرف على الكلام (مورغان وبورلار ١٩٩٠). وفي أوائل الألفية مكّن تحسّن العتاد وتقنيات التحسين والتدريب من شبكات أكبر وأعمق، فظهر مصطلح <b>التعلّم العميق</b> (هينتون وزملاؤه ٢٠٠٦، وبنجيو وزملاؤه ٢٠٠٧). ومن الكتب الممتازة في الشبكات: غودفيلو وزملاؤه (٢٠١٦)، ونيلسن (٢٠١٥).</p>
+  <h3>أسئلة للمراجعة</h3>
+  <p class="note">لا يضم الفصل في هذه النسخة من الكتاب تمارين، فهذه أسئلة من عندنا مبنية على نصه:</p>
+  <ol class="clean">
+    <li>احسب ناتج شبكة XOR (القسم ٦٫٢٫١) للمدخل [1, 1] يدوياً، وتحقق من أنه ٠. ثم اشرح لماذا لا يمكن لخط مستقيم أن يفصل نقاط XOR في فضاء x.</li>
+    <li>شبكة خطية بطبقتين: W<sup>[1]</sup> = [[1, 2], [3, 4]] وW<sup>[2]</sup> = [[1, −1]]، بلا انحياز. ما W′ التي تجعل طبقة واحدة تعطي الناتج نفسه؟</li>
+    <li>ما شكل W في نموذج لغوي أمامي بنافذة N = 4، وتضمينات d = 50، وd<sub>h</sub> = 100 وحدة مخفية؟ وما شكل U إذا كانت |V| = 10,000؟</li>
+    <li>في مخطط L = c(a + 2b)، احسب ∂L/∂b عند a = 1، b = 2، c = 3، ثم تحقق بزيادة b إلى 2.01 وحساب تغير L.</li>
+    <li>أكمل ما تركه الكتاب تمريناً: انطلاقاً من ∂L/∂z<sup>[2]</sup> = a<sup>[2]</sup> − y، احسب ∂L/∂w<sup>[2]</sup><sub>11</sub> ثم ∂L/∂a<sup>[1]</sup><sub>1</sub> في الشكل ٦٫١٨.</li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="05-embeddings.html">→ الفصل السابق: التضمينات</a><span>الفصل التالي: المحوّلات والتدريب المسبق (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch06.js"></script>
+</body>
+</html>
