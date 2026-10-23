@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٥ · التضمينات | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="شرح عربي للفصل الخامس من كتاب Speech and Language Processing: دلالة الكلمات، ومتجهات العدّ، وجيب التمام، وword2vec، والتشابهات، والانحياز.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="04-logistic-regression.html" style="text-decoration:none">→ الفصل ٤</a><b>الفصل ٥ من ٢٦</b><span class="pill">الفصل ٦ · قريباً</span></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الجزء الأول · النماذج اللغوية الكبيرة · الفصل الخامس</div>
+  <h1>التضمينات</h1>
+  <div class="sub en" style="font-size:16px">Chapter 5 · Embeddings · pp. 127–150</div>
+  <p class="epi">يفتتح الفصل ببيت لتشوانغ تسي: «الشِّباك للسمك، فإذا صدتَ السمك نسيتَ الشبكة. والكلمات للمعنى، فإذا أدركتَ المعنى نسيتَ الكلمات». ثم يحكي عن نمرين من فصيلتين مختلفتين تطوّرا بأنياب متشابهة لأنهما عاشا في بيئتين متشابهتين. والكلمات كذلك: الكلمات التي تعيش في سياقات متشابهة تتشابه معانيها. وهذا الفصل يحوّل هذه الفكرة إلى أرقام.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>معنى الكلمة له جوانب: المرادفات، والتشابه، والارتباط، والإيحاء العاطفي.</li>
+    <li>نمثّل الكلمة نقطةً في فضاء متعدد الأبعاد، محسوبة من الكلمات التي تجاورها. هذه النقطة اسمها «التضمين».</li>
+    <li>أبسط طريقة: نعدّ الكلمات حول كل كلمة. فنحصل على متجهات طويلة جداً أغلبها أصفار.</li>
+    <li>نقيس التشابه بجيب تمام الزاوية بين متجهين: ١ للمتطابقين في الاتجاه، و٠ للمتعامدين.</li>
+    <li>word2vec يتعلّم متجهات قصيرة كثيفة بتدريب مصنّف لوجستي على سؤال واحد: «هل تظهر هذه الكلمة قرب تلك؟».</li>
+    <li>التضمينات تلتقط علاقات (ملك − رجل + امرأة ≈ ملكة)، وتغيّر المعاني عبر الزمن، لكنها تلتقط أيضاً تحيزات المجتمع وتضخّمها.</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <span class="pg">p. 127</span></div><h2>فرضية التوزيع، مرة أخرى</h2></header>
+  <div class="brief"><b>باختصار</b>الكلمات التي تظهر في سياقات متشابهة معانيها متشابهة. والتضمينات متجهات تمثّل معنى الكلمات، تُتعلَّم مباشرة من توزيعها في النصوص، وهي في قلب النماذج اللغوية الكبيرة. وهي أول مثال في الكتاب على «تعلّم التمثيل» تلقائياً بدل تصميمه يدوياً.</div>
+  <p>رأينا <span class="t">فرضية التوزيع <i>distributional hypothesis</i></span> في الفصل الأول: صاغها لسانيون في الخمسينيات (جوس وهاريس وفيرث)، حين لاحظوا أن المترادفات مثل <span class="ltr en">oculist</span> و<span class="ltr en">eye-doctor</span> تظهر في البيئات نفسها (قرب eye وexamined). وقال هاريس إن مقدار اختلاف معنى كلمتين «يقابل تقريباً مقدار اختلاف بيئتيهما».</p>
+  <p>وهذا الفصل يقدّم <span class="t">التضمينات <i>embeddings</i></span>: تمثيلات متجهية لمعنى الكلمات تُتعلَّم مباشرة من توزيعها في النص. والتضمينات هنا <b>ثابتة</b>: متجه واحد لكل كلمة. وعليها تُبنى التضمينات <b>السياقية</b> الأقوى، كالتي في BERT (الفصلان ٧ و٩)، حيث يختلف متجه الكلمة بحسب سياقها. ويسمى الحقل الذي يدرسها <b>الدلالة المتجهية</b>. وهي أول مثال في الكتاب على <span class="t">تعلّم التمثيل <i>representation learning</i></span>: نتعلّم تمثيلات مفيدة للنص تلقائياً، بدل «هندسة الخصائص» يدوياً كما في الفصل الرابع.</p>
+</section>
+
+<!-- ============ 5.1 ============ -->
+<section class="sec" id="s5-1">
+  <header><div class="kicker">القسم ٥٫١ <span class="pg">p. 128</span></div><h2>الدلالة المعجمية</h2></header>
+  <div class="brief"><b>باختصار</b>نموذج جيد لمعنى الكلمة يجب أن يلتقط: تعدد معاني الكلمة الواحدة، والمرادفات (وهي نادرة تماماً)، والتشابه (قط وكلب)، والارتباط (قهوة وفنجان)، والحقول الدلالية، والإيحاء العاطفي. وأوزغود وجد أن الإيحاء له ثلاثة أبعاد، فمثّل كل كلمة بثلاثة أرقام: نقطة في فضاء.</div>
+  <div class="terms"><span>الدلالة المعجمية <i>lexical semantics</i></span><span>المدخل المعجمي <i>lemma</i></span><span>المعنى <i>word sense</i></span><span>ترادف <i>synonymy</i></span><span>تشابه <i>similarity</i></span><span>ارتباط <i>relatedness</i></span><span>إيحاء <i>connotation</i></span></div>
+  <p>كيف نمثّل معنى كلمة؟ في نماذج N-gram (الفصل ٣) لم تكن الكلمة إلا سلسلة حروف أو رقماً في قائمة. وهذا يشبه تقليداً في المنطق يكتب معنى «dog» بأحرف كبيرة DOG. ويذكر الكتاب نكتة: «ما معنى الحياة؟ الجواب: LIFE′». لا بد أن نفعل أفضل من ذلك! نريد نموذجاً يقول إن القط يشبه الكلب، وإن البارد عكس الحار، وإن «سعيد» إيجابية و«حزين» سلبية، وإن «اشترى» و«باع» و«دفع» ثلاث زوايا لحدث واحد. ودراسة معاني الكلمات اسمها <span class="t">الدلالة المعجمية <i>lexical semantics</i></span>.</p>
+  <h3>المدخل المعجمي والمعاني</h3>
+  <p>كلمة <span class="ltr en">mouse</span> في القاموس لها معنيان: ١) قارض صغير، ٢) جهاز يدوي يحرّك المؤشر. والصيغة mouse هي <span class="t">المدخل المعجمي <i>lemma</i></span> أو «صيغة الاستشهاد»، وهي المدخل أيضاً لـ mice. وsing مدخل لـ sing وsang وsung. والصيغ المحددة (sung، carpets) اسمها <b>صيغ الكلمة</b> <span class="en">(wordforms)</span>. (وفي العربية نعرف ذلك جيداً: المدخل «كتب»، والصيغ «يكتبون» و«كتابة» و«مكتوب».) وكل معنى من معاني المدخل اسمه <span class="t">معنى <i>word sense</i></span>، والكلمة متعددة المعاني <b>مشتركة لفظياً</b> <span class="en">(polysemous)</span>. فمن يبحث عن «mouse info» قد يريد حيواناً أليفاً أو قطعة حاسوب.</p>
+  <h3>الترادف</h3>
+  <p>حين يتطابق معنيا كلمتين تقريباً نقول إنهما <span class="t">مترادفتان <i>synonyms</i></span>: <span class="ltr en">couch/sofa</span> و<span class="ltr en">car/automobile</span>. وتعريف أدق: يمكن تبديل إحداهما بالأخرى في أي جملة دون أن يتغير متى تكون الجملة صحيحة. لكن حتى <span class="ltr en">water</span> و<span class="ltr en">H₂O</span> ليستا متطابقتين: H₂O علمية ولا تناسب دليل رحلات جبلية. وهذا <b>مبدأ التباين</b>: كل اختلاف في الشكل اللغوي يصحبه اختلاف ما في المعنى. فالترادف عملياً «تقريبي».</p>
+  <h3>التشابه</h3>
+  <p>الكلمات قليلة المرادفات، لكن كثيرة <b>المتشابهات</b>: القط ليس مرادف الكلب، لكنهما متشابهان. وننتقل هنا من العلاقة بين المعاني إلى العلاقة بين الكلمات، وهذا يبسّط المهمة. ويمكن أن نسأل البشر: في مجموعة SimLex-999 يقيّمون التشابه من ٠ إلى ١٠:</p>
+  <table class="tb" style="max-width:420px"><tr><th>الزوج</th><th>التشابه</th></tr><tr><td class="en">vanish · disappear</td><td class="num">9.8</td></tr><tr><td class="en">belief · impression</td><td class="num">5.95</td></tr><tr><td class="en">muscle · bone</td><td class="num">3.65</td></tr><tr><td class="en">modest · flexible</td><td class="num">0.98</td></tr><tr><td class="en">hole · agreement</td><td class="num">0.3</td></tr></table>
+  <h3>الارتباط</h3>
+  <p><b>القهوة</b> لا تشبه <b>الفنجان</b>: لا يشتركان في صفات تقريباً. لكنهما <span class="t">مرتبطان <i>related</i></span>، لأنهما يشاركان في حدث يومي واحد: شرب القهوة من الفنجان. ومثلهما المشرط والجرّاح. ومن أنواع الارتباط الانتماء إلى <b>حقل دلالي</b> واحد: كلمات المستشفى (جرّاح، مشرط، ممرضة، تخدير)، أو المطعم (نادل، قائمة، طبق، طاهٍ). وترتبط الحقول الدلالية بـ «نماذج الموضوعات» مثل LDA، التي تستخرج مجموعات الكلمات المترابطة من نصوص كثيرة دون إشراف.</p>
+  <h3>الإيحاء</h3>
+  <p>للكلمات معانٍ عاطفية أو <span class="t">إيحاءات <i>connotations</i></span>: wonderful إيجابية وdreary سلبية. وحتى الكلمات المتقاربة تختلف في إيحائها: «مزيّف، مقلَّد، مزوَّر» مقابل «نسخة، طبق الأصل، إعادة إنتاج»، أو «بريء» (إيجابي) و«ساذج» (سلبي). ووجد أوزغود (١٩٥٧) أن المعنى العاطفي له <b>ثلاثة أبعاد</b>:</p>
+  <ul class="clean">
+    <li><b>التكافؤ</b> <span class="en">(valence)</span>: مدى إمتاع المحفّز. «سعيد» عالٍ، و«منزعج» منخفض.</li>
+    <li><b>الاستثارة</b> <span class="en">(arousal)</span>: شدة العاطفة التي يثيرها. «متحمس» عالٍ، و«هادئ» منخفض.</li>
+    <li><b>الهيمنة</b> <span class="en">(dominance)</span>: مقدار السيطرة التي يمارسها. «مسيطِر» عالٍ، و«مأخوذ بالرهبة» منخفض.</li>
+  </ul>
+  <div class="w"><div class="cap">الكلمات نقاطاً في فضاء المشاعر (أرقام الكتاب)</div>
+    <div class="row"><span class="note">المحوران:</span><span class="seg" id="vadAx"><button data-a="0,1" class="on">تكافؤ × استثارة</button><button data-a="0,2">تكافؤ × هيمنة</button><button data-a="1,2">استثارة × هيمنة</button></span></div>
+    <div class="emb" style="margin-top:8px"><div id="vadPlot"></div><div class="scroll"><table class="tb"><tr><th>الكلمة</th><th>تكافؤ</th><th>استثارة</th><th>هيمنة</th></tr>
+      <tr><td class="en">courageous</td><td class="num">8.0</td><td class="num">5.5</td><td class="num">7.4</td></tr>
+      <tr><td class="en">music</td><td class="num">7.7</td><td class="num">5.6</td><td class="num">6.5</td></tr>
+      <tr><td class="en">heartbreak</td><td class="num">2.5</td><td class="num">5.7</td><td class="num">3.6</td></tr>
+      <tr><td class="en">cub</td><td class="num">6.7</td><td class="num">4.0</td><td class="num">4.2</td></tr></table></div></div></div>
+  <p>لاحظ أوزغود أنه بهذه الأرقام الثلاثة يمثّل كل كلمة <b>نقطةً في فضاء ثلاثي الأبعاد</b>: جزء من معنى heartbreak هو النقطة [2.5, 5.7, 3.6]. وكانت هذه الفكرة الثورية أول تعبير عن نماذج الدلالة المتجهية.</p>
+</section>
+
+<!-- ============ 5.2 ============ -->
+<section class="sec" id="s5-2">
+  <header><div class="kicker">القسم ٥٫٢ <span class="pg">p. 131</span></div><h2>الدلالة المتجهية: الحدس</h2></header>
+  <div class="brief"><b>باختصار</b>التقت فكرتان في الخمسينيات: أن الكلمة نقطة في فضاء (أوزغود)، وأن معنى الكلمة يتحدد بجيرانها (اللسانيون). فنمثّل الكلمة نقطةً في فضاء متعدد الأبعاد مشتق من جيرانها، وتكون الكلمات المتشابهة متقاربة.</div>
+  <div class="terms"><span>الدلالة المتجهية <i>vector semantics</i></span><span>تضمين <i>embedding</i></span><span>متجه متناثر / كثيف <i>sparse / dense</i></span></div>
+  <p>مثال الكتاب: كلمة <span class="ltr en">ongchoi</span> مستعارة حديثاً من الكانتونية ولا تعرف معناها. تراها في هذه السياقات:</p>
+  <div class="dlg">Ongchoi is delicious sauteed with garlic.<br>Ongchoi is superb over rice.<br>…ongchoi leaves with salty sauces…</div>
+  <p>وقد رأيت كثيراً من هذه الكلمات المحيطة في سياقات أخرى:</p>
+  <div class="dlg">…spinach sauteed with garlic over rice…<br>…chard stems and leaves are delicious…<br>…collard greens and other salty leafy greens</div>
+  <p>ongchoi تظهر مع rice وgarlic وdelicious وsalty، كما تظهر معها السبانخ والسلق والكرنب. فتستنتج أنها خضار ورقية تشبهها. (وهي فعلاً «سبانخ الماء».) ويمكن تنفيذ الحدس نفسه حاسوبياً بمجرد <b>عدّ</b> الكلمات حول ongchoi.</p>
+  <p>فكرة الدلالة المتجهية: <b>نمثّل الكلمة نقطةً في فضاء دلالي متعدد الأبعاد مشتق من توزيع جيرانها.</b> والمتجهات التي تمثّل الكلمات اسمها <b>تضمينات</b>. (والكلمة جاءت من معناها الرياضي: «تحويل» من فضاء إلى آخر، ثم انتقلت للدلالة على المتجه الناتج.) والشكل ٥٫١ يعرض جيران كلمة sweet في فضاء word2vec بعد إسقاطه من ٢٠٠ بُعد إلى بُعدين: honey وcandy وjuice وchocolate. وقد جرّبت فكرة مشابهة في <a href="01-introduction.html#s1-3">الفصل الأول</a>.</p>
+  <p><b>لماذا هذه قوة هائلة؟</b> مصنّف المشاعر في الفصل الرابع يحتاج أن يرى <b>الكلمات نفسها</b> في التدريب والاختبار. أما مع التضمينات فيكفي أن يرى كلمات <b>متشابهة المعنى</b>. وهذه التضمينات تُتعلَّم تلقائياً من النص دون إشراف. وسيبدأ الفصل بنموذج تعليمي بسيط من متجهات العدّ، طويلة و<b>متناثرة</b> (أغلبها أصفار)، ثم يقدّم word2vec الذي يبني متجهات قصيرة <b>كثيفة</b> بخصائص دلالية أنفع، ويقدّم جيب التمام لقياس التشابه.</p>
+</section>
+
+<!-- ============ 5.3 ============ -->
+<section class="sec" id="s5-3">
+  <header><div class="kicker">القسم ٥٫٣ <span class="pg">p. 132</span></div><h2>تضمينات بسيطة من العدّ</h2></header>
+  <div class="brief"><b>باختصار</b>نبني مصفوفة: كل صف كلمة، وكل عمود كلمة سياق، وكل خانة عدد مرات ظهور كلمة السياق في نافذة حول الكلمة (مثلاً ٤ كلمات يميناً ويساراً). كل صف هو متجه الكلمة. فتتقارب cherry وstrawberry (يظهر معهما pie وsugar)، وتتقارب digital وinformation (يظهر معهما computer وdata).</div>
+  <div class="terms"><span>مصفوفة الكلمة والسياق <i>word-context matrix</i></span><span>نافذة السياق <i>context window</i></span><span>فضاء متجهي <i>vector space</i></span><span>بُعد <i>dimension</i></span></div>
+  <p class="quote">«أهم صفات المتجه في الفضاء الثلاثي: الموقع، الموقع، الموقع» · راندال مونرو</p>
+  <p>أبسط نموذج متجهي للمعنى يقوم على <b>مصفوفة التواجد المشترك</b>. نوعها هنا <span class="t">مصفوفة الكلمة والسياق <i>word-context matrix</i></span>: كل صف كلمة من المفردات، وكل عمود كلمة سياق، فشكلها <code>|V| × |V|</code>. وكل خانة تعدّ كم مرة ظهرت كلمة العمود «قريباً» من كلمة الصف. و«قريباً» يعني داخل <b>نافذة سياق</b>: مثلاً ٤ كلمات يساراً و٤ يميناً (±4).</p>
+  <p>مثال الكتاب: أربع كلمات (cherry، strawberry، digital، information)، ونافذة واحدة لكل منها، وثلاث كلمات سياق فقط (a، computer، pie). احسبها يدوياً قبل أن تنظر إلى الجدول:</p>
+  <div class="w"><div class="cap">احسب مصفوفة التواجد المشترك (الشكل ٥٫٢)</div>
+    <textarea id="coIn" class="txt" dir="ltr" style="min-height:96px">is traditionally followed by cherry pie, a traditional dessert
+often mixed, such as strawberry rhubarb pie. Apple pie
+computer peripherals and personal digital assistants. These devices usually
+a computer. This includes information available on the internet</textarea>
+    <div class="row" style="margin-top:8px"><label class="note" for="coT">الكلمات الهدف:</label><input type="text" id="coT" value="cherry, strawberry, digital, information" dir="ltr" style="flex:1;min-width:200px"></div>
+    <div class="row" style="margin-top:6px"><label class="note" for="coC">كلمات السياق:</label><input type="text" id="coC" value="a, computer, pie" dir="ltr" style="flex:1;min-width:200px"><label class="note">النافذة ±<b class="mono" id="coWo"></b><input type="range" id="coW" min="1" max="8" value="4" style="width:110px"></label></div>
+    <div class="scroll" style="margin-top:8px"><div id="coTable"></div></div>
+    <p class="note" style="margin:6px 0 0">اضغط صف كلمة لترى نافذتها ملوّنة في النص. المطابقة تتجاهل علامات الترقيم وحالة الأحرف.</p>
+    <div class="co-win" id="coWin" dir="ltr"></div></div>
+  <div class="math"><div class="mh"><span class="sym">ℝⁿ</span>مفهوم رياضي · المتجه والفضاء المتجهي والبُعد</div><div class="mb">
+    <p>كل صف في الجدول <b>متجه</b>، أي قائمة أرقام: cherry هي <code>[1, 0, 1]</code> وinformation هي <code>[1, 1, 0]</code>. و<b>الفضاء المتجهي</b> مجموعة متجهات، يتحدد بعدد <b>أبعاده</b>: كل متجه فيه له عنصر واحد لكل بُعد. هنا ٣ أبعاد ليتسع الجدول للصفحة، وفي الواقع عدد الأبعاد |V|، أي حجم المفردات كله.</p>
+    <p>ولترتيب الأرقام معنى: البُعد الثالث في <b>كل</b> المتجهات هو «كم مرة جاءت pie». والبُعد الثاني «كم مرة جاءت computer». ولاحظ أن information وdigital لهما القيمة ١ نفسها في بُعد computer.</p>
+  </div></div>
+  <p>في الواقع نعدّ على مدوّنة كاملة لا على نافذة واحدة. والشكل ٥٫٣ يعرض عدّات حقيقية من ويكيبيديا لستة أبعاد مختارة:</p>
+  <div class="scroll"><table class="tb"><tr><th></th><th class="en">aardvark</th><th>…</th><th class="en">computer</th><th class="en">data</th><th class="en">result</th><th class="en">pie</th><th class="en">sugar</th></tr>
+    <tr><td class="en">cherry</td><td class="num">0</td><td>…</td><td class="num">2</td><td class="num">8</td><td class="num">9</td><td class="num">442</td><td class="num">25</td></tr>
+    <tr><td class="en">strawberry</td><td class="num">0</td><td>…</td><td class="num">0</td><td class="num">0</td><td class="num">1</td><td class="num">60</td><td class="num">19</td></tr>
+    <tr><td class="en">digital</td><td class="num">0</td><td>…</td><td class="num">1670</td><td class="num">1683</td><td class="num">85</td><td class="num">5</td><td class="num">4</td></tr>
+    <tr><td class="en">information</td><td class="num">0</td><td>…</td><td class="num">3325</td><td class="num">3982</td><td class="num">378</td><td class="num">5</td><td class="num">13</td></tr></table></div>
+  <p>cherry وstrawberry أشبه ببعضهما (pie وsugar في نوافذهما) منهما بـ digital. وdigital وinformation أشبه ببعضهما منهما بـ strawberry. ويمكن تخيّل متجه الكلمة نقطةً في فضاء بـ|V| بُعداً، والكلمات هنا نقاط في فضاء سداسي الأبعاد. والشكل ٥٫٤ يرسم digital وinformation في بُعدين فقط: data وcomputer.</p>
+  <p>و|V| عادةً بين ١٠ آلاف و٥٠ ألف كلمة (الأكثر تكراراً؛ وما بعد الخمسين ألفاً لا يفيد عادةً). ولأن أغلب الأرقام أصفار تسمى هذه المتجهات <b>متناثرة</b> <span class="en">(sparse)</span>، ولها خوارزميات تخزين وحساب فعّالة. ويمكن أيضاً «وزن» العدّات، وأشهر طريقة tf-idf (الفصل ١١).</p>
+</section>
+
+<!-- ============ 5.4 ============ -->
+<section class="sec" id="s5-4">
+  <header><div class="kicker">القسم ٥٫٤ <span class="pg">p. 134</span></div><h2>جيب التمام لقياس التشابه</h2></header>
+  <div class="brief"><b>باختصار</b>الضرب النقطي يقيس التشابه، لكنه يكبر مع طول المتجهات، فيفضّل الكلمات الشائعة. والحل: نقسمه على طولي المتجهين. والناتج هو جيب تمام الزاوية بينهما: ١ للاتجاه نفسه، و٠ للمتعامدين. فـ information أقرب بكثير إلى digital (٠٫٩٩٦) منها إلى cherry (٠٫٠١٨).</div>
+  <div class="terms"><span>الضرب النقطي <i>dot / inner product</i></span><span>متعامد <i>orthogonal</i></span><span>طول المتجه <i>vector length</i></span><span>جيب التمام <i>cosine</i></span><span>متجه الوحدة <i>unit vector</i></span></div>
+  <p>نحتاج مقياساً يأخذ متجهين بالطول نفسه ويعطي تشابههما. وأشهر مقياس بلا منافس هو <b>جيب تمام الزاوية</b> بينهما. وهو، كمعظم مقاييس التشابه، مبني على <b>الضرب النقطي</b> الذي رأيناه في الفصل الرابع:</p>
+  <div class="eq">v · w = ∑<sub>i=1..N</sub> v<sub>i</sub>w<sub>i</sub> = v<sub>1</sub>w<sub>1</sub> + v<sub>2</sub>w<sub>2</sub> + … + v<sub>N</sub>w<sub>N</sub> &nbsp;&nbsp; (5.7)</div>
+  <p>الضرب النقطي كبير حين يكون للمتجهين قيم كبيرة <b>في الأبعاد نفسها</b>. والمتجهان اللذان لهما أصفار في أبعاد مختلفة، أي لا يشتركان في أي بُعد، ضربهما النقطي صفر، ويسميان <b>متعامدين</b>: أقصى الاختلاف.</p>
+  <p><b>المشكلة:</b> الضرب النقطي يفضّل المتجهات <b>الطويلة</b>. والكلمات الشائعة متجهاتها أطول، لأنها تظهر مع كلمات أكثر وبعدّات أعلى. فسيبدو أن «the» تشبه كل شيء! ونحن نريد التشابه بغض النظر عن التكرار. فنقسم على الطولين:</p>
+  <div class="eq">|v| = √( ∑ v<sub>i</sub>² ) &nbsp;&nbsp; (5.8) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cosine(v, w) = (v · w) ÷ ( |v| |w| ) &nbsp;&nbsp; (5.10)</div>
+  <div class="math"><div class="mh"><span class="sym">cos θ</span>مفهوم رياضي · الطول والزاوية وجيب التمام</div><div class="mb">
+    <ol class="steps">
+      <li><b>طول المتجه</b> <code>|v|</code> هو المسافة من نقطة الأصل إلى رأسه، بنظرية فيثاغورس: مجموع مربعات العناصر ثم الجذر. للمتجه [3, 4]: √(9 + 16) = √25 = 5. والفكرة نفسها تعمل مع أي عدد من الأبعاد.</li>
+      <li><b>جيب التمام</b> (cos) دالة من علم المثلثات، تأخذ <b>زاوية</b> وتعطي رقماً بين −١ و١. cos 0° = 1 (الاتجاه نفسه)، وcos 90° = 0 (متعامدان، زاوية قائمة)، وcos 180° = −1 (اتجاهان متعاكسان). وكلما صغرت الزاوية كبر جيب تمامها.</li>
+      <li><b>العلاقة الأساسية:</b> <code>a · b = |a| |b| cos θ</code>، حيث θ الزاوية بين المتجهين. فبقسمة الضرب النقطي على الطولين يبقى cos θ. أي إن «الضرب النقطي المطبَّع» هو جيب تمام الزاوية بالضبط.</li>
+      <li><b>متجه الوحدة:</b> إذا قسمنا متجهاً على طوله صار طوله ١ مع بقاء اتجاهه. وبين متجهات الوحدة، الضرب النقطي = جيب التمام مباشرة. ولهذا تُطبَّع المتجهات أحياناً مسبقاً.</li>
+    </ol>
+    <p>ولأن العدّات لا تكون سالبة، فجيب التمام بين متجهات العدّ يقع بين ٠ و١ فقط.</p>
+    <div class="w"><div class="cap">جيب التمام بين كلمتين (عدّات الكتاب لثلاثة أبعاد: pie وdata وcomputer)</div>
+      <div class="row"><select id="csA"></select><span class="note">و</span><select id="csB"></select><label class="note">اضرب المتجه الأول في c = <b class="mono" id="csKo"></b><input type="range" id="csK" min="0.1" max="10" step="0.1" value="1" style="width:120px"></label></div>
+      <div class="emb" style="margin-top:8px"><div id="csPlot"></div><div class="calc" id="csCalc" style="font-size:12.5px;white-space:pre-wrap"></div></div>
+      <p class="note" style="margin:6px 0 0">الرسم يُظهر بُعدين فقط (computer وpie) كما في الشكل ٥٫٥، والحساب بالأبعاد الثلاثة. وحرّك c: الضرب النقطي يتغير، لكن جيب التمام لا يتغير أبداً. هذا ما يطلب التمرين ٥٫٢ إثباته.</p></div>
+  </div></div>
+  <p>مثال الكتاب: هل information أقرب إلى cherry أم digital؟</p>
+  <div class="calc">cos(cherry, information) = (442×5 + 8×3982 + 2×3325) / (√(442²+8²+2²) × √(5²+3982²+3325²)) = .018
+cos(digital, information) = (5×5 + 1683×3982 + 1670×3325) / (√(5²+1683²+1670²) × √(5²+3982²+3325²)) = .996</div>
+  <p>النموذج يقرر أن information أقرب بكثير إلى digital، وهذا معقول. ويُستخدم جيب التمام لإيجاد إعادات الصياغة، وتتبّع تغيّر المعاني، واكتشاف معاني الكلمات في مدوّنات مختلفة. مثلاً لنجد أقرب ١٠ كلمات إلى كلمة w: نحسب جيب التمام بين w وكل الكلمات الأخرى (|V| − 1 كلمة)، ونرتّب، ونأخذ الأعلى.</p>
+</section>
+
+<!-- ============ 5.5 ============ -->
+<section class="sec" id="s5-5">
+  <header><div class="kicker">القسم ٥٫٥ <span class="pg">p. 136</span></div><h2>word2vec</h2></header>
+  <div class="brief"><b>باختصار</b>بدل العدّ، ندرّب مصنّفاً لوجستياً على سؤال: «هل تظهر الكلمة c قرب الكلمة w؟». الأمثلة الإيجابية جيران حقيقيون من النص، والسلبية كلمات عشوائية. والاحتمال هو سيغمويد الضرب النقطي بين متجهيهما. لا يهمنا المصنّف نفسه، بل أوزانه: هي التضمينات. متجهات قصيرة (٥٠ إلى ١٠٠٠ بُعد) كثيفة، تعمل أفضل من متجهات العدّ في كل المهام.</div>
+  <div class="terms"><span>skip-gram</span><span>أخذ العيّنات السلبية <i>negative sampling · SGNS</i></span><span>تضمينات ثابتة <i>static embeddings</i></span><span>الإشراف الذاتي <i>self-supervision</i></span><span>كلمة ضجيج <i>noise word</i></span></div>
+  <p>التضمينات هنا <b>قصيرة</b> (d بين ٥٠ و١٠٠٠ بدل |V|)، وأبعادها بلا تفسير واضح، و<b>كثيفة</b>: قيمها أرقام حقيقية قد تكون سالبة، لا عدّات أغلبها أصفار. وتعمل أفضل في كل المهام، لأسباب نفهمها جزئياً: ٣٠٠ بُعد تعني أوزاناً أقل بكثير يتعلمها المصنّف من ٥٠ ألفاً، فيعمّم أفضل. وتلتقط الترادف أفضل: في المتجهات المتناثرة، بُعدا car وautomobile منفصلان تماماً، فلا تُرى العلاقة بين كلمة جارتها car وكلمة جارتها automobile.</p>
+  <p>والطريقة هنا <b>skip-gram مع أخذ العيّنات السلبية</b> (SGNS)، وهي واحدة من خوارزميتين في حزمة <b>word2vec</b>. وهي سريعة، وفعّالة التدريب، ومتاحة مع تضمينات جاهزة. وتضميناتها <span class="t">ثابتة <i>static</i></span>: متجه واحد لكل كلمة مهما كان سياقها. (في الفصل ٩ تضمينات سياقية مثل BERT.)</p>
+  <p><b>الحدس الثوري:</b> بدل أن نعدّ كم مرة تظهر c قرب apricot، ندرّب مصنّفاً ثنائياً على سؤال «هل يُرجَّح أن تظهر c قرب apricot؟». ولا يهمنا المصنّف أصلاً، بل <b>نأخذ أوزانه المتعلَّمة تضمينات</b>. والنص المتصل نفسه هو بيانات التدريب: الكلمة التي تظهر فعلاً قرب apricot هي «الجواب الصحيح». فلا نحتاج وسماً يدوياً. وهذا اسمه <span class="t">الإشراف الذاتي <i>self-supervision</i></span>، وقد اقترحه بنجيو وزملاؤه في النماذج اللغوية العصبية: الكلمة التالية في النص هي إشارة التدريب.</p>
+  <p>وword2vec أبسط من النموذج اللغوي العصبي بأمرين: المهمة تصنيف ثنائي لا تنبؤ بكلمة من بين آلاف، والبنية انحدار لوجستي لا شبكة متعددة الطبقات. وحدس skip-gram أربع خطوات:</p>
+  <ol class="clean">
+    <li>الكلمة الهدف وكلمة سياق مجاورة: مثال <b>إيجابي</b>.</li>
+    <li>كلمات عشوائية من المفردات: أمثلة <b>سلبية</b>.</li>
+    <li>انحدار لوجستي يتعلم التمييز بين الحالتين.</li>
+    <li>الأوزان المتعلَّمة هي التضمينات.</li>
+  </ol>
+
+  <h3>٥٫٥٫١ · المصنّف</h3>
+  <p>جملة فيها الكلمة الهدف apricot ونافذة ±2:</p>
+  <div class="dlg">… lemon, a [<b>tablespoon</b> <b>of</b> <span style="color:var(--amber);font-weight:600">apricot</span> <b>jam</b>, <b>a</b>] pinch …<br><span style="color:var(--soft)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c1 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c2 &nbsp;&nbsp;&nbsp;&nbsp;w &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c3 &nbsp;&nbsp;c4</span></div>
+  <p>نريد مصنّفاً يأخذ زوجاً (w, c)، مثل (apricot, jam) أو (apricot, aardvark)، ويعطي احتمال أن تكون c جارة حقيقية: <code>P(+|w, c)</code>، و<code>P(−|w, c) = 1 − P(+|w, c)</code>. والحدس: <b>الكلمة يُرجَّح أن تجاور الهدف إذا كان تضمينها يشبه تضمينه</b>. والتشابه هو الضرب النقطي (جيب التمام ضرب نقطي مطبَّع). ولأن الضرب النقطي ليس احتمالاً (من سالب ما لا نهاية إلى موجبها)، نمرّره في السيغمويد من الفصل الرابع:</p>
+  <div class="eq">P(+|w, c) = σ(c · w) = 1 ÷ (1 + exp(−c · w)) &nbsp;&nbsp;&nbsp;&nbsp; P(−|w, c) = σ(−c · w) &nbsp;&nbsp; (5.15–5.16)</div>
+  <p>ولأن في النافذة كلمات كثيرة، يفترض skip-gram للتبسيط أنها <b>مستقلة</b>، فنضرب احتمالاتها، أو نجمع لوغاريتماتها (الفصل ٣):</p>
+  <div class="eq">P(+|w, c<sub>1:L</sub>) = ∏<sub>i=1..L</sub> σ(c<sub>i</sub> · w) &nbsp;&nbsp;&nbsp;&nbsp; log P(+|w, c<sub>1:L</sub>) = ∑<sub>i=1..L</sub> log σ(c<sub>i</sub> · w) &nbsp;&nbsp; (5.17–5.18)</div>
+  <p><b>تضمينان لكل كلمة:</b> يخزّن skip-gram لكل كلمة متجهين: تضمين <b>الهدف</b> (حين تكون الكلمة في المركز) في المصفوفة W، وتضمين <b>السياق</b> (حين تكون جارة) في المصفوفة C. فالمعاملات θ مصفوفة من 2|V| متجهاً، كل منها بـ d بُعد.</p>
+
+  <h3>٥٫٥٫٢ · تعلّم التضمينات</h3>
+  <p>نبدأ بمتجهات عشوائية لكل كلمة، ثم نحرّك تضمين كل كلمة تدريجياً ليشبه تضمينات الكلمات التي تجاورها في النص، ويبتعد عن تضمينات الكلمات التي لا تجاورها. من المثال السابق، أربعة أمثلة إيجابية. ونحتاج أمثلة <b>سلبية</b>: لكل مثال إيجابي نصنع k مثالاً سلبياً، كل منها الهدف w مع <b>كلمة ضجيج</b> عشوائية:</p>
+  <div class="w"><div class="cap">مولّد الأمثلة الإيجابية والسلبية</div>
+    <input type="text" id="sgIn" value="lemon , a tablespoon of apricot jam , a pinch" dir="ltr" style="width:100%">
+    <div class="row" style="margin-top:8px"><label class="note">الهدف:</label><select id="sgT"></select><label class="note">النافذة L = ±<b class="mono" id="sgLo"></b><input type="range" id="sgL" min="1" max="4" value="2" style="width:90px"></label><label class="note">k = <b class="mono" id="sgKo"></b><input type="range" id="sgK" min="1" max="5" value="2" style="width:90px"></label><button class="btn" id="sgRe">كلمات ضجيج جديدة</button></div>
+    <div class="pairs" id="sgPairs"></div>
+    <p class="note" style="margin:6px 0 0">كلمات الضجيج تُسحب هنا من قائمة كلمات صغيرة للتوضيح، بأوزان تكرار مرفوعة للأس ٠٫٧٥ كما يشرح الكتاب تحت.</p></div>
+  <p>تُختار كلمات الضجيج بحسب <b>احتمالها الموزون</b> <code>P<sub>α</sub>(w)</code>، والشائع α = 0.75:</p>
+  <div class="eq">P<sub>α</sub>(w) = count(w)<sup>α</sup> ÷ ∑<sub>w′</sub> count(w′)<sup>α</sup> &nbsp;&nbsp; (5.19)</div>
+  <div class="math"><div class="mh"><span class="sym">x^¾</span>مفهوم رياضي · الأس الكسري ٠٫٧٥</div><div class="mb">
+    <p>الأس ٠٫٧٥ = ¾ يعني «الجذر الرابع، ثم التكعيب». ولا يهم الحساب الدقيق، بل أثره: <b>يرفع الأرقام الصغيرة نسبياً أكثر من الكبيرة</b>. 0.99<sup>0.75</sup> ≈ 0.99، بينما 0.01<sup>0.75</sup> ≈ 0.032، أي أكبر من ثلاثة أضعاف 0.01. فبعد إعادة التطبيع تأخذ الكلمات النادرة فرصة أكبر للاختيار.</p>
+    <div class="w"><div class="cap">مثال الكتاب: حدثان P(a) = 0.99 وP(b) = 0.01</div>
+      <div class="row"><label class="note">α = <b class="mono" id="alo"></b><br><input type="range" id="al" min="0" max="1" step="0.05" value="0.75"></label></div>
+      <div class="calc" id="alCalc" style="margin-top:8px"></div></div>
+  </div></div>
+  <p>والهدف من التعلّم: <b>رفع</b> تشابه أزواج (الهدف، الجار الحقيقي)، و<b>خفض</b> تشابه أزواج (الهدف، كلمة الضجيج). ولزوج إيجابي واحد مع k كلمة ضجيج، الخسارة:</p>
+  <div class="eq">L = −[ log σ(c<sub>pos</sub> · w) + ∑<sub>i=1..k</sub> log σ(−c<sub>neg<sub>i</sub></sub> · w) ] &nbsp;&nbsp; (5.21)</div>
+  <p>أي: نريد أن يعطي المصنّف الجار الحقيقي احتمالاً عالياً أن يكون جاراً، ويعطي كل كلمة ضجيج احتمالاً عالياً ألا تكون جارة. ونقلل الخسارة بالنزول التدرّجي العشوائي، ومشتقاتها (وإثباتها التمرين ٥٫٣):</p>
+  <div class="eq" style="text-align:left;line-height:2">∂L/∂c<sub>pos</sub> = [σ(c<sub>pos</sub>·w) − 1] w &nbsp;&nbsp; ∂L/∂c<sub>neg</sub> = [σ(c<sub>neg</sub>·w)] w<br>∂L/∂w = [σ(c<sub>pos</sub>·w) − 1] c<sub>pos</sub> + ∑<sub>i</sub> [σ(c<sub>neg<sub>i</sub></sub>·w)] c<sub>neg<sub>i</sub></sub> &nbsp;&nbsp; (5.22–5.24)</div>
+  <p>لاحظ الشبه بتدرّج الانحدار اللوجستي (ŷ − y) × x: للجار الحقيقي y = 1 فالفرق σ − 1، وللضجيج y = 0 فالفرق σ. والحدس الهندسي في الشكل ٥٫٧: خطوة واحدة <b>تقرّب</b> apricot وjam، و<b>تبعد</b> apricot عن matrix وTolstoy. شاهد ذلك يحدث:</p>
+  <div class="w" id="w2vBox"><div class="cap">درّب word2vec حقيقياً في متصفحك (تضمينات ببُعدين فقط لنرسمها مباشرة)</div>
+    <div class="row"><label class="note">η = <b class="mono" id="wvEo"></b><input type="range" id="wvE" min="0.005" max="0.2" step="0.005" value="0.05" style="width:100px"></label><label class="note">k = <b class="mono" id="wvKo"></b><input type="range" id="wvK" min="1" max="8" value="4" style="width:80px"></label>
+      <button class="btn pri" id="wvStep">خطوة واحدة</button><button class="btn" id="wvEpoch">مرور على المدوّنة</button><button class="btn" id="wv10">١٠ مرورات</button><button class="btn" id="wvReset">من جديد</button></div>
+    <div class="emb" style="margin-top:8px"><div id="wvPlot"></div><div><div class="calc" id="wvCalc" style="font-size:12px;white-space:pre-wrap"></div><div class="sub-h">أقرب الجيران بجيب التمام</div><div class="row"><select id="wvQ"></select></div><div class="bars" id="wvNN" style="margin-top:6px"></div></div></div>
+    <p class="note" style="margin:6px 0 0">المدوّنة مولّدة آلياً للتوضيح: جمل عن الفواكه والطبخ، وجمل عن الحاسوب والبيانات، تشترك في كلمات وظيفية. يعرض الرسم مجموع w + c لكل كلمة بعد طرح متوسط كل المتجهات، ليظهر الاتجاه بوضوح، وأقرب الجيران محسوبة على المتجهات نفسها. تبدأ المتجهات عشوائية، وبعد بضع مرورات تنفصل المجموعتان. اضغط «خطوة واحدة» لترى التدرّج يحرّك الهدف وجاره وكلمات الضجيج.</p></div>
+  <p>بعد التدريب لكل كلمة متجهان w<sub>i</sub> وc<sub>i</sub>. والشائع جمعهما: w<sub>i</sub> + c<sub>i</sub>، أو إهمال C والاكتفاء بـ W. وحجم النافذة يؤثر في النتائج، ويُضبط على مجموعة التطوير.</p>
+
+  <h3>٥٫٥٫٣ · أنواع أخرى من التضمينات الثابتة</h3>
+  <p><b>fasttext:</b> مشكلة word2vec أنه لا يعرف الكلمات المجهولة، ويضعف مع الكلمات النادرة في اللغات غنية الصرف، حيث تظهر كثير من صيغ الاسم والفعل نادراً. وfasttext يحلّها بتمثيل الكلمة بنفسها <b>وبحروفها المتتالية</b> (N-grams حرفية) مع رمزي حدود &lt; و&gt;. وتعلّم تضميناً لكل قطعة، وتضمين الكلمة مجموع تضمينات قطعها. فالكلمة المجهولة تُمثَّل بمجموع قطعها المعروفة. ومكتبته متاحة بتضمينات جاهزة لـ١٥٧ لغة.</p>
+  <div class="w"><div class="cap">قطع fasttext الحرفية</div>
+    <div class="row"><input type="text" id="ftIn" value="where" dir="auto" style="width:160px"><label class="note">n = <b class="mono" id="ftNo"></b><input type="range" id="ftN" min="2" max="6" value="3" style="width:100px"></label><button class="btn" data-ft="where">where</button><button class="btn" data-ft="مكتبات">مكتبات</button><button class="btn" data-ft="وسيكتبونها">وسيكتبونها</button></div>
+    <div class="chips" id="ftOut" style="margin-top:8px"></div></div>
+  <p><b>GloVe</b> (المتجهات العالمية): مبني على إحصاءات المدوّنة كلها، وتحديداً على <b>نِسب</b> احتمالات التواجد المشترك في مصفوفة الكلمة والكلمة. واتضح أن بين التضمينات الكثيفة كـ word2vec ونماذج العدّ علاقة رياضية أنيقة: word2vec يحسّن ضمنياً دالة في مصفوفة عدّ موزونة بطريقة اسمها PPMI.</p>
+</section>
+
+<!-- ============ 5.6 ============ -->
+<section class="sec" id="s5-6">
+  <header><div class="kicker">القسم ٥٫٦ <span class="pg">p. 142</span></div><h2>تصوير التضمينات</h2></header>
+  <div class="brief"><b>باختصار</b>لا نستطيع رؤية ١٠٠ بُعد. فإما أن نسرد أقرب الكلمات، أو نجمعها عنقودياً في شجرة، أو، وهو الأشيع، نُسقطها إلى بُعدين بطريقة مثل t-SNE.</div>
+  <p class="quote">«أرى جيداً في أبعاد كثيرة، ما دامت الأبعاد في حدود اثنين» · الاقتصادي مارتن شوبيك</p>
+  <ul class="clean">
+    <li><b>سرد أقرب الكلمات:</b> نرتّب كل المفردات بجيب تمامها مع w. أقرب ٧ كلمات إلى frog في تضمينات GloVe: frogs، toad، litoria، leptodactylidae، rana، lizard، eleutherodactylus (أنواع ضفادع علمية). وأداة «أقرب الجيران» في مدرّب word2vec فوق تفعل ذلك.</li>
+    <li><b>العنقدة الهرمية:</b> خوارزمية تجمع الكلمات المتشابهة في شجرة: أعضاء الجسم معاً (معصم، كاحل، كتف)، والحيوانات معاً (كلب، قط، جرو، هرّة)، والمدن معاً.</li>
+    <li><b>الإسقاط إلى بُعدين:</b> الأشيع. طريقة مثل <b>t-SNE</b> تحاول أن تضع الكلمات المتقاربة في الأبعاد الكثيرة متقاربةً في البُعدين أيضاً. وقد رأيت ذلك في الشكل ٥٫١. والإسقاط يفقد معلومات حتماً، فالمسافات في الرسم تقريبية.</li>
+  </ul>
+</section>
+
+<!-- ============ 5.7 ============ -->
+<section class="sec" id="s5-7">
+  <header><div class="kicker">القسم ٥٫٧ <span class="pg">p. 143</span></div><h2>الخصائص الدلالية للتضمينات</h2></header>
+  <div class="brief"><b>باختصار</b>النافذة القصيرة تجمع الكلمات المتشابهة نحوياً، والطويلة تجمع الكلمات المرتبطة موضوعياً. والتضمينات تحل التشابهات بطرح المتجهات وجمعها: ملك − رجل + امرأة ≈ ملكة. وبتضمينات من عقود مختلفة نرى كيف تتغير معاني الكلمات عبر الزمن.</div>
+  <div class="terms"><span>تواجد من الدرجة الأولى / الثانية <i>first / second-order</i></span><span>نموذج متوازي الأضلاع <i>parallelogram model</i></span><span>الدلالة التاريخية <i>historical semantics</i></span></div>
+  <h3>أنواع مختلفة من التشابه</h3>
+  <p>حجم نافذة السياق عادةً بين ١ و١٠ كلمات على كل جانب. <b>النافذة القصيرة</b> تعطي تمثيلات أقرب إلى النحو، لأن المعلومة من الكلمات الملاصقة: أقرب الكلمات تكون متشابهة دلالياً ومن نوع الكلام نفسه. و<b>النافذة الطويلة</b> تعطي كلمات مرتبطة موضوعياً لكنها غير متشابهة. مثال: بنافذة ±2، أقرب الكلمات إلى Hogwarts (مدرسة هاري بوتر) أسماء مدارس خيالية أخرى من مسلسلات أخرى. وبنافذة ±5: كلمات من عالم هاري بوتر نفسه: Dumbledore وMalfoy.</p>
+  <p>ونميّز نوعين من الارتباط: <b>الدرجة الأولى</b> (ارتباط تركيبي): كلمتان تتجاوران عادةً، فـ wrote ترتبط بـ book وpoem. و<b>الدرجة الثانية</b> (ارتباط استبدالي): كلمتان لهما جيران متشابهون، فـ wrote ترتبط بـ said وremarked.</p>
+  <h3>التشابه العلائقي</h3>
+  <p>في نموذج معرفي مبكر (١٩٧٣) اقتُرح <b>نموذج متوازي الأضلاع</b> لحل التشابهات من نوع «a إلى b كـ a* إلى ماذا؟». مثل «التفاحة إلى الشجرة كالعنب إلى…؟» (الكرمة). نأخذ المتجه من apple إلى tree، ونضيفه إلى grape، ونبحث عن أقرب كلمة للنقطة الناتجة:</p>
+  <div class="eq">b̂* = argmin<sub>x</sub> distance( x, b − a + a* ) &nbsp;&nbsp; (5.28)</div>
+  <div class="math"><div class="mh"><span class="sym">b−a+a*</span>مفهوم رياضي · جمع المتجهات وطرحها</div><div class="mb">
+    <p>نجمع متجهين (أو نطرحهما) <b>عنصراً عنصراً</b>: <code>[5, 2] − [1, 1] = [4, 1]</code>. وهندسياً، <code>b − a</code> هو «السهم» الذي يأخذك من a إلى b. وإضافته إلى a* تعني: «اذهب من a* بالسهم نفسه». فإذا كان السهم من man إلى king يعني «المَلَكية»، فإضافته إلى woman توصلك قرب queen. والأشكال الأربعة تكوّن متوازي أضلاع.</p>
+    <p>و<code>argmin<sub>x</sub> distance(…)</code> من الفصل الرابع: «الكلمة x التي تعطي أقل مسافة» عن النقطة الناتجة. والمسافة قد تكون إقليدية (فيثاغورس).</p>
+    <div class="w"><div class="cap">حلّ تشابهاً (فضاء ثنائي الأبعاد رسمناه للتوضيح)</div>
+      <div class="row"><select id="anA"></select><span class="note">إلى</span><select id="anB"></select><span class="note">كـ</span><select id="anC"></select><span class="note">إلى ؟</span></div>
+      <div class="row" style="margin-top:6px"><button class="btn" data-an="man,king,woman">man : king :: woman : ?</button><button class="btn" data-an="apple,tree,grape">apple : tree :: grape : ?</button><button class="btn" data-an="France,Paris,Italy">France : Paris :: Italy : ?</button></div>
+      <div class="emb" style="margin-top:8px"><div id="anPlot"></div><div class="calc" id="anCalc" style="font-size:12.5px;white-space:pre-wrap"></div></div></div>
+  </div></div>
+  <p>واشتهرت الطريقة مع word2vec وGloVe: <b>king − man + woman</b> قريب من queen، و<b>Paris − France + Italy</b> قريب من Rome. فالتضمينات تلتقط علاقات مثل ذكر/أنثى، وعاصمة/دولة، وحتى صيغ المقارنة والتفضيل (الشكل ٥٫٩). <b>لكن مع تحفظات:</b> أقرب نقطة تكون عادةً إحدى الكلمات الثلاث المُدخلة أو صيغة منها (cherry:red :: potato:? تعطي potato بدل brown)، فيجب استبعادها صراحةً. وتنجح الطريقة مع الكلمات الشائعة والمسافات الصغيرة وعلاقات معيّنة (الدول وعواصمها، والأفعال وتصريفاتها)، وتضعف مع علاقات أخرى. بل يرى بعض الباحثين أنها أبسط من أن تمثّل كيف يكوّن البشر التشابهات.</p>
+  <h3>٥٫٧٫١ · التضمينات والدلالة التاريخية</h3>
+  <p>ببناء فضاء تضمينات منفصل لكل عقد من نصوص تاريخية (Google Books، ومدوّنة الإنجليزية الأمريكية التاريخية) نرى تغيّر المعاني عبر قرنين (الشكل ٥٫١٠):</p>
+  <ul class="clean">
+    <li><span class="ltr en">gay</span>: من «مرح، لعوب» إلى معناها الحديث.</li>
+    <li><span class="ltr en">broadcast</span>: من «نثر البذور» إلى «بثّ الإشارات» مع ظهور الراديو والتلفاز.</li>
+    <li><span class="ltr en">awful</span>: من «مليء بالرهبة» إلى «فظيع، مروّع»، وهذا اسمه <b>التحقير الدلالي</b>.</li>
+  </ul>
+</section>
+
+<!-- ============ 5.8 ============ -->
+<section class="sec" id="s5-8">
+  <header><div class="kicker">القسم ٥٫٨ <span class="pg">p. 145</span></div><h2>الانحياز والتضمينات</h2></header>
+  <div class="brief"><b>باختصار</b>التضمينات تتعلم أيضاً التحيزات والصور النمطية الكامنة في النصوص، بل تضخّمها. وهذا قد يسبب أضراراً في توزيع الفرص (كالتوظيف) وأضراراً تمثيلية. ومحاولات إزالة الانحياز تقلله لكنها لا تزيله. وبالمقابل، يمكن استخدام التضمينات التاريخية لقياس تحيزات الماضي.</div>
+  <div class="terms"><span>ضرر التوزيع <i>allocational harm</i></span><span>تضخيم الانحياز <i>bias amplification</i></span><span>ضرر تمثيلي <i>representational harm</i></span><span>إزالة الانحياز <i>debiasing</i></span></div>
+  <p>القدرة نفسها التي تجعل king − man + woman ≈ queen تُظهر صوراً نمطية: وجد باحثون أن أقرب مهنة إلى «computer programmer − man + woman» في تضمينات word2vec المدرّبة على الأخبار هي «homemaker» (ربّة منزل)، وأن التضمينات تقترح «الأب للطبيب كالأم للممرضة». وهذا قد يسبب <b>ضرر التوزيع</b>: نظام يوزّع الموارد (الوظائف أو القروض) بظلم بين الفئات. فخوارزمية بحث عن مبرمجين أو أطباء تستخدم التضمينات قد تخفض خطأً ترتيب مستندات فيها أسماء نساء.</p>
+  <p>والتضمينات لا تعكس إحصاءات مدخلاتها فقط، بل <b>تضخّم الانحياز</b>: المصطلحات الجندرية تصبح أكثر جندرية في فضاء التضمين مما كانت في النص، والانحيازات أكبر مما في إحصاءات التوظيف الفعلية.</p>
+  <p>وتلتقط أيضاً <b>الارتباطات الضمنية</b> في التفكير البشري. «اختبار الارتباط الضمني» يقيس ارتباط المفاهيم بالصفات بقياس سرعة استجابة الناس: من يربط «الزهور» بـ «اللطيف» يضغط أسرع حين يكون الزر نفسه للاثنين. وبهذا الاختبار وُجد أن الناس في الولايات المتحدة يربطون الأسماء الأمريكية الأفريقية بالكلمات غير اللطيفة أكثر، والأسماء الذكورية بالرياضيات والأنثوية بالفنون. ثم أعاد باحثون (٢٠١٧) كل هذه النتائج <b>باستخدام جيب التمام بين تضمينات GloVe</b> بدل سرعة استجابة البشر. وهذا <b>ضرر تمثيلي</b>: نظام يحطّ من فئات اجتماعية أو يتجاهلها. وأي خوارزمية تستخدم مشاعر الكلمات من التضمينات قد تفاقم هذا الانحياز.</p>
+  <p><b>المحاولات:</b> تحويل فضاء التضمين لإزالة الصور النمطية الجندرية مع الإبقاء على الجنس التعريفي (كأب وأم)، أو تغيير طريقة التدريب. وهذه تقلل الانحياز لكنها <b>لا تزيله</b>، والمسألة مفتوحة.</p>
+  <p><b>قياس تحيزات الماضي:</b> بالتضمينات التاريخية قاس باحثون ارتباط المهن بأسماء الأعراق والأجناس عبر القرن العشرين، فوجدوا أن جيب التمام يتوافق مع النسب التاريخية الفعلية للنساء والأعراق في تلك المهن. وأعادت التضمينات نتائج استطلاعات قديمة للصور النمطية العرقية من ثلاثينيات القرن الماضي. ووثّقت أن صفات الكفاءة (ذكي، حكيم، واسع الحيلة) كانت أقرب إلى الكلمات الذكورية، وأن هذا الانحياز يتناقص ببطء منذ ١٩٦٠.</p>
+</section>
+
+<!-- ============ 5.9 ============ -->
+<section class="sec" id="s5-9">
+  <header><div class="kicker">القسم ٥٫٩ <span class="pg">p. 147</span></div><h2>تقييم النماذج المتجهية</h2></header>
+  <div class="brief"><b>باختصار</b>الأهم التقييم الخارجي على مهام حقيقية. وداخلياً: نقارن تشابه النموذج بتقييمات البشر بمعامل الارتباط، أو نختبر حل التشابهات. ولأن التدريب فيه عشوائية، يُنصح بتدريب عدة نماذج وأخذ المتوسط.</div>
+  <div class="terms"><span>الارتباط <i>correlation</i></span><span>WordSim-353</span><span>SimLex-999</span><span>TOEFL</span><span>مهمة التشابه <i>analogy task</i></span></div>
+  <p>أهم تقييم هو <b>الخارجي</b>: نستخدم المتجهات في مهمة ونرى هل تتحسن. وداخلياً، الأشيع اختبار <b>التشابه</b>: نحسب <b>الارتباط</b> بين درجات تشابه الخوارزمية وتقييمات البشر.</p>
+  <div class="math"><div class="mh"><span class="sym">ρ</span>مفهوم رياضي · معامل الارتباط</div><div class="mb">
+    <p><b>الارتباط</b> رقم بين −١ و١ يقيس هل يتحرك متغيران معاً. ١ يعني: كلما زاد أحدهما زاد الآخر بانتظام تام. و٠ يعني: لا علاقة. و−١: كلما زاد أحدهما نقص الآخر. فإذا أعطى النموذج أزواج الكلمات درجات تشابه ترتفع وتنخفض كما ترتفع وتنخفض تقييمات البشر، كان ارتباطهما قريباً من ١، أي إن النموذج «يفهم» التشابه كما نفهمه. والمهم الترتيب والاتجاه لا القيم نفسها: جيب التمام بين ٠ و١ وتقييمات البشر بين ٠ و١٠، ومع ذلك يمكن أن يكون الارتباط تاماً.</p>
+  </div></div>
+  <ul class="clean">
+    <li><b>WordSim-353:</b> تقييمات من ٠ إلى ١٠ لـ٣٥٣ زوج أسماء، مثل (plane, car) بمتوسط ٥٫٧٧.</li>
+    <li><b>SimLex-999:</b> أدق، يقيس <b>التشابه</b> (cup, mug) لا <b>الارتباط</b> (cup, coffee)، ويشمل صفات وأسماء وأفعالاً محسوسة ومجردة.</li>
+    <li><b>TOEFL:</b> ٨٠ سؤالاً: كلمة وأربعة خيارات، والمطلوب المرادف. «Levied أقرب معنى إلى: imposed، believed، requested، correlated».</li>
+    <li><b>بسياق:</b> كل ما سبق كلمات بلا سياق. ومجموعات أواقعية تعطي الكلمات في جمل: SCWS (٢٠٠٣ أزواج في سياقها)، وWiC (الكلمة في جملتين: هل المعنى واحد؟). ومهمة «تشابه النصوص الدلالي» تقيّم أزواج <b>جمل</b>.</li>
+    <li><b>التشابهات:</b> a إلى b كـ a* إلى b*، بمجموعات تغطي الصرف (city:cities::child:children)، والعلاقات المعجمية (leg:table::spout:teapot)، والموسوعية (Beijing:China::Dublin:Ireland).</li>
+  </ul>
+  <p><b>تقلّب النتائج:</b> بسبب العشوائية في الأوزان الأولية وفي اختيار كلمات الضجيج، قد يعطي word2vec نتائج مختلفة من البيانات نفسها، ووثيقة واحدة قد تؤثر كثيراً في التضمينات. فحين نستخدم التضمينات لدراسة ارتباطات الكلمات في مدوّنة، الأفضل تدريب عدة تضمينات بعيّنات «بوتستراب» من الوثائق (الفصل ٤) وأخذ متوسطها. ويمكنك ملاحظة ذلك في المدرّب: اضغط «من جديد» عدة مرات، وكل مرة تنتهي الكلمات في مواقع مختلفة.</p>
+</section>
+
+<!-- ============ summary/exercises ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">ملخص الفصل وتمارينه <span class="pg">pp. 148–150</span></div><h2>الخلاصة والتمارين</h2></header>
+  <h3>ملخص الكتاب</h3>
+  <ul class="clean">
+    <li>في الدلالة المتجهية تُنمذَج الكلمة متجهاً: نقطة في فضاء عالي الأبعاد اسمها تضمين. والتركيز هنا على التضمينات الثابتة: متجه واحد لكل كلمة.</li>
+    <li>النماذج صنفان: متناثرة (كل بُعد كلمة من المفردات، والخانات دوال في عدّ التواجد المشترك)، وكثيفة.</li>
+    <li>النماذج الكثيفة أبعادها عادةً ٥٠ إلى ١٠٠٠. وskip-gram من word2vec طريقة شائعة: يدرّب انحداراً لوجستياً يحسب احتمال أن تتجاور كلمتان، من الضرب النقطي بين تضمينيهما، بالنزول التدرّجي العشوائي.</li>
+    <li>ومن الخوارزميات المهمة الأخرى GloVe، المبني على نِسب احتمالات التواجد المشترك.</li>
+    <li>التشابه بين الكلمات والوثائق يُحسب بدالة في الضرب النقطي، وأشهرها جيب التمام: ضرب نقطي مطبَّع.</li>
+  </ul>
+  <h3>من الحواشي التاريخية</h3>
+  <p>نشأت الدلالة المتجهية في الخمسينيات من ثلاثة حقول: <b>اللسانيات</b> (المعنى مرتبط بالتوزيع في السياق، عند هاريس وجوس وفيرث؛ وقال جوس إن «معنى» المورفيم عند اللساني هو «مجموعة الاحتمالات الشرطية لظهوره في السياق مع كل المورفيمات الأخرى»)، و<b>علم النفس</b> (أوزغود: المعنى نقطة في فضاء إقليدي والتشابه مسافة)، و<b>الفهرسة الآلية</b>، التي صارت الاسترجاع المعلوماتي (نموذج الفضاء المتجهي، وidf). وجاء بعض الأساس الفلسفي من فتغنشتاين المتأخر: «معنى الكلمة استعمالها في اللغة». ومن جذور أبعد: تعريف الكلمات بخصائص منفصلة، مثل hen = +أنثى +دجاج +بالغ، وrooster = −أنثى +دجاج +بالغ.</p>
+  <p>أما كلمة «تضمين» والمتجهات الكثيفة فجاءت من <b>التحليل الدلالي الكامن</b> (LSA) أواخر الثمانينيات، الذي يطبّق «تحليل القيم المنفردة» (SVD) على مصفوفة الكلمات والوثائق، ويأخذ أول ٣٠٠ بُعد. وSVD طريقة لإيجاد أهم أبعاد البيانات، أي الأبعاد التي تتغير فيها البيانات أكثر. وكانت «التضمين» تعني في LSA التحويل من فضاء العدّ المتناثر إلى الفضاء الكثيف، ثم انتقل معناها إلى المتجه الناتج نفسه. ثم أظهر بنجيو (٢٠٠٣) أن النماذج اللغوية العصبية تتعلم التضمينات أثناء التنبؤ بالكلمات، وبسّط ميكولوف (٢٠١٣) ذلك إلى skip-gram وأخذ العيّنات السلبية.</p>
+  <h3>تمارين الفصل</h3>
+  <ol class="clean">
+    <li>باستخدام عدّات التواجد المشترك، احسب cos(cherry, strawberry) وcos(cherry, digital) باستخدام بُعدي pie وresult فقط. أي الزوجين أكثر تشابهاً؟ وهل يوافق حدسك؟</li>
+    <li>أثبت أن جيب التمام لا يتأثر بالتقييس: لأي ثابت موجب c، cos(cv, w) = cos(v, w). ولماذا هذه خاصية مرغوبة بالنظر إلى نقاش التكرار وطول المتجه في القسم ٥٫٤؟ (منزلق c في أداة جيب التمام يوضح ذلك، والإثبات عليك.)</li>
+    <li>اشتق تدرّجات SGNS في المعادلات ٥٫٢٢ إلى ٥٫٢٤ بتفاضل الخسارة ٥٫٢١ بالنسبة لـ c<sub>pos</sub> وc<sub>neg</sub> وw. يمكنك استخدام dσ(z)/dz = σ(z)(1 − σ(z)) و d(c·w)/dw = c. (راجع القسم ٤٫١٥.)</li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="04-logistic-regression.html">→ الفصل السابق: الانحدار اللوجستي</a><span>الفصل التالي: الشبكات العصبية (قريباً)</span></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ch05.js"></script>
+</body>
+</html>

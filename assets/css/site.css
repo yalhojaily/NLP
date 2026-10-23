@@ -354,3 +354,17 @@ input.wIn,.m3 input{width:72px;background:var(--bg);border:1px solid var(--rule)
 .bs-docs .doc{border:1px solid var(--rule);border-radius:8px;padding:6px 4px;font-family:var(--f-mono);font-size:12px;cursor:pointer;background:var(--paper);display:flex;flex-direction:column;align-items:center;color:var(--ink)}
 .bs-docs .doc small{color:var(--soft);font-size:10px}
 .bs-docs .d-AB{background:var(--green-soft)}.bs-docs .d-A{background:var(--amber-soft)}.bs-docs .d-B{background:var(--math-soft)}.bs-docs .d-n{background:var(--rose-soft)}
+
+/* ===== chapter 5 widgets ===== */
+table.co tr[data-w]{cursor:pointer}
+table.co tr.sel td{background:var(--green-soft)}
+table.co td.zero{color:var(--soft);opacity:.5}
+.co-win{font-family:"Noto Sans",sans-serif;font-size:14.5px;line-height:2;margin-top:8px;text-align:left}
+.co-win div{background:var(--tint);border-radius:8px;padding:4px 10px;margin-bottom:4px}
+.co-win .tg{background:var(--amber);color:var(--paper);border-radius:4px;padding:0 5px}
+.co-win .cx{background:var(--green-soft);color:var(--green);font-weight:600;border-radius:4px;padding:0 3px}
+.co-win .wn{border-bottom:2px solid var(--amber)}
+.co-win .out{color:var(--soft);opacity:.55}
+.pairs{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.pairs .ph{display:grid;grid-template-columns:150px 1fr;gap:10px;font-family:var(--f-head);font-size:12.5px;color:var(--soft);font-weight:600}
+.pairs .pr{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;direction:ltr}
