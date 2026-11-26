@@ -11,6 +11,7 @@ function plot(el,o){
   let s=`<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" style="width:100%;max-width:${o.maxw||'none'};height:auto;direction:ltr;display:block;margin:0 auto"><defs><clipPath id="c${el.id}"><rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}"/></clipPath></defs>`;
   (o.yt||[]).forEach(v=>{s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--soft)">${o.ytf?o.ytf(v):v}</text>`});
   (o.xt||[]).forEach(v=>{s+=`<line x1="${x(v)}" x2="${x(v)}" y1="${T}" y2="${H-B}" stroke="var(--rule)" stroke-dasharray="2 4"/><text x="${x(v)}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="var(--soft)">${v}</text>`});
+  if(o.raw)s+=`<g clip-path="url(#c${el.id})">${o.raw(x,y)}</g>`;
   if(o.xl)s+=`<text x="${W-R}" y="${H-3}" text-anchor="end" font-size="11" fill="var(--soft)">${o.xl}</text>`;if(o.yl)s+=`<text x="${L}" y="${T-4}" font-size="11" fill="var(--soft)">${o.yl}</text>`;
   (o.curves||[]).forEach(c=>{let d='';const n=200;for(let i=0;i<=n;i++){const v=o.xmin+(o.xmax-o.xmin)*i/n,u=c.f(v);if(!isFinite(u))continue;d+=(d?'L':'M')+x(v).toFixed(1)+' '+y(u).toFixed(1)}
     s+=`<path d="${d}" fill="none" stroke="${c.c}" stroke-width="${c.w||2.5}" ${c.dash?'stroke-dasharray="5 4"':''} clip-path="url(#c${el.id})"/>`});
