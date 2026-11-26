@@ -18,9 +18,9 @@ LESSONS = [
 ]
 N = len(LESSONS)
 # chapter files and titles from the home page
-idx = (ROOT/'index.html').read_text()
+idx = (ROOT/'slp'/'index.html').read_text()
 CH = {}
-for href, no, ti in re.findall(r'<a class="ch" href="chapters/([^"]+)"><span class="no">([^<]+)</span><span class="ti">([^<]+)</span>', idx):
+for href, no, ti in re.findall(r'<a class="ch" href="([^"]+)"><span class="no">([^<]+)</span><span class="ti">([^<]+)</span>', idx):
     n = int(''.join(str('٠١٢٣٤٥٦٧٨٩'.index(c)) for c in no))
     CH[n] = (href, ti)
 HEAD = '''<!doctype html>
@@ -28,7 +28,7 @@ HEAD = '''<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>{title} · المسار العربي | شرح كتاب معالجة الكلام واللغة</title>
+<title>{title} · المسار العربي | تعلّم معالجة اللغة الطبيعية</title>
 <meta name="description" content="{desc}">
 <script src="../assets/js/theme.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,11 +56,11 @@ def build():
         prev = f'<a class="pill" href="{LESSONS[i-2][1]}.html" style="text-decoration:none">→ الدرس {AD(i-1)}</a>' if i > 1 else '<a class="pill" href="index.html" style="text-decoration:none">→ المسار العربي</a>'
         nxt = f'<a class="pill" href="{LESSONS[i][1]}.html" style="text-decoration:none">الدرس {AD(i+1)} ←</a>' if i < N else '<a class="pill" href="index.html" style="text-decoration:none">المسار العربي ←</a>'
         chs = [int(x) for x in meta.get('slp','').split(',') if x.strip()]
-        slp = ''.join(f'<a class="arlink" href="../chapters/{CH[c][0]}">الفصل {AD(c)}: {CH[c][1]}</a>' for c in chs if c in CH)
+        slp = ''.join(f'<a class="arlink" href="../slp/{CH[c][0]}">الفصل {AD(c)}: {CH[c][1]}</a>' for c in chs if c in CH)
         h = HEAD.format(title=title, desc=meta.get('desc',''))
         h += f'''<div class="bar">
   <div class="bar-in">
-    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">المسار العربي</a></nav>
     <div class="chnav">{prev}<b>الدرس {AD(i)} من {AD(N)}</b>{nxt}</div>
   </div>
   <div class="progress" id="prog"></div>

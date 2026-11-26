@@ -15,4 +15,11 @@
     });
     bar.appendChild(btn);
   });
+  /* remember the last chapter or lesson read, for the home page's "continue" link */
+  document.addEventListener('DOMContentLoaded',function(){
+    if(!document.querySelector('article.col')) return;
+    var parts=location.pathname.split('/').filter(Boolean); if(parts.length<2) return;
+    var rel=parts.slice(-2).join('/'), t=document.title.split(' | ')[0];
+    try{localStorage.setItem('slp-last',JSON.stringify({p:rel,t:t}))}catch(e){}
+  });
 })();
