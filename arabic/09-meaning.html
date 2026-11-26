@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المعنى والإحالة والمشاعر · المسار العربي | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="الدرس التاسع من المسار العربي: الجنس والعدد في الترجمة إلى العربية، والتعرّف على الكيانات بلا حروف كبيرة، وحلّ الإحالة مع الضمائر المتصلة والمستترة، وتحليل المشاعر بالمعاجم مع الصرف والنفي.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="08-speech.html" style="text-decoration:none">→ الدرس ٨</a><b>الدرس ٩ من ١٠</b><a class="pill" href="10-resources.html" style="text-decoration:none">الدرس ١٠ ←</a></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">المسار العربي · الدرس ٩</div>
+  <h1>المعنى والإحالة والمشاعر</h1>
+  <div class="sub en" style="font-size:16px">Arabic Track · Lesson 9 · Meaning, Reference and Sentiment</div>
+  <p class="epi">في الفصول ١٣ و٢١–٢٤ تعمل الآلة على المعنى: تترجم، وتستخرج الكيانات، وتربط الضمائر بأصحابها، وتقيس المشاعر. وفي كل منها تضيف العربية تحدياً صغيراً لا تراه في الأمثلة الإنجليزية.</p>
+  <p class="note" style="margin-top:8px">يكمّل من الكتاب: <a class="arlink" href="../chapters/13-machine-translation.html">الفصل ١٣: الترجمة الآلية</a><a class="arlink" href="../chapters/21-information-extraction.html">الفصل ٢١: استخراج المعلومات</a><a class="arlink" href="../chapters/23-affect-lexicons.html">الفصل ٢٣: معاجم المشاعر والانفعال</a><a class="arlink" href="../chapters/24-coreference.html">الفصل ٢٤: حلّ الإحالة وربط الكيانات</a></p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الدرس</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الدرس في دقيقة</h2>
+  <ol>
+    <li>العربية تُظهر <b>الجنس والعدد</b> في الضمائر والأفعال والصفات: «you» خمس صيغ، و«the doctor» طبيب أو طبيبة. فالمترجم إلى العربية يجب أن يقرر معلومات لا يقولها الأصل الإنجليزي، فيظهر التحيز (الفصل ٢٤).</li>
+    <li>لا حروف كبيرة في العربية، وكثير من الأسماء صفات أو أسماء عادية (أمل، سعيد، جمال). فالتعرّف على الكيانات يعتمد على السياق وحده.</li>
+    <li>الضمائر في العربية <b>متصلة</b> (أعطاه، كتابه) أو <b>مستترة</b> (أعطى = هو). فحلّ الإحالة يبدأ بالتقطيع، ويستفيد كثيراً من المطابقة في الجنس.</li>
+    <li>معاجم المشاعر (الفصل ٢٣) تحتاج تطبيعاً وتجذيعاً لتطابق الصيغ (رائع، رائعة، رائعون)، ومعالجة للنفي (ليست مملة).</li>
+  </ol>
+</div>
+<!-- ============ 1 ============ -->
+<section class="sec" id="a9-1">
+  <header><div class="kicker">١ · الترجمة</div><h2>معلومات يجب أن تخترعها</h2></header>
+  <div class="brief"><b>باختصار</b>الترجمة من الإنجليزية إلى العربية تتطلب أحياناً معلومات <b>غائبة</b> عن الأصل: جنس المخاطَب وعدده، وجنس المهني، وجنس المتكلم. فإن لم يجدها المترجم في السياق اختار افتراضاً، وغالباً المذكر، وهذا تحيز جنسي من النوع الذي يقيسه WinoBias في الفصل ٢٤. والحل الأفضل: البحث عن الدليل في السياق (الإحالة)، وإلا عرض البدائل.</div>
+  <div class="terms"><span>الجنس النحوي <i>grammatical gender</i></span><span>المطابقة في الترجمة <i>agreement in MT</i></span><span>التحيز الجنسي في الترجمة <i>gender bias in MT</i></span></div>
+  <div class="w" id="mtBox"><div class="cap">ما الذي يجب أن يقرره المترجم؟ (اختر جملة إنجليزية)</div>
+    <div class="row"><span class="seg" id="mtS" dir="ltr" style="flex-wrap:wrap"></span></div>
+    <div class="scroll"><table class="tb" id="mtTab" style="margin-top:8px"></table></div><div class="calc" id="mtCalc"></div></div>
+  <p>وفي الاتجاه المعاكس (من العربية إلى الإنجليزية) تضيع المعلومة: «أنتِ متأخرة» تصير «you are late»، وهذا أهون لأنه حذف لا اختراع. ولاحظ الحالة الثانية: الضمير she في الجملة الإنجليزية <b>يحسم</b> جنس الطبيب، لكن فقط إن ربطه المترجم بـ the doctor؛ أي إن حلّ الإحالة جزء من الترجمة الجيدة.</p>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="sec" id="a9-2">
+  <header><div class="kicker">٢ · الكيانات المسمّاة</div><h2>بلا حروف كبيرة</h2></header>
+  <div class="brief"><b>باختصار</b>في الفصل ١٨ من أقوى خصائص التعرّف على الكيانات الإنجليزية أن الاسم يبدأ بحرف كبير. والعربية بلا حروف كبيرة، وأسماء الأعلام كثيراً ما تكون كلمات عادية: أمل، سعيد، جمال، نور، كريم. فيعتمد الوسّام على السياق (قبلها «التقى»؟ بعدها فعل؟) وعلى اللواصق (و + سعيد).</div>
+  <div class="terms"><span>التعرّف على الكيانات <i>named entity recognition</i></span><span>وسوم BIO</span><span>الحرف الكبير <i>capitalization feature</i></span></div>
+  <div class="w" id="neBox"><div class="cap">الكلمة نفسها: علمٌ أم لا؟ (الوسوم من عندنا)</div>
+    <div class="row"><span class="seg" id="neS" style="flex-wrap:wrap"><button data-i="0" class="on">التقى أمل وسعيد…</button><button data-i="1">يعيش على أمل سعيد</button><button data-i="2">جمال الحديقة</button><button data-i="3">جمال عبد الناصر</button></span></div>
+    <div id="neOut" style="margin-top:8px;line-height:2.4;font-size:18px"></div><div class="calc" id="neCalc"></div></div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="sec" id="a9-3">
+  <header><div class="kicker">٣ · الإحالة</div><h2>ضمائر داخل الكلمات</h2></header>
+  <div class="brief"><b>باختصار</b>في الفصل ٢٤ تُكتشف الإشارات ثم تُجمع في سلاسل. وفي العربية بعض الإشارات <b>لواصق</b> (ـه، ـها في «أعطاه» و«كتابها») وبعضها <b>مستتر</b> في الفعل (فاعل «أعطى»). فالخطوة الأولى تقطيع اللواصق وإظهار الفاعل المستتر. ثم تساعد المطابقة كثيراً: الفعل والضمير يحملان الجنس، فإن اختلف جنسا الطرفين حُسمت الإحالة.</div>
+  <div class="terms"><span>الضمير المتصل <i>clitic pronoun</i></span><span>الضمير المستتر <i>zero pronoun</i></span><span>اكتشاف الإشارات <i>mention detection</i></span><span>المطابقة <i>agreement</i></span></div>
+  <div class="w" id="crBox"><div class="cap">الإشارات بعد التقطيع، وما تحسمه المطابقة (اختر جملة)</div>
+    <div class="row"><span class="seg" id="crS" style="flex-wrap:wrap"><button data-i="0" class="on">قابلت سارةُ أحمدَ فأعطته كتابها</button><button data-i="1">قابل أحمدُ خالداً فأعطاه كتابه</button></span></div>
+    <div id="crOut" style="margin-top:8px;line-height:2.4;font-size:18px"></div>
+    <div class="scroll"><table class="tb" id="crTab" style="margin-top:8px"></table></div><div class="calc" id="crCalc"></div></div>
+  <p>في الجملة الثانية لا تحسم المطابقة شيئاً (أحمد وخالد مذكران مفردان)، فيعتمد النظام على التفضيلات من الفصل ٢٤ ونظرية التمركز من الفصل ٢٥: فاعل الفعل الثاني المستتر هو غالباً فاعل الأول (استمرار المركز)، فأحمد أعطى خالداً. أما «كتابه» فيبقى ملتبساً حقاً بين الاثنين، ويقبل القارئ العربي الالتباس أو يحسمه بالسياق الأوسع.</p>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="sec" id="a9-4">
+  <header><div class="kicker">٤ · المشاعر</div><h2>المعجم لا يكفي بلا صرف</h2></header>
+  <div class="brief"><b>باختصار</b>مصنّف المشاعر بالمعجم (الفصل ٢٣) يعدّ الكلمات الإيجابية والسلبية. والمعجم العربي يُكتب عادة بالصيغة الأساسية (رائع، ممل)، والنص فيه رائعة ورائعون والممل. فبلا تطبيع وتجذيع تفوته أكثر الكلمات. ثم النفي: «ليست مملة» إيجابية. ومن المعاجم العربية ArSenL (٢٠١٤) المبني بربط معاجم إنجليزية بموارد عربية، ومعاجم لهجية أحدث.</div>
+  <div class="terms"><span>معجم المشاعر <i>sentiment lexicon</i></span><span>مطابقة اللِّمّة <i>lemma matching</i></span><span>نطاق النفي <i>negation scope</i></span><span>ArSenL</span></div>
+  <div class="w" id="seBox"><div class="cap">مصنّف مشاعر بمعجم من ست كلمات (المراجعات والمعجم من صنعنا)</div>
+    <div class="row"><span class="seg" id="seM" style="flex-wrap:wrap"><button data-m="0">مطابقة حرفية</button><button data-m="1">+ تطبيع وتجذيع</button><button data-m="2" class="on">+ معالجة النفي</button></span></div>
+    <div id="seOut" style="margin-top:8px;line-height:2.4;font-size:18px"></div><div class="calc" id="seCalc"></div></div>
+  <p>والمراجعة الأخيرة «ما أعجبني الفيلم» تبقى صعبة: «أعجب» ليست في المعجم، والنفي فيها بـ «ما». ولهذا تتفوق المصنّفات المتعلَّمة (انحدار لوجستي على خصائص كثيرة، أو ضبط نموذج عربي) على المعاجم حين تتوفر بيانات موسومة، وتبقى المعاجم مفيدة للبيانات القليلة ولتفسير القرار.</p>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">للمراجعة</div><h2>أسئلة ومسرد</h2></header>
+  <ol class="clean">
+    <li>ترجم «The nurse said he was tired» إلى العربية. ما الذي يحسم جنس الممرض؟ <details><summary>الحل</summary>«قال الممرض إنه متعب». الضمير he هو الدليل، بشرط ربطه بـ the nurse؛ والنموذج المتحيز قد يكتب «الممرضة» متجاهلاً الضمير.</details></li>
+    <li>استخرج الإشارات من «وأخبرتها أمها» بعد التقطيع. <details><summary>الحل</summary>التقطيع: و + أخبرت + ها، ثم أمّ + ها. والإشارات: «ها» (المفعول)، و«أمها» (الفاعل المتأخر)، و«ها» (المضاف إليه). والهاءان ترجعان على الأرجح إلى المرأة نفسها.</details></li>
+    <li>أضف إلى مصنّف المشاعر قاعدة لـ «ما أعجبني». ما الخطر في قاعدة «ما + فعل = نفي»؟ <details><summary>تلميح</summary>«ما» قد تكون موصولة أو استفهامية أو تعجبية: «ما أجمل الفيلم!» إيجابية جداً.</details></li>
+  </ol>
+  <h3>مسرد الدرس</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="08-speech.html">→ الدرس السابق: الكلام العربي</a><a href="10-resources.html">الدرس التالي: الأدوات والموارد ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الدرس"><h4>أقسام الدرس</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/ar09.js"></script>
+</body>
+</html>

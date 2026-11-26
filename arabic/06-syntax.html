@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>النحو العربي حاسوبياً · المسار العربي | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="الدرس السادس من المسار العربي: ترتيب الكلمات والمطابقة في العربية، والإعراب، والفاعل المستتر، والجملة الاسمية بلا رابط، وأشجار الاعتماد العربية بعد فصل اللواصق.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="05-language-models.html" style="text-decoration:none">→ الدرس ٥</a><b>الدرس ٦ من ١٠</b><a class="pill" href="07-dialects.html" style="text-decoration:none">الدرس ٧ ←</a></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">المسار العربي · الدرس ٦</div>
+  <h1>النحو العربي حاسوبياً</h1>
+  <div class="sub en" style="font-size:16px">Arabic Track · Lesson 6 · Arabic Syntax and Parsing</div>
+  <p class="epi">في الفصلين ١٩ و٢٠ تبني الآلة شجرة للجملة الإنجليزية: الفاعل قبل الفعل، والمفعول بعده، والرابط is يربط المبتدأ بالخبر. والعربية تقدّم الفعل غالباً، وتخفي الفاعل أحياناً، وتستغني عن الرابط، وتجعل الضمير جزءاً من الكلمة.</p>
+  <p class="note" style="margin-top:8px">يكمّل من الكتاب: <a class="arlink" href="../chapters/18-pos-ner.html">الفصل ١٨: وسم أقسام الكلام والكيانات المسمّاة</a><a class="arlink" href="../chapters/19-cfg-parsing.html">الفصل ١٩: النحو الخالي من السياق وتحليل المكوّنات</a><a class="arlink" href="../chapters/20-dependency-parsing.html">الفصل ٢٠: تحليل الاعتماديات</a></p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الدرس</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الدرس في دقيقة</h2>
+  <ol>
+    <li>ترتيب الجملة الفعلية الأشيع <b>فعل–فاعل–مفعول</b>، ويجوز <b>فاعل–فعل–مفعول</b>. والمطابقة تختلف: الفعل المتقدم يطابق فاعله في الجنس فقط (كتبَ الطلابُ)، والمتأخر يطابقه في العدد أيضاً (الطلابُ كتبوا).</li>
+    <li><b>الإعراب</b> يسمح بتقديم المفعول (كتبَ الدرسَ الطلابُ)؛ لكن الحركات تغيب في النص، فيعتمد المحلل على المعنى والسياق.</li>
+    <li>الفاعل قد <b>يستتر</b> في الفعل: «كتبتُ» جملة كاملة. والجملة <b>الاسمية</b> بلا فعل ولا رابط: «الطالبُ مجتهدٌ».</li>
+    <li>المحلل الاعتمادي (الفصل ٢٠) يعمل على العربية بعد <b>فصل اللواصق</b>، لأن «وكتبها» تحوي عطفاً وفعلاً ومفعولاً. وفي UD العربية تصير الإضافة nmod، وحرف الجر case، والخبر جذر الجملة الاسمية.</li>
+  </ol>
+</div>
+<!-- ============ 1 ============ -->
+<section class="sec" id="a6-1">
+  <header><div class="kicker">١ · الترتيب والمطابقة</div><h2>من فعل ماذا؟ الإعراب يجيب… حين يُكتب</h2></header>
+  <div class="brief"><b>باختصار</b>في الإنجليزية يحدد الموقع الوظيفة: ما قبل الفعل فاعل. وفي العربية يحددها <b>الإعراب</b>: الفاعل مرفوع والمفعول منصوب، فيجوز تبديل المواقع. ومعه قاعدة مطابقة دقيقة: الفعل قبل فاعله مفرد دائماً ويطابقه في الجنس، وبعده يطابقه في العدد والجنس. وهذه قاعدة يستفيد منها المحلل لمعرفة الفاعل.</div>
+  <div class="terms"><span>ترتيب الكلمات <i>word order (VSO / SVO)</i></span><span>المطابقة <i>agreement</i></span><span>الإعراب / الحالة <i>case marking</i></span><span>الرفع / النصب <i>nominative / accusative</i></span></div>
+  <div class="w" id="woBox"><div class="cap">مولِّد الجملة: الفاعل × الترتيب (والمطابقة تتغير وحدها)</div>
+    <div class="row"><span class="seg" id="woS" style="flex-wrap:wrap"><button data-i="0" class="on">الطالب</button><button data-i="1">الطلاب</button><button data-i="2">الطالبة</button><button data-i="3">الطالبات</button></span><span class="seg" id="woO" style="flex-wrap:wrap"><button data-o="vso" class="on">فعل فاعل مفعول</button><button data-o="svo">فاعل فعل مفعول</button><button data-o="vos">فعل مفعول فاعل</button></span></div>
+    <div id="woOut" class="arbig" style="margin-top:8px"></div><div class="calc" id="woCalc"></div></div>
+  <p>جرّب «الطلاب» مع الترتيبين الأولين: «كَتَبَ الطلابُ» بفعل مفرد، و«الطلابُ كَتَبُوا» بفعل جمع. ثم جرّب «فعل مفعول فاعل»: الحركات وحدها (ضمة الفاعل وفتحة المفعول) تقول من كتب. فإذا حذفنا الحركات (كما في معظم النصوص) صارت «كتب الدرس الطلاب» ممكنة القراءة على وجهين نظرياً، ويحسمها المعنى: الدروس لا تكتب. وهذا مثال على ما رأيناه في الفصل ١٩: المحلل يحتاج إلى معرفة دلالية لا إلى النحو وحده.</p>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="sec" id="a6-2">
+  <header><div class="kicker">٢ · الفاعل المستتر</div><h2>«كتبتُ»: جملة في كلمة</h2></header>
+  <div class="brief"><b>باختصار</b>العربية لغة «حذف الضمير»: الفعل يحمل الشخص والعدد والجنس في لاحقته، فلا حاجة إلى «أنا» في «كتبتُ». وهذا ما يسميه الفصل ٢٤ «العائد الصفري». والمحلل لا يرى رمزاً للفاعل، فيصير الفعل جذراً بلا nsubj. وبلا حركات، تحتمل «كتبت» أربعة فواعل: أنا، أنتَ، أنتِ، هي.</div>
+  <div class="terms"><span>الضمير المستتر <i>pro-drop / null subject</i></span><span>العائد الصفري <i>zero anaphor</i></span><span>لاحقة الفاعل <i>subject suffix</i></span></div>
+  <div class="w" id="pdBox"><div class="cap">تصريف «كتب» في الماضي: الفاعل مختبئ في اللاحقة (اضغط صيغة)</div>
+    <div id="pdOut"></div><div class="calc" id="pdCalc"></div></div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="sec" id="a6-3">
+  <header><div class="kicker">٣ · أشجار الاعتماد</div><h2>المحلل الاعتمادي على العربية</h2></header>
+  <div class="brief"><b>باختصار</b>أشجار الاعتماد (الفصل ٢٠) تناسب العربية لأن ترتيب كلماتها مرن. وفي مجموعات UD العربية (كشجرة براغ العربية PADT) تُفصل اللواصق أولاً فتصير رموزاً مستقلة لها علاقات: حرف العطف cc، وضمير المفعول obj، وحرف الجر case. والجملة الاسمية بلا رابط: الخبر جذرها، والمبتدأ nsubj له. والإضافة (كتاب النحو) علاقة nmod.</div>
+  <div class="terms"><span>علاقات UD <i>Universal Dependencies relations</i></span><span>PADT</span><span>CATiB</span><span>الإضافة <i>idafa (construct state)</i></span><span>الجملة الاسمية <i>nominal sentence</i></span></div>
+  <div class="w" id="dpBox"><div class="cap">أشجار اعتماد عربية بأسلوب UD (التحليلات من عندنا؛ اختر جملة، وبدّل فصل اللواصق)</div>
+    <div class="row"><span class="seg" id="dpS" style="flex-wrap:wrap"><button data-i="0" class="on">جملة فعلية</button><button data-i="1">جملة اسمية</button><button data-i="2">لواصق كثيرة</button></span><span class="seg" id="dpG"><button data-g="1" class="on">بعد فصل اللواصق</button><button data-g="0">الكلمات كما تُكتب</button></span></div>
+    <div class="scroll" id="dpSvg" style="margin-top:8px"></div><div class="calc" id="dpCalc"></div></div>
+  <p>لاحظ في «الكلمات كما تُكتب» أن «وكتبها» عقدة واحدة تضيع داخلها ثلاث علاقات: العطف والفعل والمفعول. ولذلك تبدأ أنابيب المعالجة العربية (الدرس العاشر) بالتطبيع ثم فصل اللواصق ثم الوسم ثم التحليل. وهناك مخطط وسم عربي آخر أبسط هو <b>CATiB</b> (شجرة كولومبيا العربية)، بعلاقات قليلة قريبة من مصطلحات النحو العربي (فاعل، مفعول، مضاف إليه، مبتدأ…)، صُمم ليسرّع الوسم البشري.</p>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">للمراجعة</div><h2>أسئلة ومسرد</h2></header>
+  <ol class="clean">
+    <li>صحّح المطابقة: «جاءوا الطلاب»، «الطالبات حضرت». <details><summary>الحل</summary>«جاء الطلابُ» (الفعل المتقدم مفرد)، و«الطالباتُ حضرْنَ» (الفعل المتأخر يطابق في العدد).</details></li>
+    <li>ارسم شجرة اعتماد لـ «فأعطاها الكتابَ» بعد فصل اللواصق. <details><summary>الحل</summary>أعطى جذر؛ ف ← cc؛ ها ← iobj (المفعول الأول)؛ الكتاب ← obj. والفاعل مستتر: لا nsubj.</details></li>
+    <li>لماذا يفيد قانون المطابقة محلل الاعتماد العربي في تحديد الفاعل؟</li>
+    <li>كيف يمثّل UD جملة اسمية بلا رابط؟ وما الفرق عن الإنجليزية التي فيها is؟</li>
+  </ol>
+  <h3>مسرد الدرس</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="05-language-models.html">→ الدرس السابق: النماذج اللغوية والعربية</a><a href="07-dialects.html">الدرس التالي: الفصحى واللهجات ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الدرس"><h4>أقسام الدرس</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/ar06.js"></script>
+</body>
+</html>

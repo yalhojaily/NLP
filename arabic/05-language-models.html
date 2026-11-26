@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>النماذج اللغوية والعربية · المسار العربي | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="الدرس الخامس من المسار العربي: التفرق في نماذج N-gram العربية وأثر التقطيع، ونماذج BERT العربية، والنماذج اللغوية الكبيرة العربية (Jais وALLaM وفنار) واستراتيجيات بنائها.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="04-diacritics.html" style="text-decoration:none">→ الدرس ٤</a><b>الدرس ٥ من ١٠</b><a class="pill" href="06-syntax.html" style="text-decoration:none">الدرس ٦ ←</a></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">المسار العربي · الدرس ٥</div>
+  <h1>النماذج اللغوية والعربية</h1>
+  <div class="sub en" style="font-size:16px">Arabic Track · Lesson 5 · Language Models for Arabic</div>
+  <p class="epi">في الفصل الثالث نعدّ الكلمات لنبني نموذجاً لغوياً، وفي الفصول ٧–٩ نبني محوّلات تتعلم من مليارات الرموز. والسؤال في هذا الدرس: ماذا يتغير حين تكون اللغة عربية؟</p>
+  <p class="note" style="margin-top:8px">يكمّل من الكتاب: <a class="arlink" href="../chapters/03-ngram-language-models.html">الفصل ٣: نماذج N-gram اللغوية</a><a class="arlink" href="../chapters/05-embeddings.html">الفصل ٥: التضمينات</a><a class="arlink" href="../chapters/07-transformers.html">الفصل ٧: المحوّلات والتدريب المسبق</a><a class="arlink" href="../chapters/09-masked-language-models.html">الفصل ٩: النماذج اللغوية المقنّعة</a></p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الدرس</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الدرس في دقيقة</h2>
+  <ol>
+    <li>نموذج N-gram على الكلمات العربية المكتوبة يعاني <b>تفرقاً</b> أشد من الإنجليزية: كثير من الصيغ لا يظهر في التدريب. وتقطيع اللواصق يخفّض نسبة الكلمات غير المرئية بوضوح.</li>
+    <li>نماذج المرمِّز العربية (AraBERT، CAMeLBERT) تُدرَّب بالقناع كـ BERT (الفصل ٩)، وبعضها يقطّع النص صرفياً قبل التدريب، وبعضها له نسخ للفصحى واللهجات والتراث.</li>
+    <li>النماذج الكبيرة العربية تسلك طريقين: <b>التدريب من الصفر</b> على مزيج عربي-إنجليزي، أو <b>مواصلة تدريب</b> نموذج قائم على بيانات عربية. وكلاهما يواجه قلة البيانات العربية عالية الجودة مقارنة بالإنجليزية.</li>
+    <li>القياس: معايير عربية خاصة (ثقافية، ولهجية، ومعرفية)، لأن ترجمة المعايير الإنجليزية لا تقيس معرفة العالم العربي.</li>
+  </ol>
+</div>
+<!-- ============ 1 ============ -->
+<section class="sec" id="a5-1">
+  <header><div class="kicker">١ · التفرق</div><h2>كلمات لم يرها النموذج أبداً</h2></header>
+  <div class="brief"><b>باختصار</b>في الفصل الثالث، نموذج N-gram يعطي احتمالاً صفراً لكل ما لم يره، ونعالج ذلك بالتنعيم. وفي العربية المشكلة أكبر، لأن كل تركيب من سوابق وجذع ولواحق «كلمة» جديدة (الدرس الثالث). والتقطيع يحوّل «وسيكتبونها» إلى أجزاء تكرر كثيراً، فتقلّ الكلمات غير المرئية والثنائيات غير المرئية معاً.</div>
+  <div class="terms"><span>خارج المفردات <i>out-of-vocabulary (OOV)</i></span><span>التفرق <i>sparsity</i></span><span>الثنائية غير المرئية <i>unseen bigram</i></span><span>التنعيم <i>smoothing</i></span></div>
+  <p>درّبنا «نموذجاً» على عشر جمل (مدوّنة الدرس الثاني) واختبرناه على أربع جمل جديدة، مرة بالكلمات كما تُكتب، ومرة بعد فصل اللواصق:</p>
+  <div class="w" id="spBox"><div class="cap">نسبة ما لم يُرَ في الاختبار: الكلمات المكتوبة مقابل المقطَّعة (مدوّنة من صنعنا)</div>
+    <div class="row"><span class="seg" id="spM"><button data-m="0" class="on">الكلمات كما تُكتب</button><button data-m="1">بعد فصل اللواصق</button></span></div>
+    <div id="spOut" style="margin-top:8px;line-height:2.3;font-size:18px"></div>
+    <div id="spBars" style="margin-top:6px"></div><div class="calc" id="spCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">OOV %</span>مفهوم رياضي · نسبة ما خارج المفردات</div><div class="mb">
+    <p>نسبة OOV = عدد رموز الاختبار التي لم تظهر في التدريب ÷ عدد رموز الاختبار. وهي مهمة لأن نموذج N-gram لا يعرف ماذا يفعل بالكلمة غير المرئية إلا بحيلة (رمز &lt;UNK&gt; أو التنعيم). فإن كانت ٣٠٪ من كلمات الاختبار غير مرئية، كان النموذج «أعمى» في ثلث النص. والتقطيع يخفّضها لأن الأجزاء الصغيرة (و، ال، ها) تتكرر أكثر بكثير من الكلمات الكاملة.</p>
+  </div></div>
+  <p>والنماذج الحديثة لا تعاني OOV بهذا المعنى، لأن مقطِّعها (BPE على البايتات) يقطع أي كلمة إلى أجزاء معروفة. لكن المشكلة تعود بصورة أخرى: الكلمة النادرة تُقطع إلى أجزاء كثيرة بلا معنى (الدرس الثاني)، فيتعلم النموذج صيغها الصرفية ببطء.</p>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="sec" id="a5-2">
+  <header><div class="kicker">٢ · المرمِّزات العربية</div><h2>BERT يتكلم العربية</h2></header>
+  <div class="brief"><b>باختصار</b>بعد BERT (الفصل ٩) ظهرت نماذج عربية مدرَّبة بالقناع على مدوّنات عربية كبيرة: <b>AraBERT</b> (٢٠٢٠) و<b>CAMeLBERT</b> (٢٠٢١) وغيرهما. ومن قراراتها المميزة: التقطيع الصرفي قبل BPE في بعض نسخ AraBERT، ونسخ منفصلة من CAMeLBERT للفصحى الحديثة واللهجات والعربية التراثية، لدراسة أثر نوع النص على الأداء.</div>
+  <div class="terms"><span>النموذج المقنَّع <i>masked language model</i></span><span>التدريب المسبق <i>pretraining</i></span><span>الضبط <i>fine-tuning</i></span><span>تنوّع اللغة <i>language variant</i></span></div>
+  <p>تذكّر من الفصل التاسع: النموذج المقنَّع يخفي بعض الرموز ويتعلم استعادتها من السياق في الاتجاهين، ثم يُضبط على مهام كالتصنيف ووسم الكيانات. والنماذج العربية الأولى من هذا النوع أثبتت أن نموذجاً بمفردات عربية وبيانات عربية يتفوق على النماذج متعددة اللغات في مهام عربية كثيرة. وطرحت أسئلة خاصة بالعربية: هل نقطّع اللواصق قبل التدريب؟ وهل نخلط الفصحى بالعامية؟ ويجيب عمل CAMeLBERT بأن <b>تطابق نوع بيانات التدريب مع نوع المهمة</b> (فصحى أم لهجة أم تراث) أهم في الغالب من مجرد زيادة الحجم؛ وهذا درس نعود إليه في الدرس السابع.</p>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="sec" id="a5-3">
+  <header><div class="kicker">٣ · النماذج الكبيرة العربية</div><h2>من الصفر أم بالبناء على نموذج قائم؟</h2></header>
+  <div class="brief"><b>باختصار</b>بناء نموذج لغوي كبير عربي يواجه مشكلة البيانات: النص العربي عالي الجودة على الويب أقل بكثير من الإنجليزي. فيُدرَّب النموذج على مزيج عربي-إنجليزي (والإنجليزية تنقل «المعرفة العامة» عبر اللغتين)، إما <b>من الصفر</b> بمقطِّع يعطي العربية حظاً كبيراً، وإما بـ<b>مواصلة تدريب</b> نموذج قوي قائم على بيانات عربية ثم ضبطه. وتقيَّم بمعايير عربية خاصة.</div>
+  <div class="terms"><span>التدريب من الصفر <i>training from scratch</i></span><span>مواصلة التدريب المسبق <i>continual pretraining</i></span><span>مزج البيانات <i>data mixture</i></span><span>المعيار <i>benchmark</i></span></div>
+  <div class="w" id="llBox"><div class="cap">عائلات نماذج عربية بارزة (اضغط صفاً؛ المصادر في التقارير المرتبطة)</div>
+    <div class="scroll"><table class="tb" id="llTab"></table></div><div class="calc" id="llCalc"></div></div>
+  <p class="note">الجدول ليس حصراً، والمجال يتغير بسرعة؛ تحقق من آخر الإصدارات في صفحات هذه المشاريع. والأرقام المذكورة كما في تقاريرها الفنية.</p>
+  <p>وللتقييم: ترجمة المعايير الإنجليزية إلى العربية لا تكفي، لأنها تسأل عن ثقافة وقوانين ومعارف غير عربية، وتحمل أخطاء الترجمة. ولذلك ظهرت معايير عربية الأصل تقيس المعرفة بالعالم العربي، والفهم في اللهجات، والملاءمة الثقافية، ومنصات تجمعها (مثل منصة BALSAM لقياس النماذج العربية، ٢٠٢٥). وما رأيناه في الفصل الأول عن «التقييم بمهام قابلة للتحقق» ينطبق هنا أيضاً.</p>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">للمراجعة</div><h2>أسئلة ومسرد</h2></header>
+  <ol class="clean">
+    <li>لماذا تنخفض نسبة OOV بالتقطيع؟ وهل تنخفض نسبة الثنائيات غير المرئية بالقدر نفسه؟ (جرّب الأداة.)</li>
+    <li>اذكر ميزة وعيباً للتدريب من الصفر مقارنةً بمواصلة تدريب نموذج قائم. <details><summary>تلميح</summary>من الصفر: تتحكم في المقطِّع والبيانات من البداية، لكنه مكلف جداً. المواصلة: ترث قدرات النموذج القائم بتكلفة أقل، لكنك مقيد بمقطِّعه (أو تحتاج توسيعه) وقد «ينسى» بعض ما تعلّم.</details></li>
+    <li>لماذا لا يكفي أن نترجم معياراً إنجليزياً لتقييم نموذج عربي؟</li>
+  </ol>
+  <h3>مسرد الدرس</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="04-diacritics.html">→ الدرس السابق: التشكيل والغموض</a><a href="06-syntax.html">الدرس التالي: النحو العربي حاسوبياً ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الدرس"><h4>أقسام الدرس</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/ar05.js"></script>
+</body>
+</html>

@@ -396,3 +396,13 @@ table.we td,table.we th{white-space:nowrap;font-family:var(--f-mono);font-size:1
 /* ch18 */
 #bioTab td,#bioTab th,#nfTab td,#nfTab th,#vtA td,#vtB td{white-space:nowrap}
 #nnTab td,#nnTab th{white-space:nowrap}
+/* ---- Arabic track ---- */
+.arnote{display:flex;gap:12px;align-items:flex-start;background:var(--amber-soft);border:1px solid var(--amber);border-radius:12px;padding:10px 16px;margin:0 0 34px;font-size:15.5px;line-height:1.85}
+.arnote b{font-family:var(--f-head);color:var(--amber);white-space:nowrap}
+.arnote a{color:var(--ink)}
+.archip{display:inline-block;border:1px solid;border-radius:8px;padding:1px 7px;margin:2px 2px;line-height:1.6;white-space:nowrap}
+.archip sub{font-family:var(--f-mono);font-size:11px;font-weight:600;margin-inline-start:4px}
+.arbig{font-family:"Noto Naskh Arabic",serif;font-size:24px;line-height:2.1}
+.arlink{display:inline-block;font-size:13px;border-radius:20px;padding:0 10px;margin:2px;background:var(--math-soft);color:var(--math);text-decoration:none;font-family:var(--f-head)}
+.arin{width:100%;font-family:var(--f-body);font-size:19px;padding:6px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--paper);color:var(--ink)}
+.tb td.c,.tb th.c{text-align:center}

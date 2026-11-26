@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الجذر والوزن · المسار العربي | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="الدرس الثالث من المسار العربي: الصرف العربي القائم على الجذر والوزن، وكثرة الصيغ، والتحليل الصرفي وإزالة غموضه، والتجذيع الخفيف مقابل استخراج الجذر في الاسترجاع.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="02-tokenization.html" style="text-decoration:none">→ الدرس ٢</a><b>الدرس ٣ من ١٠</b><a class="pill" href="04-diacritics.html" style="text-decoration:none">الدرس ٤ ←</a></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">المسار العربي · الدرس ٣</div>
+  <h1>الجذر والوزن</h1>
+  <div class="sub en" style="font-size:16px">Arabic Track · Lesson 3 · Root-and-Pattern Morphology</div>
+  <p class="epi">في الفصل الثاني من الكتاب نرى الكلمة الإنجليزية جذعاً تُلصق به زوائد: <span dir="ltr">un+happi+ness</span>. والعربية تفعل ذلك أيضاً، لكنها تفعل قبله شيئاً آخر: تنسج الكلمة من جذر ووزن، كما يُنسج قماش من خيطين.</p>
+  <p class="note" style="margin-top:8px">يكمّل من الكتاب: <a class="arlink" href="../chapters/02-words-and-tokens.html">الفصل ٢: الكلمات والرموز</a><a class="arlink" href="../chapters/18-pos-ner.html">الفصل ١٨: وسم أقسام الكلام والكيانات المسمّاة</a></p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الدرس</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الدرس في دقيقة</h2>
+  <ol>
+    <li>الكلمة العربية <b>جذر</b> (حروف أصلية، غالباً ثلاثة: ك ت ب) يُصبّ في <b>وزن</b> (قالب من حركات وزوائد: فاعِل، مَفْعول، مَفْعَلة). فمن ك ت ب: كاتِب، مَكْتوب، مَكْتَبة. وهذا صرف «غير تسلسلي».</li>
+    <li>الأوزان قواعد لا قوانين: بعض التركيبات غير مستعمل، وبعضها جاء على وزن آخر (مَجْلِس لا مَجْلَس). والجمع قد يكون بتغيير الوزن نفسه (كتاب ← كُتُب): «جمع التكسير».</li>
+    <li>الفعل الواحد مع التصريف واللواصق يولّد آلاف التحليلات، فالمعجم بالكلمات المكتوبة لا ينتهي، والنماذج تحتاج تحليلاً صرفياً أو تقطيعاً جزئياً.</li>
+    <li><b>المحلل الصرفي</b> يعطي كل التحليلات الممكنة للكلمة، ثم يختار <b>مزيل الغموض</b> أرجحها بالسياق: «علم» عِلْم أو عَلَم أو عَلِمَ أو عَلَّمَ.</li>
+    <li>في البحث: <b>التجذيع الخفيف</b> (نزع السوابق واللواحق) أدق عادةً من <b>استخراج الجذر</b>، لأن الجذر يجمع «كتاب» و«مكتب» معاً.</li>
+  </ol>
+</div>
+<!-- ============ 1 ============ -->
+<section class="sec" id="a3-1">
+  <header><div class="kicker">١ · الجذر والوزن</div><h2>كلمة من خيطين</h2></header>
+  <div class="brief"><b>باختصار</b>الصرف الإنجليزي (الفصل الثاني) «تسلسلي»: زوائد تُلصق قبل الجذع وبعده. والعربية فيها ذلك، ومعه صرف «غير تسلسلي»: الجذر حروف متفرقة، والوزن يملأ ما بينها بالحركات والزوائد. والجذر يحمل حقلاً دلالياً عاماً (ك ت ب: الكتابة)، والوزن يحمل وظيفة (فاعِل: من يفعل؛ مَفْعول: من وقع عليه الفعل؛ مَفْعَلة: المكان).</div>
+  <div class="terms"><span>الجذر <i>root</i></span><span>الوزن / القالب <i>pattern / template</i></span><span>الصرف غير التسلسلي <i>non-concatenative morphology</i></span><span>اسم الفاعل / اسم المفعول <i>active / passive participle</i></span><span>المزيد <i>derived verb form</i></span></div>
+  <p>يصف علماء العربية الأوزان بحروف «ف ع ل»: الفاء مكان الحرف الأول من الجذر، والعين مكان الثاني، واللام مكان الثالث. فـ «كاتِب» على وزن «فاعِل»، و«مَكْتَبة» على وزن «مَفْعَلة». والحاسوب يستطيع أن يفعل هذا آلياً: يضع حروف الجذر مكان ف ع ل. لكن العربية لغة حية لا آلة: ليست كل التركيبات مستعملة، وبعضها جاء على وزن آخر. جرّب:</p>
+  <div class="w" id="rpBox"><div class="cap">مولِّد الجذر × الوزن (الحكم على الاستعمال تقريبي ومن عندنا)</div>
+    <div class="row"><span class="seg" id="rpR" style="flex-wrap:wrap"></span></div>
+    <div class="scroll"><table class="tb" id="rpTab" style="margin-top:8px"></table></div><div class="calc" id="rpCalc"></div></div>
+  <p class="note">اخترنا جذوراً «صحيحة» حروفها كلها صوامت. أما الجذور «المعتلة» (فيها و أو ي، مثل ق و ل) فتتغير حروفها مع الأوزان (قال، يقول، مَقول)، وهي من أصعب ما يواجه المحللات الصرفية.</p>
+  <p>ومن مظاهر هذا الصرف <span class="t">جمع التكسير <i>broken plural</i></span>: الجمع بتغيير الوزن لا بإضافة لاحقة: كِتاب ← كُتُب، طالِب ← طُلّاب، مَدْرَسة ← مَدارِس. والجمع المكسَّر غير قابل للتنبؤ كلياً من المفرد، فهو من المعلومات التي يحتاج المحلل أن يخزّنها في معجمه.</p>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="sec" id="a3-2">
+  <header><div class="kicker">٢ · انفجار الصيغ</div><h2>كم كلمة يولّد فعل واحد؟</h2></header>
+  <div class="brief"><b>باختصار</b>الفعل العربي يتصرف بالشخص (٣) والعدد (مفرد، مثنى، جمع) والجنس، وبالزمن والصيغة (ماضٍ، ومضارع مرفوع ومنصوب ومجزوم، وأمر)، وبالبناء للمعلوم والمجهول؛ ثم تلتصق به سوابق ولواحق. فيصل الفعل الواحد إلى آلاف التحليلات، مقابل خمس صيغ للفعل الإنجليزي (write، writes، wrote، written، writing). وهذا ما يجعل معجم الكلمات المكتوبة ضخماً ومتفرقاً.</div>
+  <div class="terms"><span>التصريف <i>inflection</i></span><span>الاشتقاق <i>derivation</i></span><span>السمات الصرفية <i>morphological features</i></span><span>التفرق <i>sparsity</i></span></div>
+  <div class="w" id="exBox"><div class="cap">عدّاد تحليلات فعل واحد (تقدير تقريبي من صنعنا: نعدّ التحليلات لا الصيغ المكتوبة المختلفة)</div>
+    <div id="exF"></div><div id="exBars" style="margin-top:8px"></div><div class="calc" id="exCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">a × b × c</span>مفهوم رياضي · قاعدة الضرب</div><div class="mb">
+    <p>إذا كان لديك ٣ قمصان و٤ سراويل، فعدد الأطقم ٣ × ٤ = ١٢، لأن كل قميص يصلح مع كل سروال. وكذلك الكلمة: كل صيغة تصريفية تصلح مع كل خيار لحرف العطف، ومع كل ضمير مفعول. فعدد التحليلات = حاصل ضرب عدد الخيارات في كل «خانة». ولهذا ينفجر العدد بسرعة: كل خانة جديدة تضرب المجموع لا تضيف إليه.</p>
+  </div></div>
+  <p>والأثر الحاسوبي: لو عاملنا كل كلمة مكتوبة نوعاً مستقلاً (كما في نماذج N-gram، الفصل الثالث)، لرأت المدوّنة كل صيغة مرات قليلة، ولم ترَ كثيراً منها أبداً. وهذه مشكلة <b>التفرق</b> التي نقيسها في الدرس الخامس. والحل إما تقطيع الكلمة إلى أجزاء متكررة (الدرس الثاني)، وإما تحليلها صرفياً إلى «لِمّة» وسمات.</p>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="sec" id="a3-3">
+  <header><div class="kicker">٣ · التحليل وإزالة الغموض</div><h2>«علم» واحدة، وستة تحليلات</h2></header>
+  <div class="brief"><b>باختصار</b>المحلل الصرفي يأخذ كلمة مكتوبة ويعطي <b>كل</b> تحليلاتها الممكنة: التشكيل، واللِّمّة، والجذر، وقسم الكلام، والسمات. ولأن الحركات غائبة غالباً، تكثر التحليلات. ثم يأتي <b>مزيل الغموض</b>: نموذج يختار التحليل الأرجح من السياق، وهو امتداد لوسم أقسام الكلام في الفصل الثامن عشر.</div>
+  <div class="terms"><span>المحلل الصرفي <i>morphological analyzer</i></span><span>إزالة الغموض الصرفي <i>morphological disambiguation</i></span><span>اللِّمّة <i>lemma</i></span></div>
+  <div class="w" id="anBox"><div class="cap">تحليلات «علم» واختيارها بالسياق (اختر جملة)</div>
+    <div class="row"><span class="seg" id="anS" style="flex-wrap:wrap"></span></div>
+    <div class="scroll"><table class="tb" id="anTab" style="margin-top:8px"></table></div><div class="calc" id="anCalc"></div></div>
+  <p>وفي الفصل الثامن عشر من الكتاب، وسّام أقسام الكلام الإنجليزي يختار من بين وسوم قليلة (book: اسم أو فعل). والوسم الصرفي العربي أغنى بكثير: الوسم الواحد يجمع قسم الكلام والشخص والعدد والجنس والحالة والتعريف…، فتصير مجموعة الوسوم الممكنة بالآلاف. ولهذا تستعمل الأدوات العربية (CAMeL Tools مثلاً، الدرس العاشر) محللاً بمعجم ضخم يقترح التحليلات، ونموذجاً يرتّبها.</p>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="sec" id="a3-4">
+  <header><div class="kicker">٤ · في البحث</div><h2>التجذيع الخفيف أم الجذر؟</h2></header>
+  <div class="brief"><b>باختصار</b>للبحث نريد أن تطابق «كتاب» كلمتي «الكتاب» و«كتابه». <b>التجذيع الخفيف</b> ينزع السوابق واللواحق الشائعة فقط، فيبقى قريباً من المعنى لكنه يفوّت جمع التكسير (كُتُب). و<b>استخراج الجذر</b> يجمع كل ما من ك ت ب، فيلتقط «كتب» لكنه يجلب «مكتب» و«كاتب» أيضاً. وقد وجدت دراسات الاسترجاع العربي (لاركي وزملاؤها ٢٠٠٢) أن التجذيع الخفيف أدق من الاعتماد على الجذر.</div>
+  <div class="terms"><span>التجذيع الخفيف <i>light stemming</i></span><span>استخراج الجذر <i>root extraction</i></span><span>الدقة / الاستدعاء <i>precision / recall</i></span></div>
+  <div class="w" id="lsBox"><div class="cap">البحث عن «كتاب» (بمعنى: كتاب يُقرأ) في عشر كلمات (اختر طريقة المطابقة)</div>
+    <div class="row"><span class="seg" id="lsM" style="flex-wrap:wrap"><button data-m="0">مطابقة حرفية</button><button data-m="1" class="on">تجذيع خفيف</button><button data-m="2">الجذر</button></span></div>
+    <div id="lsOut" style="margin-top:8px;line-height:2.3;font-size:18px"></div><div class="calc" id="lsCalc"></div></div>
+  <p>الدقة والاستدعاء رأيناهما في تقييم الكتاب مراراً (الفصلين ٤ و١١): الدقة = كم مما أرجعناه صحيح، والاستدعاء = كم من الصحيح أرجعناه. والأداة تُظهر المقايضة: الجذر يرفع الاستدعاء ويخفض الدقة. والحل الأمثل في الأنظمة الحديثة غالباً تجذيع خفيف مع معالجة جمع التكسير بمعجم، أو التخلي عن المطابقة الحرفية كلياً لصالح الاسترجاع بالتضمينات (الفصل الحادي عشر).</p>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">للمراجعة</div><h2>أسئلة ومسرد</h2></header>
+  <ol class="clean">
+    <li>ما جذر «استعلام» ووزنها؟ وما معنى الوزن؟ <details><summary>الحل</summary>الجذر ع ل م، والوزن اسْتِفْعال: مصدر «اسْتَفْعَلَ» الذي يدل غالباً على الطلب: طلب العلم بالشيء.</details></li>
+    <li>لماذا يصعب على مقطِّع BPE أن يتعلم الوزن «مَفْعول»؟ <details><summary>تلميح</summary>لأن الوزن ليس سلسلة حروف متجاورة: «م» في الأول و«و» قبل الأخير وحروف الجذر بينهما. وBPE لا يدمج إلا المتجاور.</details></li>
+    <li>في عدّاد التحليلات: كم يصير العدد إذا أضفنا خانة لحرف الجر (٤ خيارات) للأسماء؟ ولماذا لا نضيفها للفعل؟</li>
+    <li>اقترح طريقة لجعل البحث عن «كتاب» يجد «كتب» دون أن يجد «مكتب».</li>
+  </ol>
+  <h3>مسرد الدرس</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="02-tokenization.html">→ الدرس السابق: الكلمة والرمز</a><a href="04-diacritics.html">الدرس التالي: التشكيل والغموض ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الدرس"><h4>أقسام الدرس</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/ar03.js"></script>
+</body>
+</html>

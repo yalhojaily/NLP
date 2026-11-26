@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الكلام العربي · المسار العربي | شرح كتاب معالجة الكلام واللغة</title>
+<meta name="description" content="الدرس الثامن من المسار العربي: تحويل الكتابة العربية المشكولة إلى أصوات (الحروف الشمسية، وهمزة الوصل، والتاء المربوطة، والوقف)، والتعرّف الآلي على الكلام العربي وأثر التطبيع على WER، وتحويل النص العربي إلى كلام.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <a class="book" href="../" style="text-decoration:none;color:inherit">شرح كتاب <span class="en">Speech and Language Processing</span></a>
+    <div class="chnav"><a class="pill" href="07-dialects.html" style="text-decoration:none">→ الدرس ٧</a><b>الدرس ٨ من ١٠</b><a class="pill" href="09-meaning.html" style="text-decoration:none">الدرس ٩ ←</a></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">المسار العربي · الدرس ٨</div>
+  <h1>الكلام العربي</h1>
+  <div class="sub en" style="font-size:16px">Arabic Track · Lesson 8 · Arabic Speech Recognition and Synthesis</div>
+  <p class="epi">في الفصول ١٥–١٧ ينتقل الكتاب بين الموجة الصوتية والنص. والعربية في هذا الطريق ذات وجهين: كتابتها المشكولة قريبة جداً من نطقها، وكتابتها المعتادة بلا حركات بعيدة عنه.</p>
+  <p class="note" style="margin-top:8px">يكمّل من الكتاب: <a class="arlink" href="../chapters/15-phonetics.html">الفصل ١٥: الصوتيات واستخراج خصائص الكلام</a><a class="arlink" href="../chapters/16-asr.html">الفصل ١٦: التعرّف الآلي على الكلام</a><a class="arlink" href="../chapters/17-tts.html">الفصل ١٧: تحويل النص إلى كلام</a></p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الدرس</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الدرس في دقيقة</h2>
+  <ol>
+    <li>العربية <b>المشكولة</b> تكاد تُنطق كما تُكتب، مع قواعد قليلة منتظمة: الحروف الشمسية تُدغم لام «ال»، وهمزة الوصل تسقط في الدرج، والتاء المربوطة تُنطق تاءً في الوصل وهاءً عند الوقف، والشدة تضعّف الحرف.</li>
+    <li>فتحويل الحرف إلى صوت (G2P) سهل نسبياً <b>بعد</b> التشكيل؛ والصعوبة كلها في التشكيل (الدرس الرابع).</li>
+    <li>التعرّف على الكلام العربي يواجه اللهجات والتبديل اللغوي، ويُخرج نصاً بلا حركات عادة. وقياس WER يتأثر بالإملاء: «احمد/أحمد» خطأ أم لا؟ فيجب تطبيع المرجع والفرضية قبل المقارنة.</li>
+    <li>تحويل النص إلى كلام يحتاج سلسلة: تطبيع ← تشكيل ← تحويل إلى أصوات ← نموذج صوتي. وخطأ التشكيل يصير خطأ نطق مسموعاً.</li>
+  </ol>
+</div>
+<!-- ============ 1 ============ -->
+<section class="sec" id="a8-1">
+  <header><div class="kicker">١ · من الحرف إلى الصوت</div><h2>العربية المشكولة تُنطق كما تُكتب… تقريباً</h2></header>
+  <div class="brief"><b>باختصار</b>في الفصل ١٥ رأينا أن الإنجليزية تحتاج قاموس نطق لأن كتابتها بعيدة عن نطقها (though، through، tough). والعربية المشكولة لا تحتاج ذلك غالباً: حرف لكل صوت، وحركة لكل صائت قصير، ومعها قواعد قليلة منتظمة. ومن أشهرها: <b>الحروف الشمسية</b> الأربعة عشر تُدغم فيها لام «ال» (الشَّمْس تُنطق «اشّمس»)، والقمرية تُظهرها (القَمَر).</div>
+  <div class="terms"><span>تحويل الحرف إلى صوت <i>grapheme-to-phoneme (G2P)</i></span><span>الحروف الشمسية / القمرية <i>sun / moon letters</i></span><span>الإدغام <i>assimilation</i></span><span>همزة الوصل <i>hamzat al-wasl</i></span><span>الوقف / الوصل <i>pausal / connected form</i></span><span>الصوامت المفخَّمة <i>emphatic consonants</i></span></div>
+  <div class="w" id="gpBox"><div class="cap">محوِّل الحرف إلى صوت للعربية المشكولة (قواعد مبسطة من صنعنا؛ الكتابة الصوتية بالرموز الدولية IPA)</div>
+    <input id="gpIn" class="arin">
+    <div class="row" style="margin-top:6px"><span class="seg" id="gpM"><button data-m="0" class="on">وصل</button><button data-m="1">وقف في آخر الجملة</button></span></div>
+    <div class="row" id="gpEx" style="flex-wrap:wrap;margin-top:6px"></div>
+    <div id="gpOut" dir="ltr" style="margin-top:8px;font-family:var(--f-mono);font-size:20px;line-height:2"></div><div class="calc" id="gpCalc"></div></div>
+  <p>الرموز الصوتية: <span dir="ltr" class="mono">ħ</span> للحاء، و<span dir="ltr" class="mono">ʕ</span> للعين، و<span dir="ltr" class="mono">ʔ</span> للهمزة، و<span dir="ltr" class="mono">ˤ</span> علامة التفخيم في ص ض ط ظ، و<span dir="ltr" class="mono">ː</span> علامة المد. وجرّب «ماذا لو لم تكن هناك حركات؟»: احذف الحركات من المدخل، فيعجز المحوِّل عن معرفة الصوائت القصيرة، ويخرج سلسلة صوامت؛ وهذا بالضبط سبب حاجة أنظمة النطق إلى المشكِّل.</p>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="sec" id="a8-2">
+  <header><div class="kicker">٢ · التعرّف على الكلام</div><h2>ماذا نعدّ خطأً؟</h2></header>
+  <div class="brief"><b>باختصار</b>نظام التعرّف (الفصل ١٦) يُقاس بـ WER: (إبدال + حذف + إدراج) ÷ كلمات المرجع. وفي العربية تُكتب الكلمة الصحيحة بأكثر من صورة (أحمد/احمد، المدرسة/المدرسه)، فإن لم نطبّع المرجع والفرضية حسبنا اختلاف الإملاء خطأ تعرّف. ولذا تطبّع حملات التقييم العربية النصين قبل الحساب. ومن تحدياته الخاصة: اللهجات، والتبديل اللغوي، وقلة البيانات المفرَّغة لبعض اللهجات.</div>
+  <div class="terms"><span>WER <i>word error rate</i></span><span>مسافة التحرير <i>edit distance</i></span><span>التطبيع قبل التقييم <i>scoring normalization</i></span><span>التحويل الصوتي المختلط <i>code-switched speech</i></span></div>
+  <div class="w" id="weBox"><div class="cap">WER قبل التطبيع وبعده (المرجع والفرضيات من صنعنا)</div>
+    <div class="row"><span class="seg" id="weH" style="flex-wrap:wrap"><button data-i="0" class="on">فروق إملائية فقط</button><button data-i="1">إملاء + خطأ حقيقي</button><button data-i="2">لاصقة ملتصقة</button></span><label class="note"><input type="checkbox" id="weN" checked> طبّع قبل الحساب</label></div>
+    <div id="weOut" style="margin-top:8px;line-height:2.2;font-size:18px"></div><div class="calc" id="weCalc"></div></div>
+  <p>والحالة الثالثة مثيرة: «في الصباح» مقابل «فالصباح» (كما تُنطق في كلام سريع ويكتبها بعض الناس). المحتوى واحد، لكن WER يعدّها خطأين (إبدال + حذف)، والتطبيع الإملائي لا يصلحها. فبعض الأبحاث تحسب الخطأ على مستوى الحروف (CER) أو بعد تقطيع اللواصق لتكون المقارنة أعدل.</p>
+  <p>ومن موارد الكلام العربي سلسلة تحديات <b>MGB</b> على بث عربي متعدد اللهجات (منه بث قناة الجزيرة)، ومشروع <b>Common Voice</b> المفتوح الذي يجمع تسجيلات متطوعين بالعربية ولغات أخرى. والنماذج متعددة اللغات الحديثة (من نوع Whisper، الفصل ١٦) تتعرف على العربية، لكن أداءها في اللهجات أضعف من الفصحى عادة.</p>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="sec" id="a8-3">
+  <header><div class="kicker">٣ · تحويل النص إلى كلام</div><h2>سلسلة لا تحتمل الغموض</h2></header>
+  <div class="brief"><b>باختصار</b>نظام TTS العربي (الفصل ١٧) يحتاج قبل الصوت أن يعرف <b>كيف</b> تُنطق كل كلمة. فالسلسلة: تطبيع النص (الأرقام والاختصارات إلى كلمات) ← تشكيل كامل (الدرس الرابع) ← تحويل إلى أصوات (القسم الأول) ← نموذج صوتي ومولّد موجة. وكل خطأ في التشكيل يصير خطأ نطق: «ذَهَبَ» تُقرأ «ذَهَب».</div>
+  <div class="terms"><span>تطبيع النص للنطق <i>text normalization</i></span><span>العروض <i>prosody</i></span><span>الصوت اللهجي <i>dialectal voice</i></span></div>
+  <p>ويضيف تطبيع النص (الفصل ١٧) تعقيداً عربياً: الأعداد تتطابق مع المعدود جنساً وتعاكسه أحياناً («ثلاثة كتب» و«ثلاث صفحات»)، ويُعرب العدد بحسب موقعه، فتحويل «٣ كتب» إلى كلمات يحتاج تحليلاً نحوياً. والعروض (النبر والتنغيم) يختلف بين الفصحى واللهجات، والمستخدمون يريدون غالباً صوتاً بلهجتهم في المساعدات الصوتية، لا فصحى نشرة الأخبار. ولهذا تُبنى اليوم أنظمة نطق لهجية من بيانات كلام لهجي، ويعود السؤال نفسه من الدرس السابع: بيانات تطابق الاستعمال.</p>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">للمراجعة</div><h2>أسئلة ومسرد</h2></header>
+  <ol class="clean">
+    <li>اكتب النطق التقريبي لـ «الرَّجُلُ» و«الكِتَابُ». <details><summary>الحل (تحقق في المحوِّل)</summary>في أول الكلام: ʔarradʒulu (الراء شمسية: تُدغم اللام وتُشدَّد الراء)، وʔalkitaːbu (الكاف قمرية: تظهر اللام).</details></li>
+    <li>مرجع من ١٠ كلمات، والفرضية فيها خطآن إملائيان (ة/ه، أ/ا) وخطأ تعرّف واحد. ما WER قبل التطبيع وبعده؟ <details><summary>الحل</summary>قبل: ٣/١٠ = ٣٠٪، بعد: ١/١٠ = ١٠٪.</details></li>
+    <li>لماذا يحتاج تحويل «٣ كتب» إلى كلام معرفةً نحوية؟</li>
+  </ol>
+  <h3>مسرد الدرس</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="07-dialects.html">→ الدرس السابق: الفصحى واللهجات</a><a href="09-meaning.html">الدرس التالي: المعنى والإحالة والمشاعر ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الدرس"><h4>أقسام الدرس</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/ar08.js"></script>
+</body>
+</html>
