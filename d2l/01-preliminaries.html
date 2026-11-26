@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ١ · المقدّمات الأساسية | الغوص في التعلّم العميق</title>
+<meta name="description" content="شرح عربي للفصل الأول من كتاب Dive into Deep Learning: الموترات، وتهيئة البيانات، والجبر الخطي، والتفاضل، والاشتقاق التلقائي، والاحتمال، مع شرح الكود سطراً سطراً والرياضيات من الصفر.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">الغوص في التعلّم العميق</a></nav>
+    <div class="chnav"><a class="pill" href="index.html" style="text-decoration:none">→ كل الفصول</a><b>الفصل ١ من ٤٢</b></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الأساسيات · الفصل الأول</div>
+  <h1>المقدّمات الأساسية</h1>
+  <div class="sub en" style="font-size:16px">Chapter 1 · Preliminaries · <a href="https://d2l.ai/chapter_preliminaries/index.html">d2l.ai</a></div>
+  <p class="epi">قبل أن تغوص تحتاج مهارات نجاة قليلة: كيف تخزّن البيانات وتعالجها، وكيف تقيس الأشياء في فضاءات كثيرة الأبعاد، وكيف تعرف أي اتجاه يقلّل الخطأ، وكيف تفكّر في غير المؤكد. وهذه رياضيات قديمة كلها؛ والجديد الذي أضافه التعلّم العميق هو <b>الحجم</b>: ملايين المتغيرات بدل ثلاثة أو أربعة.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم في سطرين</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--tint);border-color:var(--rule)"></i>كود مشروح: كل سطر وبجانبه معناه</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية: جرّب بيدك</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>كل بيانات التعلّم العميق تُخزَّن في <b>موترات</b>: جداول أعداد بأي عدد من المحاور. والقاعدة الذهبية: احسب على الموتر كله دفعة واحدة، لا عنصراً عنصراً.</li>
+    <li>البيانات الخام (جداول فيها خانات فارغة ونصوص) تُحوَّل أولاً إلى أعداد: الفئات إلى أعمدة ٠/١، والفراغات إلى قيمة معقولة كالمتوسط.</li>
+    <li>الجبر الخطي لغة النماذج: الضرب النقطي يقيس التشابه، وضرب المصفوفات يحوّل مجموعة أمثلة كلها بخطوة واحدة، والمعيار يقيس الحجم والمسافة.</li>
+    <li>المشتقة تقول: إن حرّكت المعامل قليلاً، كم يتغير الخطأ؟ والتدرّج يجمع هذا الجواب لكل المعاملات في متجه واحد، وقاعدة السلسلة تحسبه عبر طبقات متتالية.</li>
+    <li>الاشتقاق التلقائي يسجّل العمليات أثناء الحساب، ثم يمشي عليها إلى الخلف ليحسب التدرّج تلقائياً، ولو كان في البرنامج حلقات وشروط.</li>
+    <li>الاحتمال يقيس غير المؤكد، وقاعدة بايز تحدّث الاعتقاد بعد رؤية دليل، والخطأ المعياري يخبرك متى يكون الفرق حقيقياً ومتى يكون صدفة.</li>
+  </ol>
+</div>
+
+<!-- ============ OPENING ============ -->
+<section class="sec" id="s0">
+  <header><div class="kicker">افتتاحية الفصل <a class="pg" href="https://d2l.ai/chapter_preliminaries/index.html">d2l.ai ↗</a></div><h2>لماذا هذه المقدّمات؟</h2></header>
+  <div class="brief"><b>باختصار</b>التعلّم العميق يأخذ الجبر الخطي والتفاضل والاحتمال، ويطبّقها على ملايين أو مليارات المتغيرات. وهذا يحتاج أساسين برمجيين: <b>مكتبة موترات</b> تنفّذ العمليات على مصفوفات كاملة بالتوازي، و<b>اشتقاقاً تلقائياً</b> يحسب مشتقة أي برنامج عددي. وهذا الفصل دورة سريعة عملية في الاثنين.</div>
+  <div class="terms"><span>الموتر <i>tensor</i></span><span>الاشتقاق التلقائي <i>automatic differentiation</i></span><span>المعالج الرسومي <i>GPU</i></span></div>
+  <p>تخيّل أنك تدرّب نموذجاً يتعرّف على صور الملابس. كل صورة ٢٨×٢٨ نقطة، وكل دفعة تدريب ٢٥٦ صورة: أي ٢٠٠٬٧٠٤ عدداً في الدفعة الواحدة. لو عالجتها بحلقة تكرار تمرّ على عدد بعد عدد لانتظرت طويلاً. أما مكتبات التعلّم العميق فتعطيك «موتراً» واحداً فيه الأعداد كلها، وتقسمه على ٢٥٥ (مثلاً) بأمر واحد يُنفَّذ بكود مُترجَم سريع، وعلى المعالج الرسومي إن وُجد.</p>
+  <p>والأساس الثاني: النموذج يتعلّم بأن يعدّل معاملاته في الاتجاه الذي يقلّل خطأه. ومعرفة هذا الاتجاه تتطلب <b>مشتقات</b>، لملايين المعاملات، في كل خطوة. ولا أحد يحسبها بيده: المكتبة تحسبها تلقائياً.</p>
+  <p>يقترح الكتاب: إن كنت تعرف NumPy والجبر الخطي والتفاضل متعدد المتغيرات فمرّ سريعاً على الأقسام الأولى، لكن اقرأ قسمي <b>الاشتقاق التلقائي</b> و<b>الاحتمال</b> بعناية، لأن الفصول اللاحقة تعتمد عليهما باستمرار. وأما البراهين والاشتقاقات الكاملة فهي في الملحق الرياضي للكتاب (الفصول ٣٣ و٣٤ و٣٦).</p>
+  <div class="xref"><b>عن الكود في هذا القسم</b>الكتاب يكتب كل مثال بأربعة أطر عمل: PyTorch وJAX وTensorFlow وMXNet. نعرض هنا كود PyTorch وحده، وهو الإطار الأساسي في الكتاب. ولتشغيله افتح القسم في موقع الكتاب (الرابط بجانب رقم كل قسم)، أو ثبّت PyTorch على جهازك.</div>
+</section>
+
+<!-- ============ 1.1 ============ -->
+<section class="sec" id="s1-1">
+  <header><div class="kicker">القسم ١٫١ <a class="pg" href="https://d2l.ai/chapter_preliminaries/ndarray.html">d2l.ai ↗</a></div><h2>معالجة البيانات: الموترات</h2></header>
+  <div class="brief"><b>باختصار</b>الموتر جدول أعداد له <b>شكل</b> (كم عنصراً على كل محور) و<b>نوع</b> (أعداد صحيحة أم عشرية، وبكم بت). ننشئه، ونعيد تشكيله، ونقتطع منه، ونجري عليه العمليات عنصراً بعنصر. وإن اختلف شكلا موترين «يُمدَّد» الأصغر تلقائياً بقاعدة <b>البث</b>، وهي مريحة لكنها مصدر أخطاء صامتة.</div>
+  <div class="terms"><span>الشكل <i>shape</i></span><span>الرتبة (عدد المحاور) <i>order / ndim</i></span><span>نوع البيانات <i>dtype</i></span><span>إعادة التشكيل <i>reshape</i></span><span>الفهرسة والاقتطاع <i>indexing / slicing</i></span><span>البث <i>broadcasting</i></span></div>
+
+  <div class="math"><div class="mh"><span class="sym">[ ]</span>مفهوم رياضي · من العدد إلى الموتر</div><div class="mb">
+    <p>العدد الواحد (مثل ٧) يسمى <b>قيمة عددية</b> <span class="en">(scalar)</span>، وليس له محاور. وصفّ من الأعداد <code>[1, 2, 4, 8]</code> <b>متجه</b>: له محور واحد. وجدول له صفوف وأعمدة <b>مصفوفة</b>: محوران. وإن رصصت عدة جداول فوق بعضها صار لديك ثلاثة محاور، وهكذا. <b>الموتر</b> اسم عام لكل هذه: موتر من الرتبة ٠ (عدد)، و١ (متجه)، و٢ (مصفوفة)، و٣ فأكثر.</p>
+    <p><b>الشكل</b> قائمة تقول كم عنصراً على كل محور. دفعة الصور: <code>(256, 1, 28, 28)</code> تعني ٢٥٦ صورة، في كل منها قناة لون واحدة (رمادي)، وكل قناة ٢٨ صفاً × ٢٨ عموداً. وعدد العناصر الكلي = حاصل ضرب الأعداد في الشكل: ٢٥٦×١×٢٨×٢٨ = ٢٠٠٬٧٠٤.</p>
+  </div></div>
+
+  <h3>إنشاء الموترات</h3>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>import torch</code><span>نستورد المكتبة.</span></div>
+    <div class="cl"><code>x = torch.arange(12, dtype=torch.float32)</code><span>متجه فيه الأعداد من ٠ إلى ١١، من النوع العشري ٣٢ بت.</span></div>
+    <div class="cl"><code>x.numel(), x.shape</code><span>عدد العناصر، والشكل.</span></div>
+    <div class="cl out"><code>(12, torch.Size([12]))</code><span>اثنا عشر عنصراً على محور واحد.</span></div>
+    <div class="cl"><code>X = x.reshape(3, 4)</code><span>نعيد ترتيب العناصر نفسها في ٣ صفوف × ٤ أعمدة.</span></div>
+    <div class="cl"><code>torch.zeros((2, 3, 4)); torch.ones((2, 3, 4))</code><span>موتر من الأصفار، وآخر من الآحاد، بالشكل المطلوب.</span></div>
+    <div class="cl"><code>torch.randn(3, 4)</code><span>أعداد عشوائية من التوزيع الطبيعي (حول الصفر). مفيد لقيم المعاملات الأولى.</span></div>
+    <div class="cl"><code>torch.manual_seed(0)</code><span>«بذرة» للمولّد العشوائي: البذرة نفسها تعطي الأعداد «العشوائية» نفسها كل مرة، فتتكرر التجربة.</span></div>
+  </div>
+  <p><b>إعادة التشكيل</b> لا تغيّر العناصر ولا ترتيبها في الذاكرة؛ تغيّر طريقة قراءتها فقط: صفاً بعد صف. ويمكنك ترك محور واحد للمكتبة لتستنتجه بكتابة <code>-1</code>: <code>x.reshape(-1, 4)</code> تعني «أربعة أعمدة، واحسب أنت عدد الصفوف» (١٢ ÷ ٤ = ٣). ولهذا تُكتب دفعة الصور المسطّحة <code>images.reshape(256, -1)</code> فتصير <code>(256, 784)</code>.</p>
+
+  <div class="w" id="tsBox"><div class="cap">الأعداد ٠–١١ نفسها بأشكال مختلفة (انقر خانة لترى موقعها)</div>
+    <div class="row"><span class="seg" id="tsS" style="flex-wrap:wrap" dir="ltr"><button data-s="12" class="on">(12)</button><button data-s="3,4">(3, 4)</button><button data-s="4,3">(4, 3)</button><button data-s="2,3,2">(2, 3, 2)</button><button data-s="-1,6">(-1, 6)</button><button data-s="5,-1">(5, -1)</button></span></div>
+    <div class="tw" id="tsOut"></div><div class="calc" id="tsCalc"></div></div>
+
+  <h3>الفهرسة والاقتطاع</h3>
+  <p>نصل إلى العناصر بأرقام مواقعها، والعدّ يبدأ من <b>صفر</b> في الكود. و<code>X[-1]</code> آخر صف، و<code>X[1:3]</code> الصفان ١ و٢ (البداية داخلة والنهاية خارجة). ويمكن الكتابة في موقع: <code>X[1, 2] = 17</code>، أو في كتلة كاملة: <code>X[:2, :] = 12</code> (أول صفين، كل الأعمدة). ويمكن الاختيار بـ<b>قناع</b> منطقي: <code>X[(X &gt; 2) &amp; (X &lt; 8)]</code> يعطي العناصر التي بين ٢ و٨: <code>[3, 4, 5, 6, 7]</code>.</p>
+  <p>وتنبيه مهم من الكتاب: <code>X.T</code> (المنقول، تبديل الصفوف بالأعمدة) و<code>X.reshape(4, 3)</code> لهما الشكل نفسه <code>(4, 3)</code> لكن <b>القيم في مواقع مختلفة</b>. جرّبه في الأداة أعلاه: شكل (4, 3) يقرأ ٠ ١ ٢ في الصف الأول، أما المنقول فصفه الأول ٠ ٤ ٨. فإن كتبت reshape وأنت تقصد التبديل فلن يظهر خطأ، وستتدرب على بيانات مشوّهة.</p>
+
+  <h3>العمليات والبث</h3>
+  <p>العمليات الحسابية العادية تُنفَّذ <b>عنصراً بعنصر</b>: مع <code>x = [1, 2, 4, 8]</code> و<code>y = [2, 2, 2, 2]</code> يكون <code>x + y = [3, 4, 6, 10]</code> و<code>x ** y = [1, 4, 16, 64]</code>. والمقارنة <code>x == y</code> تعطي موتراً منطقياً، و<code>x.sum()</code> يعطي ١٥.</p>
+  <p>فإن اختلف الشكلان طبّقت المكتبة <b>قاعدة البث</b>: تصفّ الشكلين من <b>اليمين</b> (آخر محور مع آخر محور)، وفي كل محور يجب أن يتساوى الطولان، أو يكون أحدهما ١ (فيُكرَّر) أو غائباً (فيُعامَل كأنه ١). وإلا فخطأ.</p>
+  <div class="w" id="bcBox"><div class="cap">قاعدة البث (اختر حالة)</div>
+    <div class="row"><span class="seg" id="bcS" style="flex-wrap:wrap" dir="ltr"><button data-i="0" class="on">(3,4) + (4,)</button><button data-i="1">(3,1) + (1,2)</button><button data-i="2">(3,2) + (2,3)</button><button data-i="3">(3,1) − (3,)</button></span></div>
+    <div class="tw" id="bcOut"></div><div class="calc" id="bcCalc"></div></div>
+  <p>الحالة الرابعة خطأ صامت شائع: تنبؤات النموذج بشكل <code>(3, 1)</code> (عمود) والإجابات الصحيحة بشكل <code>(3,)</code> (متجه). الطرح لا يعطي خطأً، بل يعطي مصفوفة ٣×٣ فيها كل الفروق الممكنة بين كل تنبؤ وكل إجابة، فيصير متوسط الخطأ غير صفري حتى لو كانت التنبؤات صحيحة تماماً. والعلاج: وحّد الشكلين قبل الطرح، مثلاً <code>y_hat.reshape(-1) - y</code>.</p>
+
+  <h3>نوع البيانات والذاكرة</h3>
+  <p>لكل موتر نوع: <code>float32</code> (عشري ٣٢ بت، الأشيع في التدريب)، وأنواع عشرية من ١٦ بت (أسرع وأقل ذاكرة)، و<code>uint8</code> (صحيح من ٠ إلى ٢٥٥ في بايت واحد، لنقاط الصور). دفعة الصور نفسها تأخذ ٠٫٢ ميغابايت بـ<code>uint8</code> و٠٫٨ بـ<code>float32</code>. لكن للأنواع الصغيرة حدوداً: ٢٠٠ + ١٠٠ في <code>uint8</code> لا تعطي ٣٠٠، بل <b>٤٤</b>، لأن العدّاد «يلتفّ» بعد ٢٥٥ (٣٠٠ − ٢٥٦ = ٤٤). ولذلك تُحوَّل الصور إلى عشري قبل الحساب: قسمتها على ٢٥٥ تفعل ذلك تلقائياً.</p>
+  <p>وفي الذاكرة: <code>Y = Y + X</code> يحجز مكاناً جديداً لـY ويترك القديم. أما <code>Y += X</code> أو <code>Z[:] = X + Y</code> فيكتبان في المكان نفسه. وهذا يهم حين تكون المعاملات ضخمة وتُحدَّث مرات كثيرة. والتحويل إلى NumPy بـ<code>X.numpy()</code> يشارك الذاكرة نفسها في PyTorch (تغيير أحدهما يغيّر الآخر)، و<code>.item()</code> يستخرج عدداً عادياً من موتر فيه عنصر واحد.</p>
+</section>
+
+<!-- ============ 1.2 ============ -->
+<section class="sec" id="s1-2">
+  <header><div class="kicker">القسم ١٫٢ <a class="pg" href="https://d2l.ai/chapter_preliminaries/pandas.html">d2l.ai ↗</a></div><h2>تهيئة البيانات</h2></header>
+  <div class="brief"><b>باختصار</b>البيانات الحقيقية تأتي جداول فيها خانات فارغة ونصوص. قبل أن تصير موتراً نحوّلها إلى أعداد: نفصل المدخلات عن الهدف، ونحوّل كل عمود فئوي إلى أعمدة ٠/١ (ونجعل «مفقود» فئة مستقلة)، ونملأ الفراغ العددي بقيمة معقولة كالمتوسط. وتُسمى هذه الطريقة <b>الإكمال</b>، وبديلها <b>الحذف</b>.</div>
+  <div class="terms"><span>القيمة المفقودة <i>missing value (NaN)</i></span><span>الإكمال <i>imputation</i></span><span>الحذف <i>deletion</i></span><span>الترميز الأحادي <i>one-hot / dummy variables</i></span><span>pandas</span></div>
+  <p>مثال الكتاب ملف صغير عن بيوت: عدد الغرف، ونوع السقف، والسعر. وفيه خانات «NA» (غير متوفر). تقرؤه مكتبة pandas فتحوّل كل NA إلى <code>NaN</code>، أي «ليس عدداً»، وهي علامة القيمة المفقودة.</p>
+  <div class="w" id="ppBox"><div class="cap">من ملف CSV إلى موتر، خطوة خطوة</div>
+    <div class="row"><span class="seg" id="ppS" style="flex-wrap:wrap"><button data-i="0" class="on">١ · القراءة</button><button data-i="1">٢ · الفصل</button><button data-i="2">٣ · الأعمدة الفئوية</button><button data-i="3">٤ · ملء الفراغ</button><button data-i="4">٥ · موتر</button></span></div>
+    <div class="scroll"><table class="tb" id="ppTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="ppCalc"></div></div>
+  <div class="code"><div class="hd">pandas + PyTorch</div>
+    <div class="cl"><code>data = pd.read_csv('house_tiny.csv')</code><span>قراءة الملف جدولاً؛ كل NA تصير NaN.</span></div>
+    <div class="cl"><code>inputs, targets = data.iloc[:, 0:2], data.iloc[:, 2]</code><span>العمودان الأولان مدخلات، والثالث (السعر) هدف. <code>iloc</code> اختيار بالموقع.</span></div>
+    <div class="cl"><code>inputs = pd.get_dummies(inputs, dummy_na=True)</code><span>عمود RoofType الفئوي يصير عمودين: Slate وnan، في كل صف ١ لفئته و٠ للأخرى.</span></div>
+    <div class="cl"><code>inputs = inputs.fillna(inputs.mean())</code><span>ملء الغرف المفقودة بمتوسط المعروف منها: (٢ + ٤) ÷ ٢ = ٣.</span></div>
+    <div class="cl"><code>X = torch.tensor(inputs.to_numpy(dtype=float))</code><span>الجدول صار أعداداً كله، فنحوّله موتراً ٤×٣.</span></div>
+    <div class="cl"><code>y = torch.tensor(targets.to_numpy(dtype=float))</code><span>والأسعار متجهاً بطول ٤.</span></div>
+  </div>
+  <p>لماذا نجعل «مفقود» فئة مستقلة في عمود السقف، ونملأ عدد الغرف بالمتوسط؟ لأن غياب نوع السقف قد يحمل معلومة (ربما بيت بلا سقف مميز)، فنتركه للنموذج يتعلّم معناه. أما عدد الغرف فعدد، ولا يمكن ترك الخانة فارغة في موتر، فنضع أكثر قيمة «محايدة» لدينا. وكلاهما قرار له ثمن: المتوسط يُخفي أن القيمة كانت مجهولة.</p>
+  <p>ويختم الكتاب بأن البيانات الحقيقية أعقد: موزّعة على ملفات وجداول قواعد بيانات، وفيها نصوص وصور وأصوات، وقيم شاذة وأخطاء قياس وتسجيل. وتنفع أدوات الرسم (matplotlib وseaborn) في فحصها بالعين قبل التدريب.</p>
+</section>
+
+<!-- ============ 1.3 ============ -->
+<section class="sec" id="s1-3">
+  <header><div class="kicker">القسم ١٫٣ <a class="pg" href="https://d2l.ai/chapter_preliminaries/linear-algebra.html">d2l.ai ↗</a></div><h2>الجبر الخطي</h2></header>
+  <div class="brief"><b>باختصار</b>مثال القسم مصنّف بسيط لصور الملابس: نسطّح ٢٥٦ صورة في مصفوفة X بحجم ٢٥٦×٧٨٤، ونضربها في مصفوفة أوزان W بحجم ٧٨٤×١٠، ونضيف انحيازاً b، فنحصل على ١٠ درجات لكل صورة: <code>O = XW + b</code>. وكل ما في القسم أدوات لفهم هذه المعادلة: العمليات عنصراً بعنصر، والاختزال (الجمع على محور)، والضرب النقطي، وضرب المصفوفات، والمعايير، والقيم الذاتية.</div>
+  <div class="terms"><span>القيمة العددية <i>scalar</i></span><span>المتجه <i>vector</i></span><span>المصفوفة <i>matrix</i></span><span>المنقول <i>transpose</i></span><span>الاختزال <i>reduction</i></span><span>الضرب النقطي <i>dot product</i></span><span>ضرب المصفوفات <i>matrix multiplication</i></span><span>المعيار <i>norm</i></span></div>
+  <div class="eq">O = X W + b &nbsp;&nbsp; X: 256×784 &nbsp; W: 784×10 &nbsp; b: 10 &nbsp; → &nbsp; O: 256×10</div>
+  <p>عدد المعاملات التي يتعلّمها هذا المصنّف: ٧٨٤×١٠ وزناً + ١٠ انحيازات = ٧٬٨٥٠. وناتجه ٢٥٦×١٠ = ٢٬٥٦٠ درجة: لكل صورة عشر درجات، واحدة لكل صنف ملابس، والصنف المختار أعلاها (<code>argmax</code>). والانحياز b متجه بطول ١٠ يُضاف إلى كل صف من الـ٢٥٦ بقاعدة البث.</p>
+
+  <h3>المتجهات والمصفوفات والمنقول</h3>
+  <p>المتجه عندنا <b>عمودي</b> افتراضاً، ونكتب عنصره <i>x<sub>i</sub></i>. وفي الرياضيات يبدأ العدّ من ١، وفي الكود من ٠: فـ<i>x</i><sub>3</sub> هي <code>x[2]</code>. و«بُعد» المتجه عدد عناصره (<code>len(x)</code>)، أما «الرتبة» فعدد المحاور. و<b>المنقول</b> <i>A</i><sup>⊤</sup> يقلب الصفوف أعمدة؛ والمصفوفة <b>المتناظرة</b> هي التي تساوي منقولها.</p>
+
+  <h3>العمليات عنصراً بعنصر والاختزال</h3>
+  <p>ضرب مصفوفتين بالشكل نفسه عنصراً بعنصر (<code>A * B</code>) يسمى <b>ضرب هادامار</b> ويُرمز له ⊙. ويختلف تماماً عن ضرب المصفوفات الذي سيأتي. أما <b>الاختزال</b> فيقلّل المحاور: <code>A.sum()</code> يجمع كل شيء في عدد واحد، و<code>A.sum(axis=0)</code> يجمع على محور الصفوف (فيبقى مجموع لكل عمود)، و<code>axis=1</code> مجموع لكل صف.</p>
+  <div class="math"><div class="mh"><span class="sym">Σ</span>مفهوم رياضي · رمز الجمع</div><div class="mb">
+    <p>الحرف اليوناني Σ (سيغما) يعني «اجمع». <span class="mono" dir="ltr">Σ<sub>i=1</sub><sup>n</sup> x<sub>i</sub></span> تُقرأ: «اجمع <i>x<sub>i</sub></i> حين تأخذ <i>i</i> القيم من ١ إلى <i>n</i>»، أي <span class="mono" dir="ltr">x₁ + x₂ + … + xₙ</span>. وإن جمعت على محور واحد في مصفوفة <span class="mono" dir="ltr">Σ<sub>i</sub> a<sub>ij</sub></span> بقي حرف <i>j</i>: لكل عمود مجموعه.</p>
+  </div></div>
+  <div class="w" id="rdBox"><div class="cap">الاختزال على مصفوفة ٢×٣ (A = arange(6).reshape(2, 3))</div>
+    <div class="row"><span class="seg" id="rdS" dir="ltr"><button data-a="all" class="on">sum()</button><button data-a="0">sum(axis=0)</button><button data-a="1">sum(axis=1)</button><button data-a="n">A / A.sum(axis=1, keepdims=True)</button></span></div>
+    <div class="tw" id="rdOut"></div><div class="calc" id="rdCalc"></div></div>
+  <p><code>keepdims=True</code> يُبقي المحور المجموع بطول ١ بدل أن يحذفه: مجموع الصفوف يصير بشكل <code>(2, 1)</code> لا <code>(2,)</code>. وفائدته أنك تستطيع قسمة A عليه مباشرة بالبث، فيصير مجموع كل صف ١. ويحذّر الكتاب: في مصفوفة <b>مربعة</b> (٧٨٤×٧٨٤ مثلاً) لو نسيت keepdims فلن يظهر خطأ، لأن البث سيقسم كل <b>عمود</b> على مجموع صف، والنتيجة خاطئة بصمت.</p>
+
+  <h3>الضرب النقطي وضرب المصفوفات</h3>
+  <div class="math"><div class="mh"><span class="sym">x⊤y</span>مفهوم رياضي · الضرب النقطي</div><div class="mb">
+    <p>للمتجهين <i>x</i> و<i>y</i> بالطول نفسه: اضرب كل عنصرين متقابلين، ثم اجمع النواتج.</p>
+    <div class="eq">x⊤y = Σᵢ xᵢ yᵢ &nbsp;&nbsp; [0, 1, 2] · [1, 1, 1] = 0 + 1 + 2 = 3</div>
+    <p>والنتيجة عدد واحد يقيس «كم يتجه المتجهان معاً»: كبير موجب إن تشابها، وقريب من الصفر إن كانا متعامدين، وسالب إن تعاكسا. وفي المصنّف: درجة الصنف = الضرب النقطي لنقاط الصورة مع «قالب» ذلك الصنف (عمود من W).</p>
+  </div></div>
+  <div class="math"><div class="mh"><span class="sym">AB</span>مفهوم رياضي · ضرب المصفوفة في متجه، وفي مصفوفة</div><div class="mb">
+    <p><b>Ax</b>: كل صف من A يُضرب نقطياً في x، فيعطي عنصراً من الناتج. فإن كانت A بحجم m×n و<i>x</i> بطول n، كان الناتج بطول m. وهذا هو «التحويل الخطي»: المصفوفة آلة تأخذ متجهاً وتعطي آخر (تدوّره، أو تمطّه، أو تغيّر بعده).</p>
+    <p><b>AB</b>: العنصر في الصف i والعمود j = الضرب النقطي للصف i من A مع العمود j من B. وشرطه: عدد أعمدة A = عدد صفوف B. فـ(m×k) مضروبة في (k×n) تعطي (m×n). وكلفة حسابه تقريباً 2mkn عملية: لضرب X في W في المصنّف نحو ٤ ملايين عملية.</p>
+  </div></div>
+  <div class="w" id="mmBox"><div class="cap">ضرب المصفوفات (انقر خانة في الناتج لترى حسابها)</div>
+    <div class="row"><span class="seg" id="mmS" dir="ltr"><button data-m="v" class="on">A x</button><button data-m="m">A B</button></span></div>
+    <div class="tw" id="mmOut"></div><div class="calc" id="mmCalc"></div></div>
+  <p>وفي PyTorch: <code>torch.mv(A, x)</code> أو <code>A @ x</code> لضرب المصفوفة في متجه، و<code>torch.mm(A, B)</code> أو <code>A @ B</code> لضرب المصفوفتين. والعامل <code>@</code> يعمل أيضاً على «دفعات»: موتر بشكل (b، i، l) @ (l، j) يضرب كل مصفوفة في الدفعة. ويقدّم الكتاب <code>einsum</code> لكتابة هذه العمليات بالحروف: <code>einsum('bil,lj-&gt;bij', A, B)</code> تعني «اجمع على l».</p>
+
+  <h3>المعايير والتشابه</h3>
+  <div class="math"><div class="mh"><span class="sym">‖x‖</span>مفهوم رياضي · المعيار: طول المتجه</div><div class="mb">
+    <p>المعيار عدد يقيس «حجم» المتجه. <b>معيار ℓ<sub>2</sub></b> هو الطول العادي (فيثاغورس): <span class="mono" dir="ltr">‖x‖₂ = √(Σ xᵢ²)</span>. و<b>معيار ℓ<sub>1</sub></b> مجموع القيم المطلقة: <span class="mono" dir="ltr">‖x‖₁ = Σ |xᵢ|</span>. للمتجه (٣، −٤): ℓ<sub>2</sub> = √(٩+١٦) = ٥، وℓ<sub>1</sub> = ٣ + ٤ = ٧. ومعيار ℓ<sub>1</sub> أقل تأثراً بالقيم الشاذة، ويدفع النماذج إلى أوزان كثيرة الأصفار. ونظير ℓ<sub>2</sub> للمصفوفات <b>معيار فروبينيوس</b>: جذر مجموع مربعات كل العناصر (لمصفوفة آحاد ٤×٩: √٣٦ = ٦).</p>
+    <p>ويربط الضرب النقطي بالزاوية: <span class="mono" dir="ltr">x⊤y = ‖x‖ ‖y‖ cos θ</span>. فإن قسمت الضرب النقطي على حاصل ضرب الطولين حصلت على <b>جيب تمام الزاوية</b> (التشابه بجيب التمام)، وهو بين −١ و١ دائماً.</p>
+  </div></div>
+  <div class="w" id="nmBox"><div class="cap">متجهان في المستوى: الطول والضرب النقطي والزاوية</div>
+    <div class="row" dir="ltr" style="flex-wrap:wrap;gap:14px"><label class="note">x₁ <input type="range" id="nx1" min="-5" max="5" step="1" value="3"></label><label class="note">x₂ <input type="range" id="nx2" min="-5" max="5" step="1" value="-4"></label><label class="note">y₁ <input type="range" id="ny1" min="-5" max="5" step="1" value="4"></label><label class="note">y₂ <input type="range" id="ny2" min="-5" max="5" step="1" value="3"></label></div>
+    <div id="nmPlot"></div><div class="calc" id="nmCalc"></div></div>
+  <div class="xref"><b>في الكتاب الأول</b>التشابه بجيب التمام هو الأداة التي تقيس بها التضمينات قرب معاني الكلمات: <a href="../slp/05-embeddings.html">الفصل ٥: التضمينات</a>.</div>
+
+  <h3>القيم الذاتية: لماذا تنفجر الشبكات العميقة أو تخمد؟</h3>
+  <div class="math"><div class="mh"><span class="sym">Av = λv</span>مفهوم رياضي · المتجه الذاتي والقيمة الذاتية</div><div class="mb">
+    <p>معظم المتجهات يغيّر الضرب في مصفوفة اتجاهها. لكن لبعض المصفوفات اتجاهات خاصة لا تتغير، بل يُمطّ المتجه فيها أو يُقلَّص فقط: <span class="mono" dir="ltr">Av = λv</span>. يسمى <i>v</i> <b>متجهاً ذاتياً</b>، والعدد λ (لامدا) <b>قيمة ذاتية</b>: معامل المطّ. مثال الكتاب: المصفوفة المتناظرة [[2, 1], [1, 2]] قيمتاها الذاتيتان ٣ و١.</p>
+    <p>وإن ضربت في المصفوفة k مرات تضاعف المطّ: <span class="mono" dir="ltr">Aᵏv = λᵏv</span>. وهنا الدرس: الشبكة العميقة ضرب متكرر في مصفوفات (طبقة بعد طبقة)؛ فإن كانت قيمة ذاتية أكبر من ١ قليلاً انفجرت الإشارة، وإن كانت أصغر من ١ قليلاً خمدت.</p>
+  </div></div>
+  <div class="w" id="egBox"><div class="cap">قيمتان ذاتيتان ١٫١ و٠٫٩ عبر طبقات متتالية</div>
+    <div class="row"><label class="note">عدد الطبقات k: <b id="egKo">50</b></label><input type="range" id="egK" min="0" max="100" value="50" style="flex:1"></div>
+    <div id="egPlot"></div><div class="calc" id="egCalc"></div></div>
+  <p>بعد ٥٠ طبقة يتضخم أحد الاتجاهين نحو ١١٧ ضعفاً ويضمر الآخر إلى نحو ٠٫٠٠٥. ولهذا تهتم الفصول اللاحقة بتهيئة المعاملات وبالتطبيع وبالوصلات المتبقية: كلها طرق لإبقاء هذه المضاعفات قريبة من ١. وللمصفوفات غير المربعة أو غير المتناظرة يحل محل القيم الذاتية مفهوم <b>القيم المفردة</b>، وتفصيله في الملحق (الفصل ٣٣).</p>
+</section>
+
+<!-- ============ 1.4 ============ -->
+<section class="sec" id="s1-4">
+  <header><div class="kicker">القسم ١٫٤ <a class="pg" href="https://d2l.ai/chapter_preliminaries/calculus.html">d2l.ai ↗</a></div><h2>التفاضل</h2></header>
+  <div class="brief"><b>باختصار</b>التدريب = تقليل خسارة. والمشتقة تخبرنا كيف تتغير الخسارة إن حرّكنا معاملاً واحداً حركة صغيرة جداً، والتدرّج يجمع هذه المعلومة لكل المعاملات في متجه واحد يشير إلى اتجاه أسرع صعود (فنمشي عكسه). وقاعدة السلسلة تحسب مشتقة الدوال المركّبة، أي الطبقات المتتالية.</div>
+  <div class="terms"><span>المشتقة <i>derivative</i></span><span>النهاية <i>limit</i></span><span>المشتقة الجزئية <i>partial derivative</i></span><span>التدرّج <i>gradient</i></span><span>قاعدة السلسلة <i>chain rule</i></span><span>الخسارة <i>loss</i></span></div>
+  <p>يبدأ الكتاب بأرخميدس: ليحسب مساحة الدائرة رسم داخلها مضلعاً، وزاد أضلاعه، فاقتربت مساحة المضلع من مساحة الدائرة. فكرة «الاقتراب أكثر فأكثر» هذه، أي <b>النهاية</b>، هي أساس التفاضل كله.</p>
+  <div class="math"><div class="mh"><span class="sym">f′(x)</span>مفهوم رياضي · المشتقة</div><div class="mb">
+    <p>المشتقة عند نقطة = ميل الدالة عند تلك النقطة. نحسبها هكذا: حرّك المدخل خطوة صغيرة <i>h</i>، وانظر كم تغيّر المخرج، واقسم التغيّر على h. ثم صغّر h نحو الصفر:</p>
+    <div class="eq">f′(x) = lim<sub>h→0</sub> ( f(x+h) − f(x) ) / h</div>
+    <p>مثال الكتاب: <span class="mono" dir="ltr">f(x) = 3x² − 4x</span> عند x = ١. كلما صغرت h اقترب الكسر من ٢. وبالقواعد: مشتقة <span class="mono" dir="ltr">xⁿ</span> هي <span class="mono" dir="ltr">n·xⁿ⁻¹</span>، فمشتقة الدالة <span class="mono" dir="ltr">6x − 4</span>، وعند x = ١ تساوي ٢. وخط المماس عند هذه النقطة: <span class="mono" dir="ltr">y = 2x − 3</span>.</p>
+  </div></div>
+  <div class="w" id="dvBox"><div class="cap">المشتقة كنهاية: صغّر الخطوة h (f(x) = 3x² − 4x)</div>
+    <div class="row" style="flex-wrap:wrap"><label class="note">النقطة x: <b id="dvXo">1</b></label><input type="range" id="dvX" min="0" max="3" step="0.1" value="1" style="flex:1"><label class="note">h = 10<sup id="dvHo">-1</sup></label><input type="range" id="dvH" min="1" max="5" step="1" value="1" style="width:110px"></div>
+    <div id="dvPlot"></div><div class="calc" id="dvCalc"></div></div>
+  <p>القواعد التي تكفي لاشتقاق معظم ما نحتاجه: مشتقة الثابت صفر، ومشتقة <span class="mono" dir="ltr">xⁿ</span> هي <span class="mono" dir="ltr">nxⁿ⁻¹</span>، ومشتقة <span class="mono" dir="ltr">eˣ</span> هي نفسها، ومشتقة <span class="mono" dir="ltr">ln x</span> هي <span class="mono" dir="ltr">1/x</span>. ومعها قواعد التركيب: مشتقة المجموع مجموع المشتقات، والثابت المضروب يخرج من المشتقة، وقاعدتا الضرب والقسمة.</p>
+
+  <h3>المشتقات الجزئية والتدرّج</h3>
+  <div class="math"><div class="mh"><span class="sym">∇f</span>مفهوم رياضي · المشتقة الجزئية والتدرّج</div><div class="mb">
+    <p>الخسارة دالة في متغيرات كثيرة. <b>المشتقة الجزئية</b> بالنسبة لمتغير واحد: اشتق بالنسبة له وعامل البقية كأنها ثوابت. مثال: <span class="mono" dir="ltr">f(x₁, x₂) = x₁² + 3x₁x₂</span>؛ جزئيتها بالنسبة لـx₁ هي <span class="mono" dir="ltr">2x₁ + 3x₂</span>، وبالنسبة لـx₂ هي <span class="mono" dir="ltr">3x₁</span>.</p>
+    <p>و<b>التدرّج</b> ∇f (يُقرأ «نابلا f») متجه يجمع كل المشتقات الجزئية: <span class="mono" dir="ltr">∇f = [∂f/∂x₁, …, ∂f/∂xₙ]</span>. يشير إلى الاتجاه الذي تزيد فيه الدالة أسرع ما يمكن؛ فالتدريب يمشي عكسه. وقواعد يحفظها الكتاب لأنها تتكرر كثيراً:</p>
+    <div class="eq">∇ₓ Ax = A⊤ &nbsp;&nbsp; ∇ₓ x⊤Ax = (A + A⊤)x &nbsp;&nbsp; ∇ₓ ‖x‖² = 2x &nbsp;&nbsp; ∇_X ‖X‖²_F = 2X</div>
+    <p>تحقق من الثالثة بنفسك: <span class="mono" dir="ltr">‖x‖² = x₁² + x₂² + …</span>، وجزئيتها بالنسبة لكل xᵢ هي 2xᵢ؛ فالتدرّج 2x.</p>
+  </div></div>
+
+  <h3>قاعدة السلسلة</h3>
+  <div class="math"><div class="mh"><span class="sym">dy/dx</span>مفهوم رياضي · قاعدة السلسلة</div><div class="mb">
+    <p>إن كانت y تعتمد على u، وu تعتمد على x، فتأثير x في y = (تأثير u في y) × (تأثير x في u):</p>
+    <div class="eq">dy/dx = (dy/du) · (du/dx)</div>
+    <p>مثال: <span class="mono" dir="ltr">y = (3x + 1)²</span>. ضع <span class="mono" dir="ltr">u = 3x + 1</span>، فـ<span class="mono" dir="ltr">y = u²</span>. إذن <span class="mono" dir="ltr">dy/du = 2u</span> و<span class="mono" dir="ltr">du/dx = 3</span>، والمشتقة <span class="mono" dir="ltr">6(3x + 1)</span>. وعند x = ١: ٦ × ٤ = ٢٤.</p>
+    <p>وفي المتغيرات الكثيرة تتحول الضربات إلى مجاميع: <span class="mono" dir="ltr">∂y/∂xᵢ = Σⱼ (∂y/∂uⱼ)(∂uⱼ/∂xᵢ)</span>، وهذا في الحقيقة <b>ضرب مصفوفة في متجه</b>. ولهذا يقول الكتاب إن الجبر الخطي في قلب التعلّم العميق: حساب التدرّج نفسه سلسلة من ضرب المصفوفات.</p>
+  </div></div>
+  <p>والخلاصة التي يمهّد بها الكتاب للقسم التالي: الحساب «الأمامي» يمشي في رسم الاعتماديات من المدخلات إلى الخسارة، وحساب التدرّج يمشي فيه <b>إلى الخلف</b>، من الخسارة إلى المعاملات، بقاعدة السلسلة في كل خطوة.</p>
+  <div class="xref"><b>في الكتاب الأول</b>النزول التدرّجي بمثال مصنّف مشاعر، مع أداة تريك الخطوات: <a href="../slp/04-logistic-regression.html">الفصل ٤: الانحدار اللوجستي</a>.</div>
+</section>
+
+<!-- ============ 1.5 ============ -->
+<section class="sec" id="s1-5">
+  <header><div class="kicker">القسم ١٫٥ <a class="pg" href="https://d2l.ai/chapter_preliminaries/autograd.html">d2l.ai ↗</a></div><h2>الاشتقاق التلقائي</h2></header>
+  <div class="brief"><b>باختصار</b>نعلّم المعاملات التي نريد تدرّجها، فتسجّل المكتبة كل عملية عليها في <b>رسم حسابي</b> أثناء الحساب الأمامي. ثم بأمر واحد (<code>backward</code>) تمشي على الرسم إلى الخلف، وتطبّق قاعدة السلسلة في كل عقدة، فتعطي التدرّج. ويعمل هذا حتى مع الحلقات والشروط، لأن المكتبة تشتق العمليات التي نُفِّذت فعلاً.</div>
+  <div class="terms"><span>الرسم الحسابي <i>computational graph</i></span><span>المرور الأمامي <i>forward pass</i></span><span>المرور الخلفي / الانتشار العكسي <i>backward pass / backpropagation</i></span><span>فصل القيمة <i>detach</i></span><span>ضرب المتجه في اليعقوبية <i>vector–Jacobian product</i></span></div>
+  <p>مثال الكتاب نموذج خطي صغير: ثلاثة أمثلة (صفوف X) بخاصيتين، وأهدافها y، ومعاملاه w. والخسارة مجموع مربعات الأخطاء: <span class="mono" dir="ltr">L(w) = ‖Xw − y‖²</span>. نريد ∇<sub>w</sub>L لنعرف كيف نعدّل w.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>X = torch.tensor([[1., 0.], [1., 1.], [1., 2.]])</code><span>ثلاثة أمثلة، في كل منها خاصيتان.</span></div>
+    <div class="cl"><code>y = torch.tensor([1., 1., 0.])</code><span>الأهداف الصحيحة.</span></div>
+    <div class="cl"><code>w = torch.tensor([1., 0.])</code><span>المعاملات في نقطة البداية.</span></div>
+    <div class="cl"><code>w.requires_grad_(True)</code><span>«سجّل كل عملية على w»: فقط ما يعتمد على المعاملات يُسجَّل، لأن التسجيل يكلّف ذاكرة.</span></div>
+    <div class="cl"><code>L = ((X @ w - y) ** 2).sum()</code><span>المرور الأمامي: تنبؤ، فخطأ، فتربيع، فجمع. وتُبنى العقد في الرسم أثناء ذلك.</span></div>
+    <div class="cl out"><code>tensor(1., grad_fn=&lt;SumBackward0&gt;)</code><span>الخسارة ١، و<code>grad_fn</code> دليل أن الحساب مسجَّل.</span></div>
+    <div class="cl"><code>L.backward()</code><span>المرور الخلفي: من L إلى w.</span></div>
+    <div class="cl"><code>w.grad</code><span>التدرّج المحسوب.</span></div>
+    <div class="cl out"><code>tensor([2., 4.])</code><span>يطابق القانون <span class="mono" dir="ltr">X⊤(2r)</span>.</span></div>
+    <div class="cl"><code>w.grad.zero_()</code><span>صفّر التدرّج قبل الخطوة التالية: PyTorch <b>يراكم</b> التدرّجات ولا يستبدلها.</span></div>
+  </div>
+  <div class="w" id="adBox"><div class="cap">الرسم الحسابي: أمامي ثم خلفي، ثم خطوة تعلّم (η = 0.1)</div>
+    <div class="row" style="flex-wrap:wrap"><button class="pill" id="adBack" dir="ltr">backward()</button><button class="pill" id="adStep">خطوة تحديث w</button><button class="pill" id="adZero" dir="ltr">grad.zero_()</button><button class="pill" id="adReset">من البداية</button></div>
+    <div class="scroll"><table class="tb" id="adTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="adCalc"></div></div>
+  <p>جرّب: اضغط <code>backward()</code> مرتين دون تصفير، فيصير التدرّج (٤، ٨) بدل (٢، ٤)، لأن PyTorch جمع الجولتين. وهذا التراكم مقصود (مفيد حين تقسم دفعة كبيرة على أجزاء)، لكنه خطأ شائع إن نسيت التصفير في حلقة التدريب. ثم اضغط «خطوة تحديث»: تصير w = (٠٫٨، −٠٫٤) وتنزل الخسارة من ١ إلى ٠٫٤. والتحديث نفسه يُنفَّذ داخل <code>with torch.no_grad():</code> حتى لا يُسجَّل في الرسم.</p>
+
+  <div class="math"><div class="mh"><span class="sym">∂L/∂w</span>مفهوم رياضي · لماذا التدرّج X⊤(2r)؟</div><div class="mb">
+    <p>الرسم الحسابي أربع خطوات: <span class="mono" dir="ltr">ŷ = Xw</span>، ثم <span class="mono" dir="ltr">r = ŷ − y</span>، ثم <span class="mono" dir="ltr">s = r ⊙ r</span>، ثم <span class="mono" dir="ltr">L = Σ sᵢ</span>. نمشي إلى الخلف: مشتقة L بالنسبة لكل sᵢ هي ١. ومشتقة <span class="mono" dir="ltr">sᵢ = rᵢ²</span> هي <span class="mono" dir="ltr">2rᵢ</span>. ومشتقة r بالنسبة لـŷ هي ١. وأخيراً ŷ = Xw، ومن قواعد التدرّج يخرج المنقول X⊤. فالمجموع بقاعدة السلسلة: <span class="mono" dir="ltr">∇w L = X⊤(2r)</span>. مع r = (٠، ٠، ١): <span class="mono" dir="ltr">X⊤(0, 0, 2) = (2, 4)</span>.</p>
+  </div></div>
+
+  <h3>التحكم في الرسم: الفصل وإيقاف التسجيل</h3>
+  <p>أحياناً تريد استعمال قيمة دون أن يمر التدرّج عبرها. <code>u.detach()</code> يعطي القيمة نفسها لكن مقطوعة عن الرسم، فيعاملها الاشتقاق كثابت. مثال الكتاب: <span class="mono" dir="ltr">u = x²</span> و<span class="mono" dir="ltr">z = u·x</span>. بلا فصل: <span class="mono" dir="ltr">z = x³</span> ومشتقتها <span class="mono" dir="ltr">3x²</span> (للقيم ٠، ١، ٢، ٣: ٠، ٣، ١٢، ٢٧). ومع فصل u: تُعامل u كثابت فالمشتقة <span class="mono" dir="ltr">u = x²</span> (٠، ١، ٤، ٩). ويُستعمل هذا في أساليب مثل التعلّم المعزَّز العميق، حين تحسب الشبكة «هدفها» بنفسها ولا نريد أن يتدرّب الهدف.</p>
+
+  <h3>اشتقاق البرامج لا الدوال فقط</h3>
+  <p>المكتبة لا ترى معادلة، بل ترى ما نُفِّذ. فدالة فيها حلقة <code>while</code> وشرط <code>if</code> تُشتق بلا مشكلة: كل استدعاء يسجّل المسار الذي سلكه فعلاً.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>def f(a):</code><span>دالة عددها مدخل واحد a.</span></div>
+    <div class="cl"><code>    b = a * 2</code><span>نضاعف مرة.</span></div>
+    <div class="cl"><code>    while torch.linalg.vector_norm(b) &lt; 1000:</code><span>ما دام حجم b أقل من ١٠٠٠…</span></div>
+    <div class="cl"><code>        b = b * 2</code><span>…نضاعف مرة أخرى.</span></div>
+    <div class="cl"><code>    if b.sum() &gt; 0: c = b</code><span>إن كان موجباً نتركه.</span></div>
+    <div class="cl"><code>    else: c = 100 * b</code><span>وإلا نضربه في ١٠٠.</span></div>
+    <div class="cl"><code>    return c</code><span>الناتج دائماً a مضروبة في عدد ثابت (يحدده المسار)، فالمشتقة هي ذلك العدد.</span></div>
+  </div>
+  <div class="w" id="cfBox"><div class="cap">أي مسار سلكت الدالة؟ ومشتقتها</div>
+    <div class="row"><label class="note">a = <b id="cfAo">0.3</b></label><input type="range" id="cfA" min="-2" max="2" step="0.05" value="0.3" style="flex:1"></div>
+    <div class="calc" id="cfCalc"></div></div>
+  <p>والكتاب يشير إلى نقطة دقيقة: عند الحدود التي يقفز فيها عدد المضاعفات، الدالة نفسها غير متصلة، لكن الاشتقاق التلقائي يعطي ميل الفرع الذي نُفِّذ ولا ينبّهك. فهو يشتق <b>البرنامج</b>، لا الدالة الرياضية التي في ذهنك.</p>
+
+  <h3>الاتجاه العكسي والاتجاه الأمامي</h3>
+  <p>حين يكون المخرج متجهاً لا عدداً، فمشتقته جدول كامل يسمى <b>اليعقوبية</b> J (مشتقة كل مخرج بالنسبة لكل مدخل). المرور الخلفي لا يبني J، بل يحسب حاصل ضربها في متجه v نعطيه نحن: <span class="mono" dir="ltr">J⊤v</span>. وإن أعطينا v آحاداً حصلنا على تدرّج مجموع المخرجات، وهو ما نريده عادة (مجموع خسائر الأمثلة). ولماذا الاتجاه العكسي هو المعتمد في التدريب؟ لأن الخسارة عدد واحد: مرور خلفي واحد يعطي التدرّج لكل المعاملات مهما كثرت، أما الاتجاه الأمامي فيحتاج مروراً لكل معامل.</p>
+  <div class="xref"><b>في الكتاب الأول</b>الرسم الحسابي والانتشار العكسي في شبكة عصبية صغيرة: <a href="../slp/06-neural-networks.html">الفصل ٦: الشبكات العصبية</a>.</div>
+</section>
+
+<!-- ============ 1.6 ============ -->
+<section class="sec" id="s1-6">
+  <header><div class="kicker">القسم ١٫٦ <a class="pg" href="https://d2l.ai/chapter_preliminaries/probability.html">d2l.ai ↗</a></div><h2>الاحتمال والإحصاء</h2></header>
+  <div class="brief"><b>باختصار</b>التعلّم الآلي تنبؤ في عالم غير مؤكد. الاحتمال يقيس هذا الشك، والتوزيع المشترك يصف متغيرين معاً، ومنه نحصل على الهامشي والشرطي. وقاعدة بايز تحدّث احتمال فرضية بعد رؤية دليل. والتوقع والتباين يلخّصان التوزيع، و<b>الخطأ المعياري</b> يقول لك كم يتذبذب تقديرك بسبب صغر العينة.</div>
+  <div class="terms"><span>فضاء العينة <i>sample space</i></span><span>الحدث <i>event</i></span><span>المتغير العشوائي <i>random variable</i></span><span>التوزيع المشترك / الهامشي / الشرطي <i>joint / marginal / conditional</i></span><span>قاعدة بايز <i>Bayes' theorem</i></span><span>التوقع <i>expectation</i></span><span>التباين <i>variance</i></span><span>الخطأ المعياري <i>standard error</i></span></div>
+
+  <h3>رمي العملة: التكرار يقترب من الاحتمال</h3>
+  <p>احتمال الصورة في عملة عادلة ٠٫٥. لو رميتها ١٠٠ مرة فلن تحصل غالباً على ٥٠ بالضبط: قد تكون ٤٥ أو ٥٦. النسبة المشاهدة <span class="mono" dir="ltr">p̂</span> <b>تقدير</b> للاحتمال الحقيقي p، وكلما زادت الرميات اقترب منه. هذا هو <b>قانون الأعداد الكبيرة</b>.</p>
+  <div class="w" id="ctBox"><div class="cap">ارمِ عملة عادلة n مرة، وراقب النسبة الجارية</div>
+    <div class="row" style="flex-wrap:wrap"><span class="seg" id="ctN"><button data-n="100" class="on">١٠٠</button><button data-n="1000">١٬٠٠٠</button><button data-n="10000">١٠٬٠٠٠</button></span><button class="pill" id="ctGo">ارمِ من جديد</button></div>
+    <div id="ctPlot"></div><div class="calc" id="ctCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">σ/√n</span>مفهوم رياضي · الخطأ المعياري: كم أثق بالنسبة المشاهدة؟</div><div class="mb">
+    <p>تباين النسبة المشاهدة <span class="mono" dir="ltr">Var(p̂) = p(1 − p)/n</span>، وجذره <b>الخطأ المعياري</b>: <span class="mono" dir="ltr">√(p(1 − p)/n)</span>. لعملة عادلة: ٠٫٠٥ عند ١٠٠ رمية، و٠٫٠٠٥ عند ١٠٬٠٠٠. أي إن مضاعفة الدقة عشر مرات تحتاج مئة ضعف البيانات.</p>
+    <p>ومنه حكم الكتاب: ٥٦ صورة من ١٠٠ تبعد عن ٠٫٥ نحو ١٫٢ خطأ معياري، وهذا يحدث بالصدفة كثيراً. أما ٥٬٦٠٠ من ١٠٬٠٠٠ فتبعد نحو ١٢ خطأ معيارياً: العملة غير عادلة يقيناً. والنسبة نفسها (٥٦٪)، والفرق في حجم العينة.</p>
+  </div></div>
+
+  <h3>من البديهيات إلى المتغيرات العشوائية</h3>
+  <p><b>فضاء العينة</b> مجموعة كل النتائج الممكنة (للنرد: ١ إلى ٦)، و<b>الحدث</b> أي مجموعة جزئية منها («عدد زوجي»). والاحتمال دالة تحقق ثلاث بديهيات (كولموغوروف): لا تكون سالبة، واحتمال فضاء العينة كله ١، واحتمال اتحاد أحداث متنافية مجموع احتمالاتها. ومنها نستنتج مثلاً <span class="mono" dir="ltr">P(A ∪ B) = P(A) + P(B) − P(A ∩ B)</span>. و<b>المتغير العشوائي</b> يحوّل النتيجة إلى عدد (مثل «عدد الصور في ١٠٠ رمية»). وهو <b>منفصل</b> إن كانت قيمه معدودة، فلكل قيمة احتمال؛ أو <b>متصل</b>، فله <b>كثافة</b>، واحتمال أي مجال هو المساحة تحت منحناها.</p>
+
+  <h3>متغيران معاً: المطر والمظلة</h3>
+  <div class="w" id="jtBox"><div class="cap">التوزيع المشترك لـ«مطر» و«مظلة» (من مثال الكتاب). اختر سؤالاً</div>
+    <div class="row"><span class="seg" id="jtS" style="flex-wrap:wrap"><button data-q="j" class="on">المشترك</button><button data-q="m">الهامشي</button><button data-q="c">الشرطي: مظلة إذا أمطرت</button><button data-q="i">هل هما مستقلان؟</button></span></div>
+    <div class="scroll"><table class="tb" id="jtTab" style="margin-top:8px"></table></div><div class="calc" id="jtCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">P(A|B)</span>مفهوم رياضي · الهامشي والشرطي والاستقلال وبايز</div><div class="mb">
+    <p><b>الهامشي</b>: اجمع على المتغير الذي لا يهمك. <span class="mono" dir="ltr">P(rain) = P(rain, umbrella) + P(rain, no umbrella)</span>.</p>
+    <p><b>الشرطي</b> (يُقرأ الخط العمودي «بشرط»): احتمال A إذا علمنا أن B وقع. نقتصر على عالم B ونقسم على حجمه: <span class="mono" dir="ltr">P(A | B) = P(A, B) / P(B)</span>.</p>
+    <p><b>الاستقلال</b>: معرفة B لا تغيّر شيئاً عن A، ورياضياً <span class="mono" dir="ltr">P(A, B) = P(A) P(B)</span>.</p>
+    <p><b>قاعدة بايز</b> تقلب الشرط: <span class="mono" dir="ltr">P(H | D) = P(D | H) P(H) / P(D)</span>. H فرضية (مثلاً: مصاب)، وD دليل (التحليل إيجابي). <span class="mono" dir="ltr">P(H)</span> الاحتمال <b>القبلي</b> قبل الدليل، و<span class="mono" dir="ltr">P(D|H)</span> <b>الأرجحية</b>، والناتج الاحتمال <b>البعدي</b>.</p>
+  </div></div>
+
+  <h3>مثال الكتاب: تحليل طبي</h3>
+  <p>تحليل للكشف عن فيروس نقص المناعة لا يخطئ مع المصابين أبداً (حساسيته ١٠٠٪)، لكنه يعطي نتيجة إيجابية خاطئة لـ١٪ من الأصحاء. ونسبة الإصابة في المجتمع ٠٫١٥٪. جاءت نتيجتك إيجابية: ما احتمال أنك مصاب؟ الحدس يقول ٩٩٪، والجواب الصحيح نحو <b>١٣٪</b>.</p>
+  <div class="w" id="bsBox"><div class="cap">قاعدة بايز بالأعداد الطبيعية (مجتمع من ١٠٠٬٠٠٠ شخص)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">نسبة الإصابة ٪ <input type="range" id="bsP" min="0.05" max="5" step="0.05" value="0.15"> <b id="bsPo">0.15</b></label><label class="note">إيجابي خاطئ ٪ <input type="range" id="bsF" min="0" max="10" step="0.5" value="1"> <b id="bsFo">1</b></label><label class="note"><input type="checkbox" id="bs2"> تحليل ثانٍ إيجابي أيضاً (حساسية ٩٨٪، إيجابي خاطئ ٣٪)</label></div>
+    <div id="bsOut" style="margin-top:8px"></div><div class="calc" id="bsCalc"></div></div>
+  <p>السرّ في الأعداد: من ١٠٠٬٠٠٠ شخص نحو ١٥٠ مصاباً، كلهم يظهرون إيجابيين؛ لكن من ٩٩٬٨٥٠ سليماً يظهر نحو ٩٩٩ إيجابيين خطأً. فمن بين الإيجابيين قلة فقط مصابون حقاً. والتحليل الثاني المستقل يرفع الاحتمال إلى نحو ٨٣٪، بشرط أن يكون خطؤه مستقلاً عن خطأ الأول عند معرفة الحالة (<b>الاستقلال الشرطي</b>). ويشير الكتاب إلى أن الشرط قد يخلق الاعتماد أيضاً: سببان مستقلان لنتيجة واحدة يصيران مرتبطين حين نعلم النتيجة («التفسير البديل»).</p>
+
+  <h3>التوقع والتباين</h3>
+  <div class="math"><div class="mh"><span class="sym">E[X]</span>مفهوم رياضي · التوقع والتباين والانحراف المعياري</div><div class="mb">
+    <p><b>التوقع</b> متوسط النتائج موزوناً باحتمالاتها: <span class="mono" dir="ltr">E[X] = Σ x · P(X = x)</span>. و<b>التباين</b> متوسط مربع البعد عن التوقع: <span class="mono" dir="ltr">Var(X) = E[(X − μ)²] = E[X²] − μ²</span>، وجذره <b>الانحراف المعياري</b> σ، بوحدات X نفسها. والتوقع <b>خطي</b> دائماً: <span class="mono" dir="ltr">E[X + Y] = E[X] + E[Y]</span>. أما التباينات فتُجمع فقط للمستقلين؛ وإلا أُضيف حد التغاير: <span class="mono" dir="ltr">Var(X+Y) = Var(X) + Var(Y) + 2Cov(X, Y)</span>.</p>
+  </div></div>
+  <div class="w" id="evBox"><div class="cap">استثمار: يخسر كل شيء، أو يضاعف المال، أو يضاعفه عشر مرات (غيّر الاحتمالات)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">P(×0) <input type="range" id="evA" min="0" max="1" step="0.05" value="0.5"></label><label class="note">P(×10) <input type="range" id="evC" min="0" max="1" step="0.05" value="0.1"></label></div>
+    <div id="evOut" style="margin-top:6px"></div><div class="calc" id="evCalc"></div></div>
+  <p>مثال الكتاب: احتمال ٠٫٥ أن تخسر كل شيء، و٠٫٤ أن يتضاعف المال، و٠٫١ أن يصير عشرة أضعاف. التوقع ١٫٨ ضعفاً، لكن الانحراف المعياري نحو ٢٫٩: عائد متوقع مغرٍ مع مخاطرة هائلة. وللتباين وجه آخر: صفر التغاير لا يعني الاستقلال. مثال الكتاب: X من {−١، ٠، ١} وY = X². التغاير صفر، لكن Y تتحدد تماماً بـX.</p>
+  <p>ويفرّق الكتاب أخيراً بين نوعين من الشك: <b>الشك المعرفي</b> سببه قلة البيانات، ويقل بجمع المزيد؛ و<b>الشك العشوائي</b> كامن في الظاهرة نفسها (العملة العادلة تبقى ٥٠/٥٠ مهما رميتها)، ولا تزيله البيانات.</p>
+  <div class="xref"><b>في الكتاب الأول</b>الاحتمالات الشرطية تبني النماذج اللغوية من أبسطها: <a href="../slp/03-ngram-language-models.html">الفصل ٣: نماذج N-gram</a>.</div>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">الخلاصة والتمارين</div><h2>ما تأخذه من الفصل</h2></header>
+  <ul class="clean">
+    <li>الموتر شكل ونوع وأعداد. احسب عليه كله دفعة واحدة، وانتبه للبث: يوفّر الحلقات لكنه يخفي أخطاء الأشكال.</li>
+    <li>حوّل البيانات الخام إلى أعداد قبل التدريب، وكل قرار في ملء الفراغ أو ترميز الفئات له أثر على النموذج.</li>
+    <li>المصنّف الخطي <span class="mono" dir="ltr">O = XW + b</span> كله جبر خطي: ضرب نقطي لكل صنف، وضرب مصفوفات لكل الدفعة.</li>
+    <li>التدرّج يشير إلى أسرع صعود، والتدريب يمشي عكسه، وقاعدة السلسلة تحسبه عبر الطبقات.</li>
+    <li>الاشتقاق التلقائي يسجّل ويمشي إلى الخلف. صفّر التدرّج بين الخطوات، وحدّث المعاملات خارج التسجيل.</li>
+    <li>الاحتمال القبلي مهم (مثال التحليل الطبي)، والخطأ المعياري يحدد هل الفرق حقيقي.</li>
+  </ul>
+  <h3>تمارين (مختارة ومبسطة من تمارين الكتاب)</h3>
+  <ol class="clean">
+    <li>دفعة صور بشكل <code>(n, 1, 28, 28)</code>. ما شكل الناتج من <code>reshape(-1, 784)</code> ومن <code>reshape(256, -1)</code> حين n = ٢٥٦ وحين n = ١٠٠؟ أيهما يعمل مع أي n؟ <details><summary>الحل</summary>‏(-1, 784): ‏(256, 784) و(100, 784)، ويعمل دائماً. (256, -1): ‏(256, 784) مع n = ٢٥٦، لكن مع n = ١٠٠ يصير (256, 306.25)، وهذا مستحيل فيظهر خطأ. فاكتب ‎-1‎ في محور الدفعة.</details></li>
+    <li>ما شكل <code>y_hat - y</code> إن كان شكل y_hat هو (5, 1) وشكل y هو (5,)؟ ولماذا يكون متوسط مربع الخطأ غير صفري مع تنبؤات صحيحة تماماً؟ <details><summary>الحل</summary>‏(5, 5) بالبث: كل تنبؤ يُطرح منه كل هدف، فتدخل في المتوسط فروق بين أمثلة مختلفة. العلاج: <code>y_hat.reshape(-1) - y</code> أو <code>y_hat.squeeze(1)</code>.</details></li>
+    <li>ما ٢٠٠ + ١٠٠ في <code>uint8</code>؟ ولماذا؟ <details><summary>الحل</summary>٤٤: النوع يتسع لـ٠–٢٥٥ فقط، والزائد «يلتفّ»: ٣٠٠ − ٢٥٦ = ٤٤. لتفتيح صورة بأمان حوّلها إلى عشري أو إلى نوع أوسع أولاً، ثم قصّ القيم إلى ٢٥٥.</details></li>
+    <li>احسب كلفة <span class="mono" dir="ltr">(AB)C</span> و<span class="mono" dir="ltr">A(BC)</span> بعدد العمليات، حيث A بحجم ١٠٠٠×٥٠٠٠٠ وB بحجم ٥٠٠٠٠×٢٠ وC بحجم ٢٠×١٠٠٠٠. <details><summary>الحل</summary>بقاعدة 2mkn: ‏AB ≈ ٢×١٠٠٠×٥٠٠٠٠×٢٠ = ٢×١٠⁹، ثم (AB)C ≈ ٢×١٠٠٠×٢٠×١٠٠٠٠ = ٤×١٠⁸؛ المجموع ≈ ٢٫٤×١٠⁹. أما BC ≈ ٢×٥٠٠٠٠×٢٠×١٠٠٠٠ = ٢×١٠¹⁰ وناتجها ٥٠٠٠٠×١٠٠٠٠ ضخم (٥٠٠ مليون عنصر)، ثم A(BC) ≈ ٢×١٠٠٠×٥٠٠٠٠×١٠٠٠٠ = ١٠¹². الترتيب الأول أسرع بنحو ٤٠٠ مرة. الناتج واحد رياضياً، والكلفة لا.</details></li>
+    <li>احسب مشتقة <span class="mono" dir="ltr">f(x) = xˣ</span>. <details><summary>تلميح</summary>اكتبها <span class="mono" dir="ltr">e^(x ln x)</span> ثم طبّق قاعدة السلسلة. الجواب: <span class="mono" dir="ltr">xˣ(ln x + 1)</span>.</details></li>
+    <li>ما تدرّج <span class="mono" dir="ltr">f(x) = ‖x‖₂</span>؟ وماذا يحدث عند x = 0؟ <details><summary>الحل</summary><span class="mono" dir="ltr">x / ‖x‖₂</span>: متجه طوله ١ في اتجاه x. وعند الصفر لا تعريف له (القسمة على صفر)، فالدالة لها «رأس» حاد هناك.</details></li>
+    <li>مع <span class="mono" dir="ltr">u = x²</span> و<span class="mono" dir="ltr">c = u.detach()</span>: ما تدرّج <span class="mono" dir="ltr">z = c·c</span> و<span class="mono" dir="ltr">z = u·c</span> و<span class="mono" dir="ltr">z = u·u</span> بالنسبة لـx؟ <details><summary>الحل</summary>‏c·c: صفر (لا شيء يعتمد على x في الرسم). u·c: ‏c × 2x = 2x³. u·u = x⁴: مشتقتها 4x³. فالنسبة بين الأخيرين ٢: الفصل أسقط نصف المسارات.</details></li>
+    <li>مصنّفان على ١٠٬٠٠٠ صورة: الأول أصاب ٩٬٠٥٠ والثاني ٩٬٠٠٠. هل الفرق (٠٫٥٪) حقيقي؟ احسب الخطأ المعياري لكل منهما. <details><summary>الحل</summary>‏√(0.905×0.095/10000) ≈ ٠٫٠٠٢٩ و√(0.9×0.1/10000) = ٠٫٠٠٣. لو عاملناهما مستقلين لكان خطأ الفرق ≈ √(0.0029² + 0.003²) ≈ ٠٫٠٠٤٢، والفرق ٠٫٠٠٥ نحو ١٫٢ خطأ معياري فقط. لكنهما قُيّما على الصور نفسها: يختلفان في ٣٠٠ صورة فقط (الأول أصاب ١٧٥ منها والثاني ١٢٥)، والمقارنة المزدوجة أدق بكثير. وهذا موضوع التمرين في الكتاب.</details></li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="index.html">→ فهرس الكتاب</a><a href="index.html">الفصل التالي قريباً ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/d2l01.js"></script>
+</body>
+</html>
