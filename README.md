@@ -9,7 +9,7 @@ index.html                 الصفحة الرئيسية: الأقسام، وت�
 slp/index.html             فهرس الكتاب الأول
 slp/NN-name.html           صفحة لكل فصل
 d2l/index.html             فهرس الكتاب الثاني (Dive into Deep Learning، النسخة الإلكترونية)
-d2l/NN-name.html           صفحة لكل فصل منه، وأدواتها في assets/js/d2lNN.js (مع ar-common.js)
+d2l/NN-name.html           صفحة لكل فصل منه، وأدواتها في assets/js/d2lNN.js (مع ar-common.js وd2l-common.js)
 chapters/                  صفحات تحويل من الروابط القديمة إلى slp/ (لا تُعدَّل)
 assets/css/site.css        التصميم المشترك (خطوط Noto، الألوان، الصناديق)
 assets/js/chNN.js          الأدوات التفاعلية الخاصة بكل فصل

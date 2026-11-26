@@ -32,27 +32,6 @@ const GL=[
 ['الخطأ المعياري','standard error','الانحراف المعياري للتقدير؛ √(p(1−p)/n) للنسبة.']];
 initPage(SECS,GL);
 
-/* ---------- small helpers ---------- */
-const fmt=v=>{if(typeof v==='string')return v;if(Number.isInteger(v))return String(v);return String(+v.toFixed(3))};
-const grid=(M,cls,opt={})=>{ // M: 2D array; cls(i,j) -> class
-  const R=M.length,C=M[0].length;
-  return `<div class="tgrid${opt.click?' click':''}" style="grid-template-columns:repeat(${C},auto)">${M.map((r,i)=>r.map((v,j)=>`<i class="${cls?cls(i,j):''}" data-i="${i}" data-j="${j}">${fmt(v)}</i>`).join('')).join('')}</div>`};
-const lab=(t,inner)=>`<div><div class="tl">${t}</div>${inner}</div>`;
-const shp=s=>'('+s.join(', ')+(s.length===1?',':'')+')';
-function plot(el,o){
-  const W=o.W||560,H=o.H||240,L=50,R=14,T=16,B=30;
-  const x=v=>L+(v-o.xmin)/(o.xmax-o.xmin)*(W-L-R), y=v=>H-B-(v-o.ymin)/(o.ymax-o.ymin)*(H-T-B);
-  let s=`<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" style="width:100%;height:auto;direction:ltr"><defs><clipPath id="c${el.id}"><rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}"/></clipPath></defs>`;
-  (o.yt||[]).forEach(v=>{s+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--soft)">${o.ytf?o.ytf(v):v}</text>`});
-  (o.xt||[]).forEach(v=>{s+=`<line x1="${x(v)}" x2="${x(v)}" y1="${T}" y2="${H-B}" stroke="var(--rule)" stroke-dasharray="2 4"/><text x="${x(v)}" y="${H-B+15}" text-anchor="middle" font-size="11" fill="var(--soft)">${v}</text>`});
-  if(o.xl)s+=`<text x="${W-R}" y="${H-3}" text-anchor="end" font-size="11" fill="var(--soft)">${o.xl}</text>`;if(o.yl)s+=`<text x="${L}" y="${T-4}" font-size="11" fill="var(--soft)">${o.yl}</text>`;
-  (o.curves||[]).forEach(c=>{let d='';const n=200;for(let i=0;i<=n;i++){const v=o.xmin+(o.xmax-o.xmin)*i/n,u=c.f(v);if(!isFinite(u))continue;d+=(d?'L':'M')+x(v).toFixed(1)+' '+y(u).toFixed(1)}
-    s+=`<path d="${d}" fill="none" stroke="${c.c}" stroke-width="${c.w||2.5}" ${c.dash?'stroke-dasharray="5 4"':''} clip-path="url(#c${el.id})"/>`});
-  (o.lines||[]).forEach(p=>{s+=`<path d="${p.pts.map((q,i)=>(i?'L':'M')+x(q[0]).toFixed(1)+' '+y(q[1]).toFixed(1)).join('')}" fill="none" stroke="${p.c}" stroke-width="${p.w||1.8}" ${p.dash?'stroke-dasharray="4 4"':''} clip-path="url(#c${el.id})"/>`});
-  (o.pts||[]).forEach(p=>{s+=`<circle cx="${x(p.x)}" cy="${y(p.y)}" r="${p.r||5}" fill="${p.c}"/>${p.t?`<text x="${x(p.x)+8}" y="${y(p.y)-8}" font-size="12" fill="${p.c}">${p.t}</text>`:''}`});
-  el.innerHTML=s+'</svg>';
-}
-
 /* ---------- 1.1 reshape ---------- */
 let tsSel=null;
 function drawTS(){

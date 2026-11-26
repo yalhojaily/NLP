@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٢ · الانحدار الخطي | الغوص في التعلّم العميق</title>
+<meta name="description" content="شرح عربي للفصل الثاني من كتاب Dive into Deep Learning: الانحدار الخطي، والمعادلات الطبيعية، والنزول التدرّجي العشوائي بالدفعات، والأرجحية العظمى، والتنفيذ من الصفر وبالمكتبة، والتعميم، وتناقص الأوزان.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">الغوص في التعلّم العميق</a></nav>
+    <div class="chnav"><a class="pill" href="01-preliminaries.html" style="text-decoration:none">→ الفصل ١</a><b>الفصل ٢ من ٤٢</b></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الأساسيات · الفصل الثاني</div>
+  <h1>الانحدار الخطي</h1>
+  <div class="sub en" style="font-size:16px">Chapter 2 · Linear Regression · <a href="https://d2l.ai/chapter_linear-regression/index.html">d2l.ai</a></div>
+  <p class="epi">الانحدار أداة التنبؤ بالأعداد: سعر بيت، ومدة بقاء مريض في المستشفى، والطلب على الكهرباء غداً. ويختاره الكتاب بداية لأن مكوّنات التدريب كلها تظهر فيه بأوضح صورة: نموذج، وخسارة، ونزول تدرّجي بالدفعات، وبيانات تحقق، وتنظيم. وكل ما سيأتي في الفصول اللاحقة نسخة أكبر من هذا الفصل.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم في سطرين</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--tint);border-color:var(--rule)"></i>كود مشروح: كل سطر وبجانبه معناه</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية: جرّب بيدك</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>النموذج الخطي يضرب كل خاصية في وزن ويجمع ويضيف انحيازاً: <span class="mono" dir="ltr">ŷ = w⊤x + b</span>. ونقيس خطأه بمتوسط مربع الفرق بين التنبؤ والحقيقة.</li>
+    <li>لهذه المسألة حل مباشر بمعادلة واحدة (المعادلات الطبيعية)، لكنه لا يصلح للبيانات الضخمة ولا للشبكات غير الخطية. فنستعمل <b>النزول التدرّجي العشوائي بالدفعات</b>: خطوات صغيرة متكررة على دفعات عشوائية.</li>
+    <li>تقليل مربع الخطأ هو نفسه تعظيم الأرجحية إن كان الضجيج طبيعياً (غاوسياً)، وضجيج آخر يعطي خسارة أخرى.</li>
+    <li>نبني التدريب ثلاث مرات: من الصفر بالموترات، ثم بأصناف قابلة لإعادة الاستعمال (نموذج، وبيانات، ومدرِّب)، ثم بأدوات المكتبة الجاهزة.</li>
+    <li>المهم ليس الأداء على بيانات التدريب بل على بيانات جديدة. النموذج المعقد جداً «يحفظ» التدريب ويفشل خارجه، فنختار النموذج ببيانات تحقق، ونكبحه بـ<b>تناقص الأوزان</b>.</li>
+  </ol>
+</div>
+
+<!-- ============ 2.1 ============ -->
+<section class="sec" id="s2-1">
+  <header><div class="kicker">القسم ٢٫١ <a class="pg" href="https://d2l.ai/chapter_linear-regression/linear-regression.html">d2l.ai ↗</a></div><h2>الانحدار الخطي</h2></header>
+  <div class="brief"><b>باختصار</b>نتنبأ بسعر بيت من مساحته وعمره: لكل خاصية وزن، ونضيف انحيازاً. ونختار الأوزان التي تقلّل متوسط مربع الخطأ. يمكن حسابها مباشرة بالمعادلات الطبيعية، أو الاقتراب منها بخطوات النزول التدرّجي. وفي الحالتين تبقى الفكرة: أفضل خط هو الأقرب إلى النقاط بمقياس مربع البعد العمودي.</div>
+  <div class="terms"><span>الانحدار <i>regression</i></span><span>المثال <i>example</i></span><span>الخاصية <i>feature</i></span><span>الوسم / الهدف <i>label / target</i></span><span>الوزن والانحياز <i>weight, bias</i></span><span>مصفوفة التصميم <i>design matrix</i></span><span>الخسارة التربيعية <i>squared loss</i></span></div>
+  <p>يبدأ الكتاب بالتاريخ: نشر لوجاندر طريقة <b>المربعات الصغرى</b> عام ١٨٠٥ لحساب مدارات المذنبات، وربطها غاوس بالاحتمال عام ١٨٠٩ فوصل إلى التوزيع الذي يحمل اسمه. وكان غاوس قد استعملها عام ١٨٠١ ليتنبأ بموقع الكوكب القزم سيريس بعد أن فقده الفلكيون.</p>
+
+  <h3>النموذج والخسارة</h3>
+  <p>كل بيت <b>مثال</b>، وسعره <b>الوسم</b>، ومساحته وعمره <b>خاصيتان</b>. والنموذج:</p>
+  <div class="eq">price = w<sub>area</sub> · area + w<sub>age</sub> · age + b</div>
+  <p>الوزن يحدد أثر كل خاصية: كم يرتفع السعر لكل متر إضافي. والانحياز <i>b</i> قيمة البداية: السعر المتوقع حين تكون الخصائص كلها صفراً. ويلاحظ الكتاب أن الرياضيين يسمون هذا «تآلفياً» <span class="en">(affine)</span> لا «خطياً» بسبب إضافة b، لكن تعلّم الآلة يسميه خطياً. ومع d خاصية:</p>
+  <div class="eq">ŷ = w₁x₁ + ⋯ + w_d x_d + b = w⊤x + b &nbsp;&nbsp;&nbsp; ولكل الأمثلة معاً: &nbsp; ŷ = Xw + b</div>
+  <p>هنا X <b>مصفوفة التصميم</b>: صف لكل مثال وعمود لكل خاصية (n×d). وضربها في w يعطي تنبؤات كل الأمثلة بخطوة واحدة، ويُضاف b لكل تنبؤ بالبث.</p>
+  <div class="math"><div class="mh"><span class="sym">½(ŷ−y)²</span>مفهوم رياضي · الخسارة التربيعية</div><div class="mb">
+    <p>لكل مثال نحسب الفرق بين التنبؤ والحقيقة ونربّعه. التربيع يجعل الخطأ موجباً دائماً (لا يلغي خطأ موجب خطأً سالباً)، ويعاقب الأخطاء الكبيرة أكثر بكثير: خطأ ٣ يكلف ٩ وخطأ ١٠ يكلف ١٠٠.</p>
+    <div class="eq">l⁽ⁱ⁾(w, b) = ½ (ŷ⁽ⁱ⁾ − y⁽ⁱ⁾)² &nbsp;&nbsp;&nbsp; L(w, b) = (1/n) Σᵢ l⁽ⁱ⁾ = (1/2n) ‖Xw + b − y‖²</div>
+    <p>والنصف للتجميل فقط: حين نشتق المربع يخرج ٢ فيلغيه. والقسمة على n تجعل الخسارة متوسطاً لا يكبر بكبر البيانات. والتدريب: ابحث عن w وb اللذين يجعلان L أصغر ما يمكن (<code>argmin</code>).</p>
+  </div></div>
+  <div class="w" id="ftBox"><div class="cap">ثلاث نقاط من مثال الكتاب: حرّك الخط وراقب الخسارة</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">الميل w = <b id="ftWo"></b> <input type="range" id="ftW" min="-2" max="2" step="0.01" value="0"></label><label class="note">الانحياز b = <b id="ftBo"></b> <input type="range" id="ftB" min="-1" max="2" step="0.01" value="0.5"></label><button class="pill" id="ftBest">الحل الأمثل</button></div>
+    <div id="ftPlot"></div><div class="calc" id="ftCalc"></div></div>
+
+  <p>لكن للتربيع ثمناً. يضع الكتاب ٢٠ نقطة على الخط <span class="mono" dir="ltr">y = 2x</span> تماماً، ثم يفسد وسماً واحداً فيجعله ١٠٬٠٠٠. خط المربعات الصغرى (عبر نقطة الأصل) يصير ميله ٢٢٫٨٨ بدل ٢، أما خط «متوسط الخطأ المطلق» فيبقى ميله ٢ بالضبط.</p>
+  <div class="w" id="olBox"><div class="cap">نقطة واحدة فاسدة من ٢٠ (الخط عبر الأصل)</div>
+    <div class="row"><label class="note"><input type="checkbox" id="olOn" checked> أفسد الوسم السادس (y = 10,000)</label></div>
+    <div id="olPlot"></div><div class="calc" id="olCalc"></div></div>
+
+  <h3>الحل المباشر: المعادلات الطبيعية</h3>
+  <div class="math"><div class="mh"><span class="sym">X⊤Xw = X⊤y</span>مفهوم رياضي · المعادلات الطبيعية</div><div class="mb">
+    <p>أولاً حيلة: نضيف إلى X عموداً من الآحاد، فيصير الانحياز b وزناً عادياً لخاصية قيمتها ١ دائماً. ثم نطلب أن يكون ميل الخسارة صفراً في كل اتجاه (عند القاع لا يصعد شيء ولا ينزل). فيخرج من الاشتقاق:</p>
+    <div class="eq">X⊤X w* = X⊤y &nbsp;&nbsp; ⇒ &nbsp;&nbsp; w* = (X⊤X)⁻¹ X⊤y</div>
+    <p>المصفوفة المعكوسة <span class="mono" dir="ltr">A⁻¹</span> هي «القسمة» في عالم المصفوفات: <span class="mono" dir="ltr">A⁻¹A = I</span>. ولها شرط: أن تكون أعمدة X مستقلة (لا عمود يمكن كتابته من الأعمدة الأخرى)، وهذا يتطلب أمثلة بعدد الخصائص على الأقل. ويحذّر الكتاب: لا تحسب المعكوس فعلاً في الكود، بل استعمل دالة المربعات الصغرى <code>torch.linalg.lstsq</code>، فهي أدق عددياً.</p>
+    <p><b>لماذا «طبيعية»؟</b> كلمة normal تعني أيضاً «عمودي». التنبؤات Xw لا تستطيع إلا أن تكون تركيبة من أعمدة X. وأقربها إلى y هي <b>إسقاط</b> y على فضاء هذه الأعمدة، فيكون الخطأ المتبقي <b>عمودياً</b> على كل عمود: <span class="mono" dir="ltr">X⊤(y − Xw) = 0</span>، وهي المعادلة نفسها.</p>
+  </div></div>
+  <p>في مثال النقاط الثلاث (المدخلات ٠، ١، ٢ والوسوم ١، ١، ٠) يخرج الحل: انحياز ٧/٦ ≈ ١٫١٦٧ وميل −½. والبواقي (١/٦، −١/٣، ١/٦) مجموعها صفر، وهي متعامدة فعلاً على عمودي X. والكتاب يتحقق من ذلك في الكود: أكبر قيمة في <span class="mono" dir="ltr">X⊤r</span> نحو ١٠<sup>−٧</sup>، أي صفر بدقة الأعداد العشرية ٣٢ بت.</p>
+
+  <h3>النزول التدرّجي العشوائي بالدفعات</h3>
+  <p>لماذا لا نكتفي بالحل المباشر؟ لأن تكوين <span class="mono" dir="ltr">X⊤X</span> يكلف nd² عملية وحلّها d³: مع ملايين الأمثلة والخصائص يصير مستحيلاً. والأهم: الشبكات العصبية غير خطية وليس لها حل مباشر أصلاً. فنحتاج طريقة تعمل دائماً: نبدأ من أوزان عشوائية، ونمشي خطوات صغيرة عكس التدرّج.</p>
+  <div class="math"><div class="mh"><span class="sym">η/|𝓑|</span>مفهوم رياضي · قاعدة التحديث</div><div class="mb">
+    <p>حساب التدرّج على كل البيانات في كل خطوة بطيء، وعلى مثال واحد فقط مزعج ولا يستفيد من سرعة المعالجات. فنأخذ <b>دفعة</b> عشوائية 𝓑 من الأمثلة (عشرات أو مئات)، ونحسب متوسط تدرّجها، ونخطو:</p>
+    <div class="eq">(w, b) ← (w, b) − (η / |𝓑|) Σ<sub>i∈𝓑</sub> ∂<sub>(w,b)</sub> l⁽ⁱ⁾(w, b)</div>
+    <p>|𝓑| حجم الدفعة، وη (إيتا) <b>معدّل التعلّم</b>: طول الخطوة. وللخسارة التربيعية يصير التحديث صريحاً: <span class="mono" dir="ltr">w ← w − (η/|𝓑|) Σ x⁽ⁱ⁾(w⊤x⁽ⁱ⁾ + b − y⁽ⁱ⁾)</span>، أي كل مثال يدفع w باتجاه خاصياته مضروبة في خطئه. وهذان الرقمان (η و|𝓑|) <b>معاملات فائقة</b>: نختارها نحن، أما w وb فتتعلّمها الخوارزمية.</p>
+  </div></div>
+  <p>تدرّج الدفعة تقدير عشوائي للتدرّج الحقيقي: صحيح في المتوسط، لكنه يتذبذب، وخطؤه المعياري يصغر مع <span class="mono" dir="ltr">1/√|𝓑|</span> (كما في رمي العملة في الفصل الأول). فلا تستقر الأوزان عند الحل تماماً، بل تتجول في «كرة ضجيج» حوله، مربع نصف قطرها يتناسب مع <span class="mono" dir="ltr">η/|𝓑|</span>. نصّف معدل التعلّم أو ضاعف الدفعة فتصغر الكرة.</p>
+  <div class="w" id="sgBox"><div class="cap">كرة الضجيج: نبدأ من الحل الأمثل ونترك SGD يتجول (١٬٠٠٠ مثال، ضجيج σ = 1)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="note">η:</span><span class="seg" id="sgL" dir="ltr"><button data-v="0.01">0.01</button><button data-v="0.03" class="on">0.03</button><button data-v="0.1">0.1</button></span><span class="note">|𝓑|:</span><span class="seg" id="sgB" dir="ltr"><button data-v="4">4</button><button data-v="16" class="on">16</button><button data-v="64">64</button></span></div>
+    <div id="sgPlot"></div><div class="calc" id="sgCalc"></div></div>
+  <p>وما الذي يجعل الدفعات عملية؟ <b>التوجيه</b> <span class="en">(vectorization)</span>: حساب الدفعة كلها بعملية مصفوفات واحدة. يقيس الكتاب تنبؤ ١٬٠٠٠ مثال: بحلقة على مثال بعد مثال ١١٫٤ ملّي ثانية، وبضرب واحد Xw + b نحو ٠٫٠٢٤ ملّي ثانية في PyTorch، أي أسرع بنحو ٤٨٠ مرة.</p>
+
+  <h3>لماذا المربع بالذات؟ الضجيج الطبيعي والأرجحية العظمى</h3>
+  <div class="math"><div class="mh"><span class="sym">𝒩(μ, σ²)</span>مفهوم رياضي · التوزيع الطبيعي (الغاوسي)</div><div class="mb">
+    <p>منحنى الجرس الشهير. له مركز μ (المتوسط) وعرض σ (الانحراف المعياري)، وكثافته:</p>
+    <div class="eq">p(x) = 1/√(2πσ²) · exp( −(x − μ)² / 2σ² )</div>
+    <p>نحو ٦٨٪ من الاحتمال يقع ضمن σ واحدة من المركز، و٩٥٪ ضمن 2σ. والقيمة البعيدة 5σ كثافتها نحو ٤ أجزاء من مليون من القمة: الضجيج الطبيعي لا يكاد ينتج قيماً شاذة. وهنا مفتاح القصة.</p>
+  </div></div>
+  <div class="w" id="gaBox"><div class="cap">التوزيع الطبيعي: غيّر المركز والعرض</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">μ = <b id="gaMo"></b> <input type="range" id="gaM" min="-3" max="3" step="0.1" value="0"></label><label class="note">σ = <b id="gaSo"></b> <input type="range" id="gaS" min="0.3" max="3" step="0.1" value="1"></label></div>
+    <div id="gaPlot"></div><div class="calc" id="gaCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">−log P</span>مفهوم رياضي · الأرجحية العظمى</div><div class="mb">
+    <p>نفترض أن الوسم = الخط + ضجيج طبيعي: <span class="mono" dir="ltr">y = w⊤x + b + ε</span> و<span class="mono" dir="ltr">ε ~ 𝒩(0, σ²)</span>. فـ<b>أرجحية</b> البيانات (احتمال رؤيتها إن كانت الأوزان w وb) حاصل ضرب كثافات الأمثلة. ومبدأ <b>الأرجحية العظمى</b>: اختر الأوزان التي تجعل البيانات المرصودة أكثر احتمالاً.</p>
+    <p>حاصل ضرب أعداد صغيرة كثيرة صعب، فنأخذ اللوغاريتم (يحوّل الضرب جمعاً) ونضع سالباً (فيصير التعظيم تصغيراً):</p>
+    <div class="eq">−log P(y | X) = Σᵢ ½ log(2πσ²) + (1/2σ²) Σᵢ (y⁽ⁱ⁾ − w⊤x⁽ⁱ⁾ − b)²</div>
+    <p>الحد الأول لا يحوي w ولا b، فلا أثر له. والثاني <b>مربع الخطأ</b> مضروباً في ثابت. فتقليل مربع الخطأ = تعظيم الأرجحية تحت ضجيج طبيعي، مهما كانت σ.</p>
+  </div></div>
+  <p>وهذا يفتح باباً: اختر الخسارة من طبيعة الضجيج. جدول الكتاب:</p>
+  <div class="scroll"><table class="tb">
+    <tr><th>نوع المخرج</th><th>نموذج الضجيج</th><th>الخسارة</th><th>ما يتنبأ به</th></tr>
+    <tr><td>عدد حقيقي منتظم</td><td>طبيعي</td><td>مربع الخطأ</td><td>متوسط y</td></tr>
+    <tr><td>عدد حقيقي فيه قيم شاذة</td><td>لابلاس</td><td>الخطأ المطلق</td><td>وسيط y</td></tr>
+    <tr><td>عدد موجب بأخطاء نسبية (الأسعار)</td><td>طبيعي على log y</td><td>مربع الخطأ على log y</td><td>متوسط log y</td></tr>
+    <tr><td>أعداد صحيحة (عدّ)</td><td>بواسون</td><td dir="ltr">ν(x) − y log ν(x)</td><td>متوسط y</td></tr>
+  </table></div>
+  <p>و<b>خسارة هوبر</b> حل وسط: تربيعية للأخطاء الصغيرة (ناعمة قرب الصفر)، وخطية للكبيرة (لا تبالغ مع القيم الشاذة)، والحد بينهما δ.</p>
+  <div class="w" id="lsBox"><div class="cap">ثلاث خسائر بحسب الخطأ (ŷ − y)</div>
+    <div class="row"><label class="note">δ لهوبر = <b id="lsDo"></b></label><input type="range" id="lsD" min="0.2" max="3" step="0.1" value="1" style="flex:1"></div>
+    <div id="lsPlot"></div><div class="calc" id="lsCalc"></div></div>
+
+  <h3>الانحدار الخطي شبكة عصبية من طبقة واحدة</h3>
+  <p>ارسم كل خاصية عقدة، ووصّلها بعقدة مخرج واحدة، واكتب على كل وصلة وزنها: هذه <b>شبكة عصبية</b> من طبقة واحدة. ولأن كل مدخل متصل بكل مخرج تسمى <b>طبقة كاملة الاتصال</b> (أو كثيفة). ويُعدّ هذا طبقة واحدة لا طبقتين، لأننا نعدّ الطبقات التي فيها معاملات تُتعلَّم فقط.</p>
+  <div class="w" style="text-align:center"><svg viewBox="0 0 420 170" style="width:100%;max-width:420px;height:auto;direction:ltr" role="img" aria-label="Linear regression as a single-layer network">
+    <g font-family="Noto Sans, sans-serif" font-size="13">
+      <g fill="var(--paper)" stroke="var(--green)" stroke-width="2"><circle cx="60" cy="30" r="18"/><circle cx="60" cy="80" r="18"/><circle cx="60" cy="140" r="18"/><circle cx="330" cy="85" r="22" stroke="var(--amber)"/></g>
+      <g stroke="var(--soft)" stroke-width="1.5"><line x1="78" y1="32" x2="308" y2="82"/><line x1="78" y1="80" x2="308" y2="85"/><line x1="78" y1="138" x2="308" y2="89"/></g>
+      <g fill="var(--ink)" text-anchor="middle"><text x="60" y="35">x₁</text><text x="60" y="85">x₂</text><text x="60" y="145">x_d</text><text x="60" y="114" fill="var(--soft)">⋮</text><text x="330" y="90">o₁</text></g>
+      <g fill="var(--math)"><text x="190" y="50">w₁</text><text x="190" y="78">w₂</text><text x="190" y="128">w_d</text></g>
+      <text x="380" y="90" fill="var(--soft)">= ŷ</text>
+      <text x="190" y="166" fill="var(--soft)" text-anchor="middle">input layer → output layer (one layer of weights)</text>
+    </g></svg></div>
+  <p>والتسمية من علم الأحياء: الخلية العصبية تستقبل إشارات من خلايا أخرى عبر تفرعاتها (التغصنات)، كل إشارة موزونة بقوة الوصلة، فتجمعها، وتطلق إشارة إن تجاوز المجموع حداً. وهذا ما ألهم ماكولوك وبيتس عام ١٩٤٣. لكن الكتاب يوضح: التعلّم العميق اليوم يستلهم الرياضيات والهندسة أكثر من الأحياء.</p>
+  <div class="xref"><b>في الكتاب الأول</b>الوحدة العصبية نفسها مع دالة تنشيط، ثم تكديسها في طبقات: <a href="../slp/06-neural-networks.html">الفصل ٦: الشبكات العصبية</a>.</div>
+</section>
+
+<!-- ============ 2.2 ============ -->
+<section class="sec" id="s2-2">
+  <header><div class="kicker">القسم ٢٫٢ <a class="pg" href="https://d2l.ai/chapter_linear-regression/synthetic-regression-data.html">d2l.ai ↗</a></div><h2>بيانات مصطنعة</h2></header>
+  <div class="brief"><b>باختصار</b>قبل أن ندرّب على بيانات حقيقية نصنع بيانات نعرف «الجواب الصحيح» فيها: نختار أوزاناً حقيقية وانحيازاً، ونولّد أمثلة منها مع ضجيج صغير. فإن استعاد التدريب الأوزان التي اخترناها عرفنا أن الكود صحيح. وهي طريقة مهمة لاختبار أي خوارزمية تعلّم.</div>
+  <div class="terms"><span>بيانات مصطنعة <i>synthetic data</i></span><span>المعاملات الحقيقية <i>ground-truth parameters</i></span><span>مجموعة التحقق <i>validation set</i></span><span>أرضية الضجيج <i>noise floor</i></span></div>
+  <p>المعاملات الحقيقية: <span class="mono" dir="ltr">w* = (2, −3.4)</span> و<span class="mono" dir="ltr">b* = 4.2</span>، والضجيج طبيعي بانحراف ٠٫٠١. والخصائص أعداد عشوائية من التوزيع الطبيعي القياسي. نولّد ٢٬٠٠٠ مثال: الألف الأولى للتدريب، والألف الثانية للتحقق (من التوزيع نفسه، لكن النموذج لا يراها أثناء التدريب).</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>def synthetic_data(w, b, noise, n):</code><span>دالة تولّد n مثالاً.</span></div>
+    <div class="cl"><code>    X = torch.randn(n, len(w))</code><span>خصائص عشوائية: n صف × عمودان.</span></div>
+    <div class="cl"><code>    eps = torch.randn(n, 1) * noise</code><span>ضجيج لكل مثال، مضروب في ٠٫٠١.</span></div>
+    <div class="cl"><code>    return X, X @ w.reshape(-1, 1) + b + eps</code><span>الوسوم = الخط الحقيقي + الضجيج. لاحظ <code>reshape(-1, 1)</code> لتكون w عموداً ويخرج y بشكل (n, 1).</span></div>
+    <div class="cl"><code>w_star, b_star = torch.tensor([2, -3.4]), 4.2</code><span>الجواب الذي نريد استعادته.</span></div>
+    <div class="cl"><code>X, y = synthetic_data(w_star, b_star, 0.01, 2000)</code><span>٢٬٠٠٠ مثال.</span></div>
+  </div>
+  <p>والكتاب يحل المسألة أولاً بالمربعات الصغرى (<code>lstsq</code>) على أمثلة التدريب، فيخرج الخطأ في الأوزان نحو ٣×١٠<sup>−٤</sup>. ولماذا ليس صفراً؟ لأن الضجيج يجعل الخطأ <b>إحصائياً</b> لا عددياً: حجمه من رتبة <span class="mono" dir="ltr">σ/√n = 0.01/√1000 ≈ 3×10⁻⁴</span>. ولا يمكن لأي خوارزمية أن تقلل الخسارة تحت <b>أرضية الضجيج</b> <span class="mono" dir="ltr">½σ² = 5×10⁻⁵</span>: هذا خطأ لا يُتعلَّم لأنه عشوائي.</p>
+  <div class="w" id="syBox"><div class="cap">٣٠٠ مثال مصطنع: الوسم مقابل خاصية واحدة، ومقابل التنبؤ الحقيقي</div>
+    <div class="row"><span class="seg" id="syS"><button data-v="1" class="on">y مقابل x₁</button><button data-v="2">y مقابل x₂</button><button data-v="p">y مقابل 2x₁ − 3.4x₂ + 4.2</button></span></div>
+    <div id="syPlot"></div><div class="calc" id="syCalc"></div></div>
+  <p>يلاحظ الكتاب أن رسم y مقابل خاصية واحدة يعطي <b>شريطاً عريضاً</b> لا خطاً رفيعاً، لأن الخاصية الأخرى تحرك النقاط صعوداً ونزولاً. فلا تحكم على العلاقة من رسم خاصية واحدة.</p>
+</section>
+
+<!-- ============ 2.3 ============ -->
+<section class="sec" id="s2-3">
+  <header><div class="kicker">القسم ٢٫٣ <a class="pg" href="https://d2l.ai/chapter_linear-regression/linear-regression-scratch.html">d2l.ai ↗</a></div><h2>التنفيذ من الصفر</h2></header>
+  <div class="brief"><b>باختصار</b>نكتب كل شيء بأيدينا: النموذج (سطر واحد)، والخسارة، وتقسيم البيانات دفعات عشوائية، وحلقة التدريب: لكل دفعة مرور أمامي فخسارة فمرور خلفي فتحديث فتصفير. وبعد عشر دورات بمعدّل تعلّم ٠٫٠٣ نستعيد الأوزان الحقيقية بخطأ نحو ١٠<sup>−٤</sup>.</div>
+  <div class="terms"><span>الدورة <i>epoch</i></span><span>الدفعة <i>minibatch</i></span><span>التهيئة <i>initialization</i></span><span>حلقة التدريب <i>training loop</i></span><span>التباعد <i>divergence</i></span></div>
+  <div class="code"><div class="hd">PyTorch · النموذج والخسارة والتهيئة</div>
+    <div class="cl"><code>def linreg(X, w, b):</code><span>النموذج.</span></div>
+    <div class="cl"><code>    return X @ w + b</code><span><span class="mono" dir="ltr">ŷ = Xw + b</span>، والانحياز يُبث على كل الصفوف.</span></div>
+    <div class="cl"><code>def squared_loss(y_hat, y):</code><span>الخسارة.</span></div>
+    <div class="cl"><code>    return ((y_hat - y.reshape(-1, 1)) ** 2 / 2).mean()</code><span>نصف متوسط مربع الخطأ. و<code>reshape(-1, 1)</code> هنا حماية من خطأ البث الصامت: (n, 1) − (n,) تعطي n×n!</span></div>
+    <div class="cl"><code>w = torch.normal(0, 0.01, (2, 1), requires_grad=True)</code><span>أوزان صغيرة عشوائية (انحراف ٠٫٠١)، مع تسجيل التدرّج.</span></div>
+    <div class="cl"><code>b = torch.zeros(1, requires_grad=True)</code><span>الانحياز صفر في البداية.</span></div>
+  </div>
+  <p>ويحذّر الكتاب من خطأ الأشكال نفسه الذي رأيناه في الفصل الأول: لو تُرك y بشكل (n,) والتنبؤ بشكل (n, 1) لصارت الخسارة متوسط مصفوفة n×n، و<b>الخسارة ستنخفض مع ذلك</b>. فانخفاض الخسارة وحده ليس دليلاً على صحة الكود؛ ولهذا نختبر على بيانات نعرف جوابها.</p>
+  <div class="code"><div class="hd">PyTorch · الدفعات وحلقة التدريب</div>
+    <div class="cl"><code>def minibatches(X, y, batch_size):</code><span>مولّد دفعات.</span></div>
+    <div class="cl"><code>    indices = np.random.permutation(len(X))</code><span>نخلط ترتيب الأمثلة من جديد في كل دورة.</span></div>
+    <div class="cl"><code>    for i in range(0, len(indices), batch_size):</code><span>نقطع الترتيب المخلوط قطعاً بحجم الدفعة…</span></div>
+    <div class="cl"><code>        yield X[indices[i:i+batch_size]], y[...]</code><span>…ونسلّمها واحدة واحدة. مع ١٬٠٠٠ مثال ودفعة ٣٢: ٣١ دفعة كاملة وأخيرة من ٨.</span></div>
+    <div class="cl"><code>for epoch in range(num_epochs):</code><span>الدورة = مرور كامل على بيانات التدريب.</span></div>
+    <div class="cl"><code>    for Xb, yb in minibatches(X_train, y_train, 32):</code><span>لكل دفعة:</span></div>
+    <div class="cl"><code>        loss = squared_loss(linreg(Xb, w, b), yb)</code><span>١. مرور أمامي وخسارة.</span></div>
+    <div class="cl"><code>        loss.backward()</code><span>٢. مرور خلفي: التدرّجات في w.grad وb.grad.</span></div>
+    <div class="cl"><code>        with torch.no_grad():</code><span>التحديث لا يُسجَّل في الرسم الحسابي.</span></div>
+    <div class="cl"><code>            for p in (w, b):</code><span>لكل معامل:</span></div>
+    <div class="cl"><code>                p -= lr * p.grad</code><span>٣. خطوة عكس التدرّج.</span></div>
+    <div class="cl"><code>                p.grad.zero_()</code><span>٤. تصفير، لأن PyTorch يراكم.</span></div>
+    <div class="cl"><code>    val_loss = squared_loss(linreg(X_val, w, b), y_val)</code><span>في نهاية كل دورة نقيس الخسارة على بيانات التحقق.</span></div>
+  </div>
+  <div class="w" id="trBox"><div class="cap">درّب فعلاً: ١٬٠٠٠ مثال تدريب، دفعة ٣٢، عشر دورات (التدريب يجري في متصفحك)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="note">معدّل التعلّم η:</span><span class="seg" id="trL" dir="ltr"><button data-v="0.003">0.003</button><button data-v="0.03" class="on">0.03</button><button data-v="0.3">0.3</button><button data-v="3">3</button></span><button class="pill" id="trGo">أعد التدريب</button></div>
+    <div id="trPlot"></div><div class="calc" id="trCalc"></div></div>
+  <p>تجربة الكتاب على معدّل التعلّم (خسارة التحقق في النهاية): η = ٠٫٠٠٣ تبقى عند نحو ٢٫١ لأن الخطوات صغيرة جداً، وη = ٠٫٠٣ وη = ٠٫٣ تصلان إلى أرضية الضجيج (٥×١٠<sup>−٥</sup>)، وη = ٣ <b>تتباعد</b>: كل خطوة تقفز فوق القاع إلى أبعد مما كانت، حتى تصير الأعداد لانهائية (<code>nan</code>). ويقدّر الكتاب أيضاً سرعة الاقتراب: الخسارة الزائدة تُضرب في نحو <span class="mono" dir="ltr">(1 − 0.03)^64 ≈ 1/7</span> في كل دورة.</p>
+</section>
+
+<!-- ============ 2.4 ============ -->
+<section class="sec" id="s2-4">
+  <header><div class="kicker">القسم ٢٫٤ <a class="pg" href="https://d2l.ai/chapter_linear-regression/oo-design.html">d2l.ai ↗</a></div><h2>تصميم كائني للتنفيذ</h2></header>
+  <div class="brief"><b>باختصار</b>حلقة التدريب تتكرر في كل فصل، فيقسمها الكتاب إلى ثلاثة أصناف لكل منها مهمة واحدة: <b>النموذج</b> <code>Module</code> (الحساب والخسارة والمحسِّن)، و<b>البيانات</b> <code>DataModule</code> (تسليم الدفعات)، و<b>المدرِّب</b> <code>Trainer</code> (تشغيل الحلقة). فتستطيع تبديل أي منها دون لمس الآخرين. والتصميم مستوحى من مكتبة PyTorch Lightning.</div>
+  <div class="terms"><span>الصنف <i>class</i></span><span>التابع <i>method</i></span><span>الوراثة <i>inheritance</i></span><span>المحسِّن <i>optimizer</i></span><span>محمِّل البيانات <i>data loader</i></span></div>
+  <div class="w" style="direction:ltr"><div class="cap" style="direction:rtl">من يفعل ماذا</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;font-size:14px">
+      <div style="border:1.5px solid var(--green);border-radius:10px;padding:10px"><b class="mono">Module</b><div class="mono" style="color:var(--soft);font-size:12.5px;line-height:1.8">forward(X)<br>loss(y_hat, y)<br>training_step(batch)<br>validation_step(batch)<br>configure_optimizers()</div><div style="direction:rtl;font-size:14px;margin-top:4px">النموذج: كيف يحسب، وكيف يُقاس خطؤه، وبأي محسِّن يتعلّم.</div></div>
+      <div style="border:1.5px solid var(--math);border-radius:10px;padding:10px"><b class="mono">DataModule</b><div class="mono" style="color:var(--soft);font-size:12.5px;line-height:1.8">get_dataloader(train)<br>train_dataloader()<br>val_dataloader()</div><div style="direction:rtl;font-size:14px;margin-top:4px">البيانات: تنزيلها وتهيئتها وتسليمها دفعات.</div></div>
+      <div style="border:1.5px solid var(--amber);border-radius:10px;padding:10px"><b class="mono">Trainer</b><div class="mono" style="color:var(--soft);font-size:12.5px;line-height:1.8">fit(model, data)<br>fit_epoch()<br>max_epochs</div><div style="direction:rtl;font-size:14px;margin-top:4px">المدرِّب: يربط الاثنين ويشغّل الحلقة دورة بعد دورة.</div></div>
+    </div></div>
+  <p>ومعها أدوات مساعدة صغيرة:</p>
+  <ul class="clean">
+    <li><code>add_to_class</code>: تضيف تابعاً إلى صنف موجود من خلية لاحقة في الدفتر، فيُشرح الصنف قطعةً قطعة بدل كتلة واحدة طويلة.</li>
+    <li><code>HyperParameters.save_hyperparameters()</code>: تحفظ وسائط <code>__init__</code> كخصائص تلقائياً، بدل <code>self.lr = lr</code> لكل وسيط.</li>
+    <li><code>ProgressBoard</code>: ترسم منحنيات الخسارة أثناء التدريب.</li>
+  </ul>
+  <div class="code"><div class="hd">PyTorch · قلب الصنفين</div>
+    <div class="cl"><code>class Module(nn.Module, HyperParameters):</code><span>يرث من <code>nn.Module</code> فيصير «قابلاً للاستدعاء»: <code>model(X)</code> تستدعي forward.</span></div>
+    <div class="cl"><code>    def training_step(self, batch):</code><span>خطوة تدريب واحدة:</span></div>
+    <div class="cl"><code>        l = self.loss(self(*batch[:-1]), batch[-1])</code><span>كل ما في الدفعة عدا الأخير مدخلات، والأخير الوسوم.</span></div>
+    <div class="cl"><code>        return l</code><span>والمدرِّب هو من يستدعي backward والتحديث.</span></div>
+    <div class="cl"><code>class Trainer(HyperParameters):</code><span>المدرِّب.</span></div>
+    <div class="cl"><code>    def fit(self, model, data):</code><span>يجهّز البيانات والنموذج، ويأخذ المحسِّن من <code>configure_optimizers</code>…</span></div>
+    <div class="cl"><code>        for self.epoch in range(self.max_epochs):</code><span>…ثم يكرر الدورات.</span></div>
+    <div class="cl"><code>            self.fit_epoch()</code><span>الدورة نفسها تُكتب لاحقاً، ثم تُعاد كتابتها في فصول أخرى (مثلاً لدعم المعالج الرسومي).</span></div>
+  </div>
+  <p>لماذا هذا التعقيد لنموذج خطي؟ لأن الفصول اللاحقة ستبدّل النموذج (شبكة متعددة الطبقات، ثم التفافية، ثم محوّل) والبيانات (صور ملابس، ثم نصوص) والمحسِّن، والحلقة نفسها تبقى. فكتابتها مرة واحدة بشكل نظيف توفر التكرار وتقلل الأخطاء.</p>
+</section>
+
+<!-- ============ 2.5 ============ -->
+<section class="sec" id="s2-5">
+  <header><div class="kicker">القسم ٢٫٥ <a class="pg" href="https://d2l.ai/chapter_linear-regression/linear-regression-concise.html">d2l.ai ↗</a></div><h2>التنفيذ المختصر</h2></header>
+  <div class="brief"><b>باختصار</b>ما كتبناه بأيدينا موجود جاهزاً في المكتبة: طبقة خطية، ودالة خسارة متوسط المربعات، ومحسِّن SGD. فيصير النموذج بضعة أسطر. والفائدة ليست الاختصار فقط: الأدوات الجاهزة أسرع ومختبرة جيداً.</div>
+  <div class="terms"><span>الطبقة الخطية <i>nn.Linear / nn.LazyLinear</i></span><span>متوسط مربع الخطأ <i>nn.MSELoss</i></span><span>torch.optim.SGD</span></div>
+  <div class="scroll"><table class="tb" dir="ltr">
+    <tr><th></th><th>from scratch (2.3)</th><th>concise (2.5)</th></tr>
+    <tr><td style="direction:rtl">النموذج</td><td class="mono">X @ w + b</td><td class="mono">nn.LazyLinear(1)</td></tr>
+    <tr><td style="direction:rtl">التهيئة</td><td class="mono">torch.normal(0, 0.01, ...)</td><td class="mono">net.weight.data.normal_(0, 0.01)<br>net.bias.data.fill_(0)</td></tr>
+    <tr><td style="direction:rtl">الخسارة</td><td class="mono">((y_hat − y)**2 / 2).mean()</td><td class="mono">nn.MSELoss()</td></tr>
+    <tr><td style="direction:rtl">التحديث</td><td class="mono">p -= lr * p.grad; p.grad.zero_()</td><td class="mono">torch.optim.SGD(params, lr)</td></tr>
+  </table></div>
+  <ul class="clean">
+    <li><b>Linear وLazyLinear</b>: الأولى تحتاج عدد المدخلات وعدد المخرجات مسبقاً، والثانية عدد المخرجات فقط وتستنتج المدخلات عند أول تمرير. ويختار الكتاب «الكسولة» لأن تحديد أبعاد المدخلات مرهق ومعرّض للخطأ، خاصة في الشبكات الالتفافية.</li>
+    <li><b>الشرطة السفلية في آخر الاسم</b> (<code>normal_</code>، <code>fill_</code>) تعني في PyTorch: «عدّل في المكان نفسه».</li>
+    <li><b>MSELoss</b> لا تضرب في النصف. والفرق ثابت ضرب، يغيّر حجم التدرّج ولا يغيّر مكان القاع.</li>
+  </ul>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>model = LinearRegression(lr=0.03)</code><span>نموذج بمعدّل تعلّم ٠٫٠٣.</span></div>
+    <div class="cl"><code>data = d2l.SyntheticRegressionData(w=torch.tensor([2, -3.4]), b=4.2)</code><span>البيانات المصطنعة نفسها.</span></div>
+    <div class="cl"><code>trainer = d2l.Trainer(max_epochs=3)</code><span>ثلاث دورات فقط.</span></div>
+    <div class="cl"><code>trainer.fit(model, data)</code><span>التدريب كله.</span></div>
+    <div class="cl out"><code>error in w: [0.0094, -0.0030]   error in b: [0.0137]</code><span>قريب من الحقيقة. أكبر من خطأ القسم ٢٫٣ لأن الدورات ثلاث لا عشر.</span></div>
+  </div>
+</section>
+
+<!-- ============ 2.6 ============ -->
+<section class="sec" id="s2-6">
+  <header><div class="kicker">القسم ٢٫٦ <a class="pg" href="https://d2l.ai/chapter_linear-regression/generalization.html">d2l.ai ↗</a></div><h2>التعميم</h2></header>
+  <div class="brief"><b>باختصار</b>الهدف أن ينجح النموذج على أمثلة <b>لم يرها</b>. خطأ التدريب يقيس الحفظ، وخطأ التعميم يقيس الفهم، والفرق بينهما <b>فجوة التعميم</b>. النموذج البسيط جداً يخطئ في الاثنين (نقص الملاءمة)، والمعقد جداً مع بيانات قليلة يحفظ التدريب ويخطئ خارجه (فرط الملاءمة). ونختار النموذج المناسب ببيانات تحقق أو بالتحقق المتقاطع.</div>
+  <div class="terms"><span>خطأ التدريب <i>training error</i></span><span>خطأ التعميم <i>generalization error</i></span><span>افتراض الاستقلال والتماثل <i>IID assumption</i></span><span>نقص الملاءمة / فرطها <i>underfitting / overfitting</i></span><span>تعقيد النموذج <i>model complexity</i></span><span>اختيار النموذج <i>model selection</i></span><span>التحقق المتقاطع <i>K-fold cross-validation</i></span></div>
+  <p>يضرب الكتاب مثلاً بطالبتين تستعدان لامتحان: الأولى تحفظ أجوبة أسئلة السنوات الماضية فتجيب عنها كلها صحيحة (١٠٠٪)، والثانية تفهم المادة فتجيب ٩٠٪. إن تكررت الأسئلة نفسها فازت الأولى، وإن جاءت أسئلة جديدة فازت الثانية. والنموذج الذي «يحفظ» بيانات التدريب هو الطالبة الأولى.</p>
+  <div class="math"><div class="mh"><span class="sym">R vs R_emp</span>مفهوم رياضي · خطأ التدريب وخطأ التعميم</div><div class="mb">
+    <p><b>خطأ التدريب</b> <span class="mono" dir="ltr">R_emp = (1/n) Σ l(x⁽ⁱ⁾, y⁽ⁱ⁾, f(x⁽ⁱ⁾))</span>: متوسط على الأمثلة التي عندنا. و<b>خطأ التعميم</b> <span class="mono" dir="ltr">R = E<sub>(x,y)~P</sub>[l(x, y, f(x))]</span>: <b>توقع</b> الخطأ على كل الأمثلة الممكنة من التوزيع الحقيقي P، وهو لا يُحسب بالضبط لأننا لا نعرف P، فنقدّره على مجموعة اختبار لم يرها النموذج.</p>
+    <p>وكل هذا يقوم على <b>افتراض IID</b>: أمثلة التدريب والاختبار مسحوبة مستقلة من التوزيع نفسه. وبدونه (إن تغيّر العالم بين التدريب والاستعمال) لا ضمان لشيء. ولماذا خطأ التدريب متفائل؟ لأن النموذج اختير ليناسب هذه العينة بالذات.</p>
+  </div></div>
+  <h3>ملاءمة متعددة الحدود</h3>
+  <p>مثال الكتاب التقليدي: نتنبأ بـy من x بكثيرة حدود من الدرجة d: <span class="mono" dir="ltr">ŷ = w₀ + w₁x + w₂x² + ⋯ + w_d x^d</span>. هذا انحدار خطي عادي، خصائصه قوى x. وكلما زادت الدرجة زاد التعقيد، ولا يمكن أن يزيد خطأ التدريب (الدرجة الأعلى تستطيع دائماً تقليد الأدنى). ومع أمثلة بعدد الدرجة + ١ يمر المنحنى بكل النقاط: خطأ تدريب صفر.</p>
+  <div class="w" id="pfBox"><div class="cap">١٢ نقطة تدريب و٢٠٠ نقطة تحقق من الدالة نفسها مع ضجيج (البيانات من صنعنا)</div>
+    <div class="row"><label class="note">الدرجة d: <b id="pfDo"></b></label><input type="range" id="pfD" min="0" max="11" value="3" style="flex:1"><button class="pill" id="pfNew">عينة جديدة</button></div>
+    <div id="pfPlot"></div><div id="pfErr"></div><div class="calc" id="pfCalc"></div></div>
+  <p>لاحظ في الرسم الثاني: خطأ التدريب ينزل دائماً مع الدرجة، أما خطأ التحقق فينزل ثم يصعد. الدرجة المناسبة في القاع. ولاحظ أيضاً أثر <b>حجم البيانات</b>: مع بيانات أكثر يتأخر فرط الملاءمة. يقول الكتاب: البيانات الإضافية لا تضر أبداً لمهمة ثابتة، ولا ينبغي أن ينمو تعقيد النموذج أسرع من البيانات. ولهذا لا تتفوق الشبكات العميقة على النماذج الخطية عادةً إلا مع آلاف الأمثلة.</p>
+  <p>والتعقيد ليس عدد المعاملات وحده، بل أيضاً <b>مدى القيم</b> التي تأخذها: نموذج بأوزان كثيرة لكنها مقيدة بالصغر أبسط عملياً من نموذج بأوزان طليقة. وهذه فكرة القسم التالي. ويضيف الكتاب ملاحظة مهمة: الفجوة الكبيرة ليست سيئة بذاتها؛ أفضل الشبكات العميقة تحقق على التدريب أفضل بكثير مما تحقق خارجه. المهم هو خطأ التعميم نفسه.</p>
+  <h3>اختيار النموذج</h3>
+  <p>كيف نختار الدرجة، أو معدّل التعلّم، أو البنية؟ ليس بمجموعة الاختبار: لو اخترنا بها لصارت جزءاً من التدريب، وفقدنا التقدير الصادق. فنقسم البيانات ثلاثاً: تدريب، و<b>تحقق</b> للاختيار، واختبار يُستعمل مرة واحدة في النهاية. ويعترف الكتاب بأن الحد بين التحقق والاختبار ضبابي عملياً، وأن الدقة التي يذكرها هي في الحقيقة دقة تحقق.</p>
+  <div class="w" id="kfBox"><div class="cap">التحقق المتقاطع بـK طيات: كل جزء يصير بيانات تحقق مرة واحدة</div>
+    <div class="row"><span class="note">K:</span><span class="seg" id="kfK"><button data-v="3">٣</button><button data-v="5" class="on">٥</button><button data-v="10">١٠</button></span></div>
+    <div id="kfOut" style="margin-top:8px"></div><div class="calc" id="kfCalc"></div></div>
+  <p>حين تكون البيانات قليلة لا نستطيع اقتطاع مجموعة تحقق كبيرة. فنقسم بيانات التدريب K أجزاء، وندرّب K مرة: كل مرة على K−1 جزء ونتحقق على الباقي، ثم نأخذ متوسط الأخطاء. الثمن: K تدريبات بدل واحد.</p>
+  <div class="xref"><b>في الكتاب الأول</b>مجموعات التطوير والاختبار والتحقق المتقاطع في تقييم المصنّفات: <a href="../slp/04-logistic-regression.html">الفصل ٤: الانحدار اللوجستي</a>.</div>
+</section>
+
+<!-- ============ 2.7 ============ -->
+<section class="sec" id="s2-7">
+  <header><div class="kicker">القسم ٢٫٧ <a class="pg" href="https://d2l.ai/chapter_linear-regression/weight-decay.html">d2l.ai ↗</a></div><h2>تناقص الأوزان</h2></header>
+  <div class="brief"><b>باختصار</b>لكبح فرط الملاءمة دون جمع بيانات جديدة نضيف إلى الخسارة عقوبة على حجم الأوزان: <span class="mono" dir="ltr">(λ/2)‖w‖²</span>. فيوازن النموذج بين ملاءمة البيانات وإبقاء الأوزان صغيرة. وفي قاعدة التحديث يظهر هذا كأن الأوزان «تتناقص» بنسبة ثابتة في كل خطوة، ومنه الاسم.</div>
+  <div class="terms"><span>التنظيم <i>regularization</i></span><span>تناقص الأوزان <i>weight decay</i></span><span>عقوبة ℓ₂ <i>ℓ₂ penalty</i></span><span>ثابت التنظيم λ <i>regularization constant</i></span></div>
+  <div class="math"><div class="mh"><span class="sym">λ/2 ‖w‖²</span>مفهوم رياضي · العقوبة وقاعدة التحديث</div><div class="mb">
+    <div class="eq">L(w, b) + (λ/2) ‖w‖² </div>
+    <p>λ (لامدا) رقم غير سالب نختاره ببيانات التحقق: λ = 0 يعيد الخسارة الأصلية، وكلما كبر زاد الضغط نحو أوزان صغيرة. ونستعمل مربع المعيار لا المعيار نفسه لأن مشتقته بسيطة (<span class="mono" dir="ltr">∇‖w‖² = 2w</span> من الفصل الأول)، والنصف يلغي الاثنين. فيصير التحديث:</p>
+    <div class="eq">w ← (1 − ηλ) w − (η/|𝓑|) Σ<sub>i∈𝓑</sub> x⁽ⁱ⁾ (w⊤x⁽ⁱ⁾ + b − y⁽ⁱ⁾)</div>
+    <p>قبل خطوة التدرّج المعتادة تُضرب الأوزان في <span class="mono" dir="ltr">(1 − ηλ)</span>، وهو عدد أصغر قليلاً من ١. فكل وزن لا تدعمه البيانات بقوة يذبل تدريجياً نحو الصفر. وعادةً لا يُعاقَب الانحياز.</p>
+  </div></div>
+  <p>تجربة الكتاب مصممة لفرط الملاءمة: ٢٠٠ خاصية و<b>٢٠ مثال تدريب فقط</b> (و١٠٠ للتحقق). الوسم <span class="mono" dir="ltr">y = 0.05 + Σ 0.01 xᵢ + ε</span> بضجيج انحرافه ٠٫٠١. بعشرين مثالاً لا يمكن تحديد ٢٠٠ وزن، فيجد النموذج أوزاناً كثيرة تفسر التدريب تماماً، معظمها خاطئ.</p>
+  <div class="w" id="wdBox"><div class="cap">٢٠٠ خاصية و٢٠ مثالاً: غيّر λ ودرّب (دفعة ٥، η = 0.01؛ المحاكاة من صنعنا بإعداد الكتاب)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="note">λ:</span><span class="seg" id="wdL" dir="ltr"><button data-v="0" class="on">0</button><button data-v="1">1</button><button data-v="3">3</button><button data-v="10">10</button></span><span class="note">الدورات:</span><span class="seg" id="wdE" dir="ltr"><button data-v="10">10</button><button data-v="100" class="on">100</button></span></div>
+    <div id="wdPlot"></div><div class="calc" id="wdCalc"></div></div>
+  <p>بلا تنظيم ينخفض خطأ التدريب ولا ينخفض خطأ التحقق: «حالة نموذجية لفرط الملاءمة» بتعبير الكتاب. ومع λ = ٣ يرتفع خطأ التدريب قليلاً وينخفض خطأ التحقق، ويصغر معيار الأوزان كثيراً.</p>
+  <div class="code"><div class="hd">PyTorch · التنفيذ المختصر</div>
+    <div class="cl"><code>torch.optim.SGD([</code><span>المحسِّن يقبل «مجموعات» معاملات، لكل منها إعدادها:</span></div>
+    <div class="cl"><code>    {'params': net.weight, 'weight_decay': wd},</code><span>الأوزان: مع تناقص بقيمة λ.</span></div>
+    <div class="cl"><code>    {'params': net.bias}], lr=lr)</code><span>الانحياز: بلا تناقص.</span></div>
+  </div>
+  <div class="xref"><b>في الكتاب الأول</b>التنظيم بـℓ₁ وℓ₂ في مصنّف لوجستي، ومعنى العقوبة كاحتمال قبلي: <a href="../slp/04-logistic-regression.html">الفصل ٤: الانحدار اللوجستي</a>.</div>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">الخلاصة والتمارين</div><h2>ما تأخذه من الفصل</h2></header>
+  <ul class="clean">
+    <li>الانحدار الخطي <span class="mono" dir="ltr">ŷ = Xw + b</span> مع متوسط مربع الخطأ، وله حل مباشر بالمعادلات الطبيعية (إسقاط عمودي) لا يصلح للشبكات.</li>
+    <li>النزول التدرّجي العشوائي بالدفعات هو خوارزمية التعلّم العامة. معدّل التعلّم وحجم الدفعة يحددان السرعة والاستقرار وحجم «كرة الضجيج».</li>
+    <li>الخسارة تُختار من نموذج الضجيج: المربع للطبيعي، والمطلق للقيم الشاذة، وبواسون للعدّ.</li>
+    <li>اختبر الكود على بيانات مصطنعة تعرف جوابها، وانتبه لأشكال الموترات؛ انخفاض الخسارة وحده ليس دليلاً.</li>
+    <li>المهم خطأ التعميم. اختر النموذج ببيانات تحقق أو تحقق متقاطع، واكبح التعقيد بتناقص الأوزان.</li>
+  </ul>
+  <h3>تمارين (مختارة ومبسطة من تمارين الكتاب)</h3>
+  <ol class="clean">
+    <li>أثبت أن الانحياز الأمثل هو <span class="mono" dir="ltr">b* = ȳ − w⊤x̄</span> (متوسط الوسوم ناقص الأوزان مضروبة في متوسط الخصائص)، واستنتج أن مجموع البواقي صفر. <details><summary>الحل</summary>اشتق الخسارة بالنسبة لـb وضعها صفراً: <span class="mono" dir="ltr">Σ(w⊤x⁽ⁱ⁾ + b − y⁽ⁱ⁾) = 0</span>، أي مجموع البواقي صفر، وبالقسمة على n: <span class="mono" dir="ltr">w⊤x̄ + b − ȳ = 0</span>. تحقق في مثال النقاط الثلاث: البواقي ١/٦ − ١/٣ + ١/٦ = ٠.</details></li>
+    <li>في مثال الوسم الفاسد: الخصائص x = ١، ٢، …، ٢٠ والوسوم 2x، والوسم عند x = ٦ صار ١٠٬٠٠٠. احسب ميل المربعات الصغرى عبر الأصل، وهو <span class="mono" dir="ltr">Σxy / Σx²</span>. <details><summary>الحل</summary>‏Σx² = ٢٨٧٠. وΣxy = ٢×٢٨٧٠ − ١٢×٦ + ١٠٬٠٠٠×٦ = ٦٥٬٦٦٨. الميل = ٦٥٬٦٦٨ ÷ ٢٨٧٠ ≈ ٢٢٫٨٨، كما في الكتاب. أداة «نقطة واحدة فاسدة» تحسب الشيء نفسه.</details></li>
+    <li>منزل تنبأ النموذج بسعره ٥٠٬٠٠٠ دولار، والضجيج طبيعي بانحراف ١٠٠٬٠٠٠. ما احتمال سعر سالب في هذا النموذج؟ وما الذي يقترحه الكتاب بدلاً منه؟ <details><summary>الحل</summary>السعر السالب يعني البعد عن المتوسط بأكثر من ٠٫٥σ نحو اليسار: نحو ٣١٪، وهذا سخيف. والمشكلة أن σ واحدة لا تناسب بيتاً بخمسين ألفاً وآخر بخمسة ملايين. الحل: انحدار على <span class="mono" dir="ltr">log(price)</span>، فيصير الضجيج نسبياً (نسبة مئوية من السعر).</details></li>
+    <li>١٬٠٠٠ مثال تدريب ودفعة ٣٢: كم دفعة في الدورة؟ وكم تحديثاً في عشر دورات؟ <details><summary>الحل</summary>‏٣٢ دفعة (٣١ كاملة وواحدة من ٨)، و٣٢٠ تحديثاً.</details></li>
+    <li>إن جمعت الخسارة على الدفعة بدل أخذ متوسطها، كيف تعدّل معدّل التعلّم لتحصل على الخطوات نفسها؟ <details><summary>الحل</summary>اقسمه على حجم الدفعة: المجموع = |𝓑| × المتوسط، فالتدرّج يكبر |𝓑| مرة.</details></li>
+    <li>اكتب قاعدة التحديث إن استبدلت عقوبة <span class="mono" dir="ltr">λ‖w‖₁</span> بعقوبة ℓ₂. <details><summary>الحل</summary>مشتقة |wⱼ| هي إشارته (±١)، فيصير: <span class="mono" dir="ltr">w ← w − ηλ·sign(w) − (η/|𝓑|)Σ…</span>. التناقص هنا بمقدار ثابت لا بنسبة، فيدفع الأوزان الصغيرة إلى الصفر تماماً، ومنه «التناثر».</details></li>
+    <li>لماذا التحقق المتقاطع بـK طيات مكلف؟ ولماذا تقديره متحيز قليلاً؟ <details><summary>الحل</summary>مكلف لأنه يدرّب K نماذج. ومتحيز (متشائم قليلاً) لأن كل نموذج دُرِّب على (K−1)/K من البيانات فقط، والنموذج النهائي سيُدرَّب على كلها.</details></li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="01-preliminaries.html">→ الفصل السابق: المقدّمات الأساسية</a><a href="index.html">فهرس الكتاب ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/d2l-common.js"></script>
+<script src="../assets/js/d2l02.js"></script>
+</body>
+</html>
