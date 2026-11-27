@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>الفصل ٣ · التصنيف الخطي | الغوص في التعلّم العميق</title>
+<title>الفصل 3 · التصنيف الخطي | الغوص في التعلّم العميق</title>
 <meta name="description" content="شرح عربي للفصل الثالث من كتاب Dive into Deep Learning: انحدار السوفتماكس، والإنتروبيا التقاطعية، وبيانات Fashion-MNIST، والتنفيذ والاستقرار العددي، وقياس المصنّفات، والتعميم في التصنيف، وتغيّر التوزيع.">
 <script src="../assets/js/theme.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
 <div class="bar">
   <div class="bar-in">
     <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">الغوص في التعلّم العميق</a></nav>
-    <div class="chnav"><a class="pill" href="02-linear-regression.html" style="text-decoration:none">→ الفصل ٢</a><b>الفصل ٣ من ٤٢</b><a class="pill" href="04-multilayer-perceptrons.html" style="text-decoration:none">الفصل ٤ ←</a></div>
+    <div class="chnav"><a class="pill" href="02-linear-regression.html" style="text-decoration:none">→ الفصل 2</a><b>الفصل 3 من 42</b><a class="pill" href="04-multilayer-perceptrons.html" style="text-decoration:none">الفصل 4 ←</a></div>
   </div>
   <div class="progress" id="prog"></div>
 </div>
@@ -41,56 +41,56 @@
 <div class="minute">
   <h2>الفصل في دقيقة</h2>
   <ol>
-    <li>لكل صنف درجة خطية خاصة به، ثم تحوّل <b>السوفتماكس</b> الدرجات إلى احتمالات موجبة مجموعها ١.</li>
+    <li>لكل صنف درجة خطية خاصة به، ثم تحوّل <b>السوفتماكس</b> الدرجات إلى احتمالات موجبة مجموعها 1.</li>
     <li>الخسارة <b>الإنتروبيا التقاطعية</b>: سالب لوغاريتم الاحتمال الذي أعطاه النموذج للصنف الصحيح. وتدرّجها بسيط جداً: الاحتمالات المتنبأ بها ناقص الإجابة الصحيحة.</li>
-    <li>نتدرّب على Fashion-MNIST: ٧٠٬٠٠٠ صورة ملابس ٢٨×٢٨ في عشرة أصناف. والنموذج الخطي يصل إلى نحو ٨٣٪.</li>
+    <li>نتدرّب على Fashion-MNIST: 70,000 صورة ملابس 28×28 في عشرة أصناف. والنموذج الخطي يصل إلى نحو 83%.</li>
     <li>في التنفيذ يجب الحذر العددي: الأسس تنفجر أو تتلاشى، فنطرح الأكبر ونجمع السوفتماكس مع اللوغاريتم في خطوة واحدة.</li>
-    <li>دقة الاختبار تقدير له هامش خطأ: لتمييز فرق ١٪ بثقة تحتاج نحو ١٠٬٠٠٠ مثال. وإعادة استعمال مجموعة الاختبار تفسدها.</li>
+    <li>دقة الاختبار تقدير له هامش خطأ: لتمييز فرق 1% بثقة تحتاج نحو 10,000 مثال. وإعادة استعمال مجموعة الاختبار تفسدها.</li>
     <li>والعالم يتغير بعد التدريب: تتغير المدخلات، أو نسب الأصناف، أو المعنى نفسه. ولكل نوع علاج مختلف، وبعضها لا علاج له إلا بيانات جديدة.</li>
   </ol>
 </div>
 
 <!-- ============ 3.1 ============ -->
 <section class="sec" id="s3-1">
-  <header><div class="kicker">القسم ٣٫١ <a class="pg" href="https://d2l.ai/chapter_linear-classification/softmax-regression.html">d2l.ai ↗</a></div><h2>انحدار السوفتماكس</h2></header>
-  <div class="brief"><b>باختصار</b>نرمّز الصنف متجهاً «أحادي الساخن» (١ في موقع الصنف وأصفار في البقية). ولكل صنف درجة خطية <span class="mono" dir="ltr">oⱼ = wⱼ⊤x + bⱼ</span>. السوفتماكس تأخذ أس كل درجة وتقسم على المجموع فتعطي احتمالات. ونقيس الخطأ بالإنتروبيا التقاطعية، وتدرّجها <span class="mono" dir="ltr">ŷ − y</span>.</div>
+  <header><div class="kicker">القسم 3.1 <a class="pg" href="https://d2l.ai/chapter_linear-classification/softmax-regression.html">d2l.ai ↗</a></div><h2>انحدار السوفتماكس</h2></header>
+  <div class="brief"><b>باختصار</b>نرمّز الصنف متجهاً «أحادي الساخن» (1 في موقع الصنف وأصفار في البقية). ولكل صنف درجة خطية <span class="mono" dir="ltr">oⱼ = wⱼ⊤x + bⱼ</span>. السوفتماكس تأخذ أس كل درجة وتقسم على المجموع فتعطي احتمالات. ونقيس الخطأ بالإنتروبيا التقاطعية، وتدرّجها <span class="mono" dir="ltr">ŷ − y</span>.</div>
   <div class="terms"><span>التصنيف <i>classification</i></span><span>الترميز الأحادي <i>one-hot encoding</i></span><span>اللوجِت (الدرجة) <i>logit</i></span><span>السوفتماكس <i>softmax</i></span><span>الإنتروبيا التقاطعية <i>cross-entropy</i></span><span>الحرارة <i>temperature</i></span><span>المعايرة <i>calibration</i></span></div>
 
   <h3>لماذا لا نستعمل الانحدار مع أرقام الأصناف؟</h3>
-  <p>لو رقّمنا أصناف الملابس من ١ إلى ١٠ وطبّقنا الانحدار الخطي، لظهرت مشكلتان. تنبؤ مثل ٥٫٥ لا معنى له. والأسوأ أن مربع الخطأ سيعاقب الخلط بين «قميص» (١) و«حذاء» (١٠) أكثر بـ٨١ مرة من الخلط بين «قميص» و«بنطال» (٢)، مع أن الأرقام اعتباطية ولا ترتيب حقيقي بين الأصناف. فنريد من النموذج أن يعطي <b>احتمالاً لكل صنف</b>.</p>
-  <p>مثال الكتاب الصغير: صورة ٢×٢ رمادية (أربع نقاط x₁…x₄)، وثلاثة أصناف: قطة ودجاجة وكلب. نرمّزها أحادياً: قطة (١، ٠، ٠)، ودجاجة (٠، ١، ٠)، وكلب (٠، ٠، ١). ميزة هذا الترميز أن كل صنفين بالبعد نفسه عن بعضهما (√٢)، فلا ترتيب مصطنع.</p>
+  <p>لو رقّمنا أصناف الملابس من 1 إلى 10 وطبّقنا الانحدار الخطي، لظهرت مشكلتان. تنبؤ مثل 5.5 لا معنى له. والأسوأ أن مربع الخطأ سيعاقب الخلط بين «قميص» (1) و«حذاء» (10) أكثر بـ81 مرة من الخلط بين «قميص» و«بنطال» (2)، مع أن الأرقام اعتباطية ولا ترتيب حقيقي بين الأصناف. فنريد من النموذج أن يعطي <b>احتمالاً لكل صنف</b>.</p>
+  <p>مثال الكتاب الصغير: صورة 2×2 رمادية (أربع نقاط x₁…x₄)، وثلاثة أصناف: قطة ودجاجة وكلب. نرمّزها أحادياً: قطة (1، 0، 0)، ودجاجة (0، 1، 0)، وكلب (0، 0، 1). ميزة هذا الترميز أن كل صنفين بالبعد نفسه عن بعضهما (√2)، فلا ترتيب مصطنع.</p>
   <div class="eq">o₁ = x₁w₁₁ + x₂w₁₂ + x₃w₁₃ + x₄w₁₄ + b₁ &nbsp;&nbsp; (and o₂, o₃ likewise) &nbsp;&nbsp; → &nbsp; 4 × 3 = 12 weights + 3 biases</div>
-  <p>لكل صنف درجته الخاصة، وكل مخرج متصل بكل مدخل: طبقة كاملة الاتصال بثلاثة مخرجات. وفي Fashion-MNIST: ٧٨٤ نقطة × ١٠ أصناف = ٧٬٨٤٠ وزناً و١٠ انحيازات. وللدفعة: <span class="mono" dir="ltr">O = XW + b</span>، وX بحجم n×784، وW بحجم 784×10، فالناتج n×10: صف من عشر درجات لكل صورة.</p>
+  <p>لكل صنف درجته الخاصة، وكل مخرج متصل بكل مدخل: طبقة كاملة الاتصال بثلاثة مخرجات. وفي Fashion-MNIST: 784 نقطة × 10 أصناف = 7,840 وزناً و10 انحيازات. وللدفعة: <span class="mono" dir="ltr">O = XW + b</span>، وX بحجم n×784، وW بحجم 784×10، فالناتج n×10: صف من عشر درجات لكل صورة.</p>
 
   <div class="math"><div class="mh"><span class="sym">softmax</span>مفهوم رياضي · السوفتماكس</div><div class="mb">
-    <p>الدرجات أعداد كيفما اتفق: قد تكون سالبة، ومجموعها ليس ١. نحتاج تحويلاً يجعلها موجبة (الأس يفعل ذلك: <span class="mono" dir="ltr">eᵒ &gt; 0</span> دائماً) ومجموعها ١ (نقسم على المجموع):</p>
+    <p>الدرجات أعداد كيفما اتفق: قد تكون سالبة، ومجموعها ليس 1. نحتاج تحويلاً يجعلها موجبة (الأس يفعل ذلك: <span class="mono" dir="ltr">eᵒ &gt; 0</span> دائماً) ومجموعها 1 (نقسم على المجموع):</p>
     <div class="eq">ŷⱼ = exp(oⱼ) / Σₖ exp(oₖ)</div>
-    <p>مثال الكتاب: الدرجات (١٫٠، ٢٫٢، ٠٫٣). أسسها (٢٫٧٢، ٩٫٠٣، ١٫٣٥) ومجموعها ١٣٫٠٩، فالاحتمالات (٠٫٢١، ٠٫٦٩، ٠٫١٠): دجاجة بنسبة ٦٩٪.</p>
-    <p>ثلاث خصائص يذكرها الكتاب: (١) إضافة الثابت نفسه لكل الدرجات لا تغيّر الاحتمالات، لأن الفرق بين درجتين هو لوغاريتم نسبة احتماليهما: <span class="mono" dir="ltr">oᵢ − oⱼ = log(ŷᵢ/ŷⱼ)</span>. (٢) مع صنفين فقط تصير السوفتماكس هي السيغمويد، أي الانحدار اللوجستي، ومنه اسم «اللوجِت». (٣) أكبر درجة = أكبر احتمال، فللتنبؤ وحده لا نحتاج حساب الأسس أصلاً.</p>
+    <p>مثال الكتاب: الدرجات (1.0، 2.2، 0.3). أسسها (2.72، 9.03، 1.35) ومجموعها 13.09، فالاحتمالات (0.21، 0.69، 0.10): دجاجة بنسبة 69%.</p>
+    <p>ثلاث خصائص يذكرها الكتاب: (1) إضافة الثابت نفسه لكل الدرجات لا تغيّر الاحتمالات، لأن الفرق بين درجتين هو لوغاريتم نسبة احتماليهما: <span class="mono" dir="ltr">oᵢ − oⱼ = log(ŷᵢ/ŷⱼ)</span>. (2) مع صنفين فقط تصير السوفتماكس هي السيغمويد، أي الانحدار اللوجستي، ومنه اسم «اللوجِت». (3) أكبر درجة = أكبر احتمال، فللتنبؤ وحده لا نحتاج حساب الأسس أصلاً.</p>
   </div></div>
   <div class="w" id="smBox"><div class="cap">احسب السوفتماكس والخسارة والتدرّج (الدرجات الأولى من مثال الكتاب)</div>
     <div class="row" dir="ltr" style="flex-wrap:wrap;gap:12px"><label class="note">o<sub>cat</sub> <input type="range" id="smA" min="-4" max="6" step="0.1" value="1"></label><label class="note">o<sub>chicken</sub> <input type="range" id="smB" min="-4" max="6" step="0.1" value="2.2"></label><label class="note">o<sub>dog</sub> <input type="range" id="smC" min="-4" max="6" step="0.1" value="0.3"></label><label class="note">T <input type="range" id="smT" min="0.2" max="5" step="0.1" value="1"></label></div>
-    <div class="row" style="margin-top:6px"><span class="note">الصنف الصحيح:</span><span class="seg" id="smY"><button data-y="0">قطة</button><button data-y="1" class="on">دجاجة</button><button data-y="2">كلب</button></span><button class="pill" id="smShift">أضف ٥ لكل الدرجات</button><button class="pill" id="smReset">ابدأ من جديد</button></div>
+    <div class="row" style="margin-top:6px"><span class="note">الصنف الصحيح:</span><span class="seg" id="smY"><button data-y="0">قطة</button><button data-y="1" class="on">دجاجة</button><button data-y="2">كلب</button></span><button class="pill" id="smShift">أضف 5 لكل الدرجات</button><button class="pill" id="smReset">ابدأ من جديد</button></div>
     <div id="smOut" style="margin-top:8px"></div><div class="calc" id="smCalc"></div></div>
 
   <h3>الإنتروبيا التقاطعية وتدرّجها</h3>
   <div class="math"><div class="mh"><span class="sym">−log ŷ_y</span>مفهوم رياضي · من الأرجحية إلى الإنتروبيا التقاطعية</div><div class="mb">
     <p>كما في الفصل السابق: نختار الأوزان التي تجعل الإجابات الصحيحة أكثر احتمالاً (الأرجحية العظمى)، ونأخذ سالب اللوغاريتم لنحوّل الضرب جمعاً والتعظيم تصغيراً. ومع الترميز الأحادي لا يبقى من المجموع إلا حد الصنف الصحيح:</p>
     <div class="eq">l(y, ŷ) = −Σⱼ yⱼ log ŷⱼ = −log ŷ<sub>y</sub></div>
-    <p>إن أعطى النموذج الصنف الصحيح ٠٫٦٩ فالخسارة <span class="mono" dir="ltr">−ln 0.69 ≈ 0.37</span>. وإن كان الصحيح «كلب» (أعطاه ٠٫١٠) فالخسارة ≈ ٢٫٣، نحو ست مرات أكبر. والخسارة صفر فقط حين يعطي الصحيح احتمال ١، وتصير بلا حد حين يقترب احتماله من الصفر.</p>
+    <p>إن أعطى النموذج الصنف الصحيح 0.69 فالخسارة <span class="mono" dir="ltr">−ln 0.69 ≈ 0.37</span>. وإن كان الصحيح «كلب» (أعطاه 0.10) فالخسارة ≈ 2.3، نحو ست مرات أكبر. والخسارة صفر فقط حين يعطي الصحيح احتمال 1، وتصير بلا حد حين يقترب احتماله من الصفر.</p>
     <p><b>التدرّج</b>: بالتعويض عن ŷ بالسوفتماكس تصير الخسارة <span class="mono" dir="ltr">log Σₖ exp(oₖ) − o<sub>y</sub></span>، واشتقاقها بالنسبة لكل درجة:</p>
     <div class="eq">∂l / ∂oⱼ = softmax(o)ⱼ − yⱼ &nbsp;&nbsp; i.e. &nbsp; ŷ − y</div>
-    <p>للدجاجة: (٠٫٢١، ٠٫٦٩، ٠٫١٠) − (٠، ١، ٠) = (٠٫٢١، −٠٫٣١، ٠٫١٠). والنزول عكس التدرّج يرفع درجة الدجاجة ويخفض الأخريين. وهذا الشكل «التنبؤ ناقص الحقيقة» هو نفسه في الانحدار الخطي: <span class="mono" dir="ltr">ŷ − y</span>. والخسارة محدّبة في W وb، فليس لها إلا قاع واحد.</p>
+    <p>للدجاجة: (0.21، 0.69، 0.10) − (0، 1، 0) = (0.21، −0.31، 0.10). والنزول عكس التدرّج يرفع درجة الدجاجة ويخفض الأخريين. وهذا الشكل «التنبؤ ناقص الحقيقة» هو نفسه في الانحدار الخطي: <span class="mono" dir="ltr">ŷ − y</span>. والخسارة محدّبة في W وb، فليس لها إلا قاع واحد.</p>
   </div></div>
-  <div class="xref"><b>في الكتاب الأول</b>الانحدار اللوجستي متعدد الأصناف بالسوفتماكس نفسها، مع اشتقاق التدرّج خطوة خطوة: <a href="../slp/04-logistic-regression.html">الفصل ٤: الانحدار اللوجستي</a>.</div>
+  <div class="xref"><b>في الكتاب الأول</b>الانحدار اللوجستي متعدد الأصناف بالسوفتماكس نفسها، مع اشتقاق التدرّج خطوة خطوة: <a href="../slp/04-logistic-regression.html">الفصل 4: الانحدار اللوجستي</a>.</div>
 
   <h3>مناطق القرار</h3>
-  <p>السوفتماكس تحافظ على ترتيب الدرجات، فالصنف المختار هو صاحب أكبر درجة خطية. والحد بين صنفين حيث تتساوى درجتاهما: <span class="mono" dir="ltr">w₁⊤x + b₁ = w₂⊤x + b₂</span>، وهذه معادلة خط مستقيم (أو مستوٍ في أبعاد أكثر). فالنموذج الخطي يقسم فضاء المدخلات إلى مناطق <b>محدّبة</b> حدودها مستقيمة. أما الحدود المنحنية فتحتاج طبقات مخفية (الفصل ٤). ويذكر الكتاب حالتين أخريين: إن جاز أن يحمل المثال عدة أصناف معاً (صورة فيها قطة وكلب) نستعمل سيغمويد مستقلة لكل صنف، وإن كانت الأصناف مرتبة (تقييم من ١ إلى ٥ نجوم) نستعمل نماذج العتبات.</p>
+  <p>السوفتماكس تحافظ على ترتيب الدرجات، فالصنف المختار هو صاحب أكبر درجة خطية. والحد بين صنفين حيث تتساوى درجتاهما: <span class="mono" dir="ltr">w₁⊤x + b₁ = w₂⊤x + b₂</span>، وهذه معادلة خط مستقيم (أو مستوٍ في أبعاد أكثر). فالنموذج الخطي يقسم فضاء المدخلات إلى مناطق <b>محدّبة</b> حدودها مستقيمة. أما الحدود المنحنية فتحتاج طبقات مخفية (الفصل 4). ويذكر الكتاب حالتين أخريين: إن جاز أن يحمل المثال عدة أصناف معاً (صورة فيها قطة وكلب) نستعمل سيغمويد مستقلة لكل صنف، وإن كانت الأصناف مرتبة (تقييم من 1 إلى 5 نجوم) نستعمل نماذج العتبات.</p>
 
   <h3>الإنتروبيا: من أين جاء الاسم؟</h3>
   <div class="math"><div class="mh"><span class="sym">H(p)</span>مفهوم رياضي · المفاجأة والإنتروبيا والإنتروبيا التقاطعية</div><div class="mb">
-    <p><b>المفاجأة</b> في حدث احتماله p هي <span class="mono" dir="ltr">−log p</span>: الحدث المؤكد (p = 1) لا يفاجئ (٠)، والنادر يفاجئ كثيراً. تقاس بـ«نات» مع اللوغاريتم الطبيعي، وبـ«بت» مع لوغاريتم الأساس ٢.</p>
-    <p><b>الإنتروبيا</b> <span class="mono" dir="ltr">H(p) = −Σ pⱼ log pⱼ</span> متوسط المفاجأة: من ٠ (نتيجة مؤكدة) إلى <span class="mono" dir="ltr">log q</span> (كل الأصناف متساوية). وفي نظرية المعلومات هي أقصر طول متوسط ممكن لترميز النتائج.</p>
+    <p><b>المفاجأة</b> في حدث احتماله p هي <span class="mono" dir="ltr">−log p</span>: الحدث المؤكد (p = 1) لا يفاجئ (0)، والنادر يفاجئ كثيراً. تقاس بـ«نات» مع اللوغاريتم الطبيعي، وبـ«بت» مع لوغاريتم الأساس 2.</p>
+    <p><b>الإنتروبيا</b> <span class="mono" dir="ltr">H(p) = −Σ pⱼ log pⱼ</span> متوسط المفاجأة: من 0 (نتيجة مؤكدة) إلى <span class="mono" dir="ltr">log q</span> (كل الأصناف متساوية). وفي نظرية المعلومات هي أقصر طول متوسط ممكن لترميز النتائج.</p>
     <p><b>الإنتروبيا التقاطعية</b> <span class="mono" dir="ltr">H(p, p̂) = −Σ pⱼ log p̂ⱼ</span>: متوسط طول الرمز حين تأتي النتائج من p لكنك صمّمت الترميز على أنها من p̂. ولا تقل أبداً عن H(p)، وتساويها فقط حين <span class="mono" dir="ltr">p̂ = p</span>. والفرق بينهما <b>تباعد KL</b>: ثمن الاعتقاد الخاطئ. فتقليل الإنتروبيا التقاطعية = جعل توقعات النموذج أقرب ما يمكن إلى التوزيع الحقيقي.</p>
   </div></div>
   <div class="w" id="enBox"><div class="cap">التوزيع الحقيقي p وتنبؤ النموذج p̂ لثلاثة أصناف</div>
@@ -99,36 +99,36 @@
 
   <h3>الدقة والثقة والحرارة</h3>
   <p>ما نهتم به في النهاية هو نسبة الخطأ: هل كان أعلى صنف هو الصحيح؟ لكن هذا المقياس «درج»: صفر أو واحد، وتدرّجه صفر في كل مكان تقريباً، فلا يمكن التدريب عليه مباشرة. والإنتروبيا التقاطعية بديل ناعم ومحدّب يحدّه من الأعلى. ويسمي الكتاب الفرق <span class="mono" dir="ltr">m = o<sub>y</sub> − maxⱼ≠y oⱼ</span> <b>هامشاً</b>: موجب إن أصاب النموذج وسالب إن أخطأ.</p>
-  <p>وملاحظة دقيقة: إن كانت البيانات قابلة للفصل تماماً، فضرب كل الأوزان في عدد أكبر يخفض الخسارة دائماً، ويدفع الاحتمالات نحو ٠ و١ دون أن يحرك حدود القرار. فالنموذج يصير «واثقاً أكثر» دون أن يصير «صائباً أكثر». ولهذا نتحدث عن <b>المعايرة</b>: هل يصيب النموذج فعلاً في ٨٠٪ من الحالات التي يقول فيها ٨٠٪؟ وأداتها <b>الحرارة</b> T: نقسم الدرجات على T قبل السوفتماكس. T صغيرة تجعل التوزيع حاداً (نحو argmax)، وT كبيرة تسطّحه (نحو التساوي)، والترتيب والدقة لا يتغيران. جرّب شريط T في أداة السوفتماكس أعلاه.</p>
+  <p>وملاحظة دقيقة: إن كانت البيانات قابلة للفصل تماماً، فضرب كل الأوزان في عدد أكبر يخفض الخسارة دائماً، ويدفع الاحتمالات نحو 0 و1 دون أن يحرك حدود القرار. فالنموذج يصير «واثقاً أكثر» دون أن يصير «صائباً أكثر». ولهذا نتحدث عن <b>المعايرة</b>: هل يصيب النموذج فعلاً في 80% من الحالات التي يقول فيها 80%؟ وأداتها <b>الحرارة</b> T: نقسم الدرجات على T قبل السوفتماكس. T صغيرة تجعل التوزيع حاداً (نحو argmax)، وT كبيرة تسطّحه (نحو التساوي)، والترتيب والدقة لا يتغيران. جرّب شريط T في أداة السوفتماكس أعلاه.</p>
 </section>
 
 <!-- ============ 3.2 ============ -->
 <section class="sec" id="s3-2">
-  <header><div class="kicker">القسم ٣٫٢ <a class="pg" href="https://d2l.ai/chapter_linear-classification/image-classification-dataset.html">d2l.ai ↗</a></div><h2>بيانات تصنيف الصور</h2></header>
-  <div class="brief"><b>باختصار</b>Fashion-MNIST: ٦٠٬٠٠٠ صورة تدريب و١٠٬٠٠٠ اختبار، كل منها ٢٨×٢٨ نقطة رمادية، في عشرة أصناف متوازنة من الملابس. أصعب من أرقام MNIST الشهيرة، وأرخص بكثير من ImageNet، فهي مناسبة لمقارنة النماذج في هذا الكتاب.</div>
+  <header><div class="kicker">القسم 3.2 <a class="pg" href="https://d2l.ai/chapter_linear-classification/image-classification-dataset.html">d2l.ai ↗</a></div><h2>بيانات تصنيف الصور</h2></header>
+  <div class="brief"><b>باختصار</b>Fashion-MNIST: 60,000 صورة تدريب و10,000 اختبار، كل منها 28×28 نقطة رمادية، في عشرة أصناف متوازنة من الملابس. أصعب من أرقام MNIST الشهيرة، وأرخص بكثير من ImageNet، فهي مناسبة لمقارنة النماذج في هذا الكتاب.</div>
   <div class="terms"><span>Fashion-MNIST</span><span>محمّل البيانات <i>data loader</i></span><span>القناة <i>channel</i></span><span>التسطيح <i>flattening</i></span></div>
-  <p>الأصناف العشرة: تيشيرت، وبنطال، وكنزة، وفستان، ومعطف، وصندل، وقميص، وحذاء رياضي، وحقيبة، وجزمة. ولكل صنف ٦٬٠٠٠ صورة تدريب و١٬٠٠٠ اختبار. ويذكر الكتاب لماذا لا يستعمل MNIST (الأرقام المكتوبة باليد): سهلة جداً لدرجة أنها لا تُظهر الفرق بين البنى. وعلى Fashion-MNIST يصل انحدار السوفتماكس إلى نحو ٨٣٪، والشبكات الالتفافية إلى أكثر من ٩٠٪.</p>
+  <p>الأصناف العشرة: تيشيرت، وبنطال، وكنزة، وفستان، ومعطف، وصندل، وقميص، وحذاء رياضي، وحقيبة، وجزمة. ولكل صنف 6,000 صورة تدريب و1,000 اختبار. ويذكر الكتاب لماذا لا يستعمل MNIST (الأرقام المكتوبة باليد): سهلة جداً لدرجة أنها لا تُظهر الفرق بين البنى. وعلى Fashion-MNIST يصل انحدار السوفتماكس إلى نحو 83%، والشبكات الالتفافية إلى أكثر من 90%.</p>
   <div class="code"><div class="hd">PyTorch</div>
-    <div class="cl"><code>trans = transforms.Compose([transforms.Resize(resize),</code><span>سلسلة تحويلات: تغيير الحجم (٢٨×٢٨ افتراضاً)…</span></div>
-    <div class="cl"><code>                            transforms.ToTensor()])</code><span>…ثم تحويل الصورة إلى موتر float32 بقيم بين ٠ و١ (يقسم على ٢٥٥).</span></div>
+    <div class="cl"><code>trans = transforms.Compose([transforms.Resize(resize),</code><span>سلسلة تحويلات: تغيير الحجم (28×28 افتراضاً)…</span></div>
+    <div class="cl"><code>                            transforms.ToTensor()])</code><span>…ثم تحويل الصورة إلى موتر float32 بقيم بين 0 و1 (يقسم على 255).</span></div>
     <div class="cl"><code>self.train = torchvision.datasets.FashionMNIST(root, train=True, transform=trans, download=True)</code><span>تنزيل مجموعة التدريب وتطبيق التحويلات.</span></div>
-    <div class="cl"><code>self.val = torchvision.datasets.FashionMNIST(root, train=False, ...)</code><span>مجموعة الاختبار (١٠٬٠٠٠)، ونستعملها هنا للتحقق.</span></div>
+    <div class="cl"><code>self.val = torchvision.datasets.FashionMNIST(root, train=False, ...)</code><span>مجموعة الاختبار (10,000)، ونستعملها هنا للتحقق.</span></div>
     <div class="cl"><code>torch.utils.data.DataLoader(data, batch_size, shuffle=train)</code><span>تسليم دفعات، مع خلط الترتيب في التدريب فقط.</span></div>
     <div class="cl"><code>X, y = next(iter(data.train_dataloader()))</code><span>أول دفعة.</span></div>
-    <div class="cl out"><code>torch.Size([64, 1, 28, 28]) torch.float32 torch.Size([64]) torch.int64</code><span>٦٤ صورة × قناة واحدة × ٢٨ × ٢٨، و٦٤ رقم صنف.</span></div>
+    <div class="cl out"><code>torch.Size([64, 1, 28, 28]) torch.float32 torch.Size([64]) torch.int64</code><span>64 صورة × قناة واحدة × 28 × 28، و64 رقم صنف.</span></div>
   </div>
-  <p>تفاصيل يلفت الكتاب إليها: ٦٠٬٠٠٠ = ٩٣٧ × ٦٤ + ٣٢، فالدفعة الأخيرة ٣٢ صورة ونحتفظ بها كي تُرى كل صورة في كل دورة. وPyTorch يضع القناة أولاً <span class="mono" dir="ltr">(n, c, h, w)</span> وTensorFlow وJAX يضعانها آخراً <span class="mono" dir="ltr">(n, h, w, c)</span>. والدفعة الواحدة نحو ٢٠٠ كيلوبايت، وكل صور التدريب نحو ١٩٠ ميغابايت، فتسعها الذاكرة. وقراءة دورة كاملة دون نموذج تأخذ نحو نصف ثانية؛ والنصيحة: قِس سرعة محمّل البيانات وحده، فلا دورة أسرع منه.</p>
-  <p>وملاحظة من النظر في الصور: البنطال والحقيبة لهما أشكال مميزة، أما التيشيرت والكنزة والمعطف والقميص فمتشابهة جداً بدقة ٢٨×٢٨، وكذلك الصندل والحذاء الرياضي والجزمة. فتوقع أن يخلط النموذج الخطي بينها.</p>
-  <div class="w" id="dwBox"><div class="cap">ارسم بإصبعك أو بالفأرة على شبكة ٢٨×٢٨، وانظر كيف تصير الصورة متجهاً من ٧٨٤ عدداً</div>
+  <p>تفاصيل يلفت الكتاب إليها: 60,000 = 937 × 64 + 32، فالدفعة الأخيرة 32 صورة ونحتفظ بها كي تُرى كل صورة في كل دورة. وPyTorch يضع القناة أولاً <span class="mono" dir="ltr">(n, c, h, w)</span> وTensorFlow وJAX يضعانها آخراً <span class="mono" dir="ltr">(n, h, w, c)</span>. والدفعة الواحدة نحو 200 كيلوبايت، وكل صور التدريب نحو 190 ميغابايت، فتسعها الذاكرة. وقراءة دورة كاملة دون نموذج تأخذ نحو نصف ثانية؛ والنصيحة: قِس سرعة محمّل البيانات وحده، فلا دورة أسرع منه.</p>
+  <p>وملاحظة من النظر في الصور: البنطال والحقيبة لهما أشكال مميزة، أما التيشيرت والكنزة والمعطف والقميص فمتشابهة جداً بدقة 28×28، وكذلك الصندل والحذاء الرياضي والجزمة. فتوقع أن يخلط النموذج الخطي بينها.</p>
+  <div class="w" id="dwBox"><div class="cap">ارسم بإصبعك أو بالفأرة على شبكة 28×28، وانظر كيف تصير الصورة متجهاً من 784 عدداً</div>
     <div class="row"><button class="pill" id="dwClear">امسح</button><button class="pill" id="dwShirt">ارسم شكل بنطال</button></div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-top:8px;direction:ltr"><div id="dwPad" style="display:grid;grid-template-columns:repeat(28,1fr);width:min(100%,280px);aspect-ratio:1;border:1px solid var(--rule);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;background:var(--paper)"></div><div id="dwVec" style="flex:1;min-width:200px;font-family:var(--f-mono);font-size:12px;line-height:1.6;word-break:break-all;color:var(--soft)"></div></div>
     <div class="calc" id="dwCalc"></div></div>
-  <p>هذا ما يفعله <code>reshape(-1, 784)</code> أو <code>nn.Flatten()</code>: يقرأ الصورة صفاً بعد صف ويضعها في صف واحد. فالنقطة في الصف r والعمود c تصير العنصر <span class="mono" dir="ltr">28r + c</span>. ولاحظ الثمن: النموذج الخطي لا يعرف بعد التسطيح أن النقطتين ٠ و٢٨ متجاورتان عمودياً. هذه المعلومة المكانية ستستعيدها الشبكات الالتفافية في الفصل ٦.</p>
+  <p>هذا ما يفعله <code>reshape(-1, 784)</code> أو <code>nn.Flatten()</code>: يقرأ الصورة صفاً بعد صف ويضعها في صف واحد. فالنقطة في الصف r والعمود c تصير العنصر <span class="mono" dir="ltr">28r + c</span>. ولاحظ الثمن: النموذج الخطي لا يعرف بعد التسطيح أن النقطتين 0 و28 متجاورتان عمودياً. هذه المعلومة المكانية ستستعيدها الشبكات الالتفافية في الفصل 6.</p>
 </section>
 
 <!-- ============ 3.3 ============ -->
 <section class="sec" id="s3-3">
-  <header><div class="kicker">القسم ٣٫٣ <a class="pg" href="https://d2l.ai/chapter_linear-classification/softmax-regression-scratch.html">d2l.ai ↗</a></div><h2>تنفيذ انحدار السوفتماكس</h2></header>
+  <header><div class="kicker">القسم 3.3 <a class="pg" href="https://d2l.ai/chapter_linear-classification/softmax-regression-scratch.html">d2l.ai ↗</a></div><h2>تنفيذ انحدار السوفتماكس</h2></header>
   <div class="brief"><b>باختصار</b>نكتب السوفتماكس والإنتروبيا التقاطعية بأيدينا، ثم نستعمل نسخة المكتبة. والدرس الأهم هنا عددي: <code>exp</code> ينفجر مع الدرجات الكبيرة ويتلاشى مع الصغيرة، والحل أن نطرح أكبر درجة، وأن نعطي دالة الخسارة الدرجات الخام لتحسب اللوغاريتم والسوفتماكس معاً بحيلة LogSumExp.</div>
   <div class="terms"><span>الطفح <i>overflow</i></span><span>التلاشي <i>underflow</i></span><span>حيلة LogSumExp</span><span>الفهرسة المتقدمة <i>fancy indexing</i></span></div>
   <div class="code"><div class="hd">PyTorch · من الصفر</div>
@@ -136,7 +136,7 @@
     <div class="cl"><code>    X_exp = torch.exp(X)</code><span>أس كل عنصر.</span></div>
     <div class="cl"><code>    partition = X_exp.sum(1, keepdims=True)</code><span>مجموع كل صف، بشكل (n, 1) بفضل keepdims.</span></div>
     <div class="cl"><code>    return X_exp / partition</code><span>القسمة بالبث: كل صف على مجموعه.</span></div>
-    <div class="cl"><code>W = torch.normal(0, 0.01, size=(784, 10), requires_grad=True)</code><span>الأوزان: ٧٨٤ مدخلاً × ١٠ أصناف.</span></div>
+    <div class="cl"><code>W = torch.normal(0, 0.01, size=(784, 10), requires_grad=True)</code><span>الأوزان: 784 مدخلاً × 10 أصناف.</span></div>
     <div class="cl"><code>b = torch.zeros(10, requires_grad=True)</code><span>انحياز لكل صنف.</span></div>
     <div class="cl"><code>def forward(self, X):</code><span>المرور الأمامي:</span></div>
     <div class="cl"><code>    X = X.reshape((-1, 784))</code><span>تسطيح كل صورة.</span></div>
@@ -149,26 +149,26 @@
     <div class="tw" id="ceOut"></div><div class="calc" id="ceCalc"></div></div>
   <p>ويحذّر الكتاب من أن هذه السوفتماكس للتعليم فقط. جرّب الأداة التالية لترى لماذا.</p>
   <div class="math"><div class="mh"><span class="sym">LSE</span>مفهوم رياضي · الاستقرار العددي وحيلة LogSumExp</div><div class="mb">
-    <p>الأعداد العشرية ٣٢ بت لا تتسع لأكثر من نحو ٣٫٤×١٠<sup>٣٨</sup>، فـ<span class="mono" dir="ltr">exp(89)</span> يصير ما لا نهاية (طفح)، و<span class="mono" dir="ltr">exp(−104)</span> يصير صفراً (تلاشٍ). ويقول الكتاب إن الدرجات خارج المجال [−٩٠، ٩٠] تقريباً تسبب مشاكل.</p>
-    <p><b>الحل الأول</b>: اطرح أكبر درجة <span class="mono" dir="ltr">ō</span> من الكل قبل الأس. النتيجة لا تتغير (الخاصية الأولى للسوفتماكس)، وكل الأسس صارت ≤ ١ فلا طفح، والمقام بين ١ وq.</p>
+    <p>الأعداد العشرية 32 بت لا تتسع لأكثر من نحو 3.4×10<sup>38</sup>، فـ<span class="mono" dir="ltr">exp(89)</span> يصير ما لا نهاية (طفح)، و<span class="mono" dir="ltr">exp(−104)</span> يصير صفراً (تلاشٍ). ويقول الكتاب إن الدرجات خارج المجال [−90، 90] تقريباً تسبب مشاكل.</p>
+    <p><b>الحل الأول</b>: اطرح أكبر درجة <span class="mono" dir="ltr">ō</span> من الكل قبل الأس. النتيجة لا تتغير (الخاصية الأولى للسوفتماكس)، وكل الأسس صارت ≤ 1 فلا طفح، والمقام بين 1 وq.</p>
     <p><b>الحل الثاني</b>: قد يبقى بعض البسط صفراً بالتلاشي، ثم <span class="mono" dir="ltr">log 0 = −∞</span> ويفسد التدريب بـnan. فلا نحسب السوفتماكس ثم اللوغاريتم، بل اللوغاريتم مباشرة:</p>
     <div class="eq">log ŷⱼ = oⱼ − ō − log Σₖ exp(oₖ − ō)</div>
     <p>ولهذا تأخذ <code>F.cross_entropy</code> في PyTorch <b>الدرجات الخام</b> لا الاحتمالات: لا تضع سوفتماكس في آخر النموذج.</p>
   </div></div>
-  <div class="w" id="stBox"><div class="cap">سوفتماكس ساذجة مقابل مستقرة (بدقة ٣٢ بت)</div>
+  <div class="w" id="stBox"><div class="cap">سوفتماكس ساذجة مقابل مستقرة (بدقة 32 بت)</div>
     <div class="row"><span class="seg" id="stS" dir="ltr" style="flex-wrap:wrap"><button data-v="1,2.2,0.3" class="on">[1, 2.2, 0.3]</button><button data-v="100,101,99">[100, 101, 99]</button><button data-v="-200,-199,-201">[-200, -199, -201]</button><button data-v="0,50,-60">[0, 50, -60]</button></span></div>
     <div class="calc" id="stCalc"></div></div>
   <div class="code"><div class="hd">PyTorch · بالمكتبة</div>
     <div class="cl"><code>self.net = nn.Sequential(nn.Flatten(), nn.LazyLinear(10))</code><span>تسطيح (مع إبقاء محور الدفعة) ثم طبقة خطية بعشرة مخارج. لا سوفتماكس هنا!</span></div>
     <div class="cl"><code>def loss(self, Y_hat, Y):</code><span>الخسارة:</span></div>
     <div class="cl"><code>    return F.cross_entropy(Y_hat, Y)</code><span>تأخذ الدرجات الخام وتطبّق السوفتماكس واللوغاريتم معاً بأمان.</span></div>
-    <div class="cl"><code>data = d2l.FashionMNIST(batch_size=256)</code><span>دفعات من ٢٥٦ صورة.</span></div>
-    <div class="cl"><code>model = SoftmaxRegression(num_outputs=10, lr=0.1)</code><span>معدّل تعلّم ٠٫١.</span></div>
+    <div class="cl"><code>data = d2l.FashionMNIST(batch_size=256)</code><span>دفعات من 256 صورة.</span></div>
+    <div class="cl"><code>model = SoftmaxRegression(num_outputs=10, lr=0.1)</code><span>معدّل تعلّم 0.1.</span></div>
     <div class="cl"><code>d2l.Trainer(max_epochs=10).fit(model, data)</code><span>عشر دورات.</span></div>
     <div class="cl"><code>preds = model(X).argmax(axis=1)</code><span>التنبؤ: صاحب أعلى درجة.</span></div>
   </div>
   <p>لا يمكننا تحميل Fashion-MNIST في هذه الصفحة، فالأداة التالية تدرّب انحدار سوفتماكس حقيقياً في متصفحك على بيانات صغيرة بخاصيتين فقط، كي نرسم مناطق القرار. والخوارزمية هي نفسها تماماً: درجات، فسوفتماكس، فإنتروبيا تقاطعية، فتدرّج <span class="mono" dir="ltr">X⊤(Ŷ − Y)/n</span>.</p>
-  <div class="w" id="tcBox"><div class="cap">درّب مصنّف سوفتماكس على ثلاثة أصناف في المستوى (٣٠٠ نقطة من صنعنا، دفعة ٣٢)</div>
+  <div class="w" id="tcBox"><div class="cap">درّب مصنّف سوفتماكس على ثلاثة أصناف في المستوى (300 نقطة من صنعنا، دفعة 32)</div>
     <div class="row" style="flex-wrap:wrap"><label class="note">الدورة: <b id="tcEo"></b></label><input type="range" id="tcE" min="0" max="30" value="0" style="flex:1"><button class="pill" id="tcPlay">▶ درّب</button><span class="seg" id="tcL" dir="ltr"><button data-v="0.03">η 0.03</button><button data-v="0.3" class="on">η 0.3</button><button data-v="3">η 3</button></span></div>
     <div id="tcPlot"></div><div class="calc" id="tcCalc"></div></div>
   <p>لاحظ أن الحدود بين المناطق خطوط مستقيمة دائماً، وأن الشفافية (الثقة) تزداد مع الدورات. والنقاط المتداخلة بين الأصناف لن يصنفها أي خط مستقيم صحيحاً؛ هذا حد النموذج الخطي.</p>
@@ -176,14 +176,14 @@
 
 <!-- ============ 3.4 ============ -->
 <section class="sec" id="s3-4">
-  <header><div class="kicker">القسم ٣٫٤ <a class="pg" href="https://d2l.ai/chapter_linear-classification/classification.html">d2l.ai ↗</a></div><h2>قياس المصنّفات</h2></header>
+  <header><div class="kicker">القسم 3.4 <a class="pg" href="https://d2l.ai/chapter_linear-classification/classification.html">d2l.ai ↗</a></div><h2>قياس المصنّفات</h2></header>
   <div class="brief"><b>باختصار</b>نتدرّب على الإنتروبيا التقاطعية لأنها ناعمة، لكن ما يهم الناس عادةً <b>الدقة</b>: نسبة الأمثلة التي كان أعلى صنف فيها هو الصحيح. فيضيف الكتاب صنفاً أساسياً <code>Classifier</code> يحسب الخسارة والدقة على بيانات التحقق في كل دورة، ويُعاد استعماله في كل الفصول.</div>
   <div class="terms"><span>الدقة <i>accuracy</i></span><span>argmax</span><span>خطوة التحقق <i>validation step</i></span></div>
   <div class="code"><div class="hd">PyTorch</div>
     <div class="cl"><code>def accuracy(self, Y_hat, Y):</code><span>الدقة على دفعة:</span></div>
     <div class="cl"><code>    Y_hat = Y_hat.reshape((-1, Y_hat.shape[-1]))</code><span>صف لكل مثال، وعمود لكل صنف.</span></div>
     <div class="cl"><code>    preds = Y_hat.argmax(axis=1).type(Y.dtype)</code><span>رقم العمود الأعلى في كل صف = الصنف المتنبأ به.</span></div>
-    <div class="cl"><code>    compare = (preds == Y.reshape(-1)).type(torch.float32)</code><span>١ إن تطابق مع الصحيح و٠ إن لم يتطابق.</span></div>
+    <div class="cl"><code>    compare = (preds == Y.reshape(-1)).type(torch.float32)</code><span>1 إن تطابق مع الصحيح و0 إن لم يتطابق.</span></div>
     <div class="cl"><code>    return compare.mean()</code><span>المتوسط = نسبة الصواب.</span></div>
     <div class="cl"><code>def validation_step(self, batch):</code><span>في كل دفعة تحقق:</span></div>
     <div class="cl"><code>    Y_hat = self(*batch[:-1])</code><span>نحسب التنبؤات…</span></div>
@@ -192,30 +192,30 @@
   </div>
   <div class="w" id="acBox"><div class="cap">الدقة خطوة خطوة على ثماني صور (الدرجات من صنعنا؛ انقر صفاً لتغيير الصنف الصحيح)</div>
     <div class="scroll"><table class="tb" id="acTab" dir="ltr" style="margin-top:4px"></table></div><div class="calc" id="acCalc"></div></div>
-  <p>ويلاحظ الكتاب أن متوسط دقة الدفعات ليس بالضبط دقة كل بيانات التحقق، لأن الدفعة الأخيرة قد تكون أصغر: ١٠٬٠٠٠ صورة بدفعات ٢٥٦ = ٣٩ دفعة كاملة وأخيرة من ١٦. فالمتوسط البسيط يعطي الدفعة الأخيرة وزناً أكبر من حجمها. والفرق صغير، والكتاب يقبله للتبسيط. وفي الأداة السابقة: الدقة لا تقول شيئاً عن <b>ثقة</b> النموذج؛ صورتان صُنفتا صحيحاً، إحداهما باحتمال ٠٫٩٩ والأخرى ٠٫٣٤، تُحسبان بالتساوي.</p>
+  <p>ويلاحظ الكتاب أن متوسط دقة الدفعات ليس بالضبط دقة كل بيانات التحقق، لأن الدفعة الأخيرة قد تكون أصغر: 10,000 صورة بدفعات 256 = 39 دفعة كاملة وأخيرة من 16. فالمتوسط البسيط يعطي الدفعة الأخيرة وزناً أكبر من حجمها. والفرق صغير، والكتاب يقبله للتبسيط. وفي الأداة السابقة: الدقة لا تقول شيئاً عن <b>ثقة</b> النموذج؛ صورتان صُنفتا صحيحاً، إحداهما باحتمال 0.99 والأخرى 0.34، تُحسبان بالتساوي.</p>
 </section>
 
 <!-- ============ 3.5 ============ -->
 <section class="sec" id="s3-5">
-  <header><div class="kicker">القسم ٣٫٥ <a class="pg" href="https://d2l.ai/chapter_linear-classification/generalization-classification.html">d2l.ai ↗</a></div><h2>التعميم في التصنيف</h2></header>
-  <div class="brief"><b>باختصار</b>دقة الاختبار متوسط عينة، فلها هامش خطأ يصغر مع <span class="mono" dir="ltr">1/√n</span>: لهامش ±١٪ بثقة ٩٥٪ تحتاج نحو ١٠٬٠٠٠ مثال. وكل مرة تنظر فيها إلى نتيجة الاختبار وتعدّل نموذجك تتسرب منه معلومة. ونظرية التعلّم الإحصائي (بعد VC) تحاول ضمان التعميم مسبقاً، لكنها لا تفسر نجاح الشبكات العميقة.</div>
+  <header><div class="kicker">القسم 3.5 <a class="pg" href="https://d2l.ai/chapter_linear-classification/generalization-classification.html">d2l.ai ↗</a></div><h2>التعميم في التصنيف</h2></header>
+  <div class="brief"><b>باختصار</b>دقة الاختبار متوسط عينة، فلها هامش خطأ يصغر مع <span class="mono" dir="ltr">1/√n</span>: لهامش ±1% بثقة 95% تحتاج نحو 10,000 مثال. وكل مرة تنظر فيها إلى نتيجة الاختبار وتعدّل نموذجك تتسرب منه معلومة. ونظرية التعلّم الإحصائي (بعد VC) تحاول ضمان التعميم مسبقاً، لكنها لا تفسر نجاح الشبكات العميقة.</div>
   <div class="terms"><span>الخطأ التجريبي <i>empirical error</i></span><span>خطأ المجتمع <i>population error</i></span><span>متباينة هوفدينغ <i>Hoeffding's inequality</i></span><span>الملاءمة التكيّفية <i>adaptive overfitting</i></span><span>التقارب المنتظم <i>uniform convergence</i></span><span>بعد VC <i>VC dimension</i></span></div>
   <h3>كم مثال اختبار نحتاج؟</h3>
   <div class="math"><div class="mh"><span class="sym">√(ε(1−ε)/n)</span>مفهوم رياضي · هامش الخطأ في نسبة الخطأ</div><div class="mb">
-    <p>كل مثال اختبار «رمية عملة»: خطأ (١) باحتمال ε أو صواب (٠). فنسبة الخطأ المشاهدة متوسط رميات، وتباينها <span class="mono" dir="ltr">ε(1−ε)/n</span> (من الفصل الأول). وأسوأ حالة ε = ٠٫٥، فالانحراف المعياري لا يتجاوز <span class="mono" dir="ltr">√(0.25/n)</span>.</p>
-    <p><b>بنظرية النهاية المركزية</b> (تقريبية للعينات الكبيرة): لانحراف معياري ٠٫٠١ تحتاج ٢٬٥٠٠ مثال، ولثقة ٩٥٪ (انحرافان) ١٠٬٠٠٠، وهو حجم شائع لمجموعات الاختبار.</p>
-    <p><b>بمتباينة هوفدينغ</b> (مضمونة لأي n): <span class="mono" dir="ltr">P(ε_D − ε ≥ t) &lt; exp(−2nt²)</span>. لثقة ٩٥٪ بهامش ٠٫٠١ تحتاج نحو ١٥٬٠٠٠. أكثر قليلاً، والثمن هو الضمان.</p>
+    <p>كل مثال اختبار «رمية عملة»: خطأ (1) باحتمال ε أو صواب (0). فنسبة الخطأ المشاهدة متوسط رميات، وتباينها <span class="mono" dir="ltr">ε(1−ε)/n</span> (من الفصل الأول). وأسوأ حالة ε = 0.5، فالانحراف المعياري لا يتجاوز <span class="mono" dir="ltr">√(0.25/n)</span>.</p>
+    <p><b>بنظرية النهاية المركزية</b> (تقريبية للعينات الكبيرة): لانحراف معياري 0.01 تحتاج 2,500 مثال، ولثقة 95% (انحرافان) 10,000، وهو حجم شائع لمجموعات الاختبار.</p>
+    <p><b>بمتباينة هوفدينغ</b> (مضمونة لأي n): <span class="mono" dir="ltr">P(ε_D − ε ≥ t) &lt; exp(−2nt²)</span>. لثقة 95% بهامش 0.01 تحتاج نحو 15,000. أكثر قليلاً، والثمن هو الضمان.</p>
   </div></div>
   <div class="w" id="ssBox"><div class="cap">حاسبة حجم مجموعة الاختبار</div>
-    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">الهامش ± <b id="ssEo"></b></label><input type="range" id="ssE" min="0.002" max="0.05" step="0.001" value="0.01" style="flex:1"><span class="seg" id="ssC"><button data-v="0.68">٦٨٪</button><button data-v="0.95" class="on">٩٥٪</button><button data-v="0.999">٩٩٫٩٪</button></span></div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">الهامش ± <b id="ssEo"></b></label><input type="range" id="ssE" min="0.002" max="0.05" step="0.001" value="0.01" style="flex:1"><span class="seg" id="ssC"><button data-v="0.68">68%</button><button data-v="0.95" class="on">95%</button><button data-v="0.999">99.9%</button></span></div>
     <div class="calc" id="ssCalc"></div></div>
-  <p>والدرس الكبير: لخفض الهامش إلى النصف تحتاج أربعة أضعاف البيانات، ولخفضه مئة مرة تحتاج عشرة آلاف ضعف. ويلاحظ الكتاب أن آلاف الأوراق كل عام تعلن تحسينات بنسبة ١٪ أو أقل، وكثير منها داخل هامش الخطأ.</p>
+  <p>والدرس الكبير: لخفض الهامش إلى النصف تحتاج أربعة أضعاف البيانات، ولخفضه مئة مرة تحتاج عشرة آلاف ضعف. ويلاحظ الكتاب أن آلاف الأوراق كل عام تعلن تحسينات بنسبة 1% أو أقل، وكثير منها داخل هامش الخطأ.</p>
   <h3>لا تُرهق مجموعة الاختبار</h3>
-  <p>إن قيّمت ٢٠ نموذجاً على مجموعة الاختبار نفسها، فمن المرجح أن يبدو أحدها أفضل بالصدفة وحدها (مشكلة <b>الاختبارات المتعددة</b>). والأسوأ: إن نظرت إلى نتيجة النموذج الأول ثم صمّمت الثاني بناءً عليها، فقد تسربت معلومات الاختبار إلى التصميم (<b>الملاءمة التكيّفية</b>)، ولم تعد المجموعة اختباراً بالمعنى الدقيق. ونصائح الكتاب: احتفظ بمجموعة اختبار حقيقية واستشرها نادراً، واحسب حساب الاختبارات المتعددة، وكن أشد حذراً حين تكون البيانات صغيرة والقرار خطيراً، وفي المسابقات المتكررة حوّل مجموعة الاختبار القديمة إلى مجموعة تحقق في كل جولة.</p>
+  <p>إن قيّمت 20 نموذجاً على مجموعة الاختبار نفسها، فمن المرجح أن يبدو أحدها أفضل بالصدفة وحدها (مشكلة <b>الاختبارات المتعددة</b>). والأسوأ: إن نظرت إلى نتيجة النموذج الأول ثم صمّمت الثاني بناءً عليها، فقد تسربت معلومات الاختبار إلى التصميم (<b>الملاءمة التكيّفية</b>)، ولم تعد المجموعة اختباراً بالمعنى الدقيق. ونصائح الكتاب: احتفظ بمجموعة اختبار حقيقية واستشرها نادراً، واحسب حساب الاختبارات المتعددة، وكن أشد حذراً حين تكون البيانات صغيرة والقرار خطيراً، وفي المسابقات المتكررة حوّل مجموعة الاختبار القديمة إلى مجموعة تحقق في كل جولة.</p>
   <h3>نظرية التعلّم الإحصائي وبعد VC</h3>
-  <p>مجموعة الاختبار تخبرنا <b>بعد</b> التدريب هل عمّم النموذج. والنظرية تريد أن تضمن ذلك <b>قبله</b>: إن كانت فئة النماذج غير مرنة كثيراً، فخطأ التدريب قريب من الخطأ الحقيقي <b>لكل</b> نماذج الفئة معاً (<b>التقارب المنتظم</b>). ومقياس المرونة الشهير <b>بعد VC</b> (فابنيك وتشيرفوننكيس): أكبر عدد من النقاط تستطيع الفئة أن تفصلها بكل التوسيمات الممكنة. للنماذج الخطية في d بعداً يساوي <span class="mono" dir="ltr">d + 1</span>: في المستوى، الخط يفصل أي ٣ نقاط (غير مستقيمة) بأي توسيم، لكن لا يفصل كل توسيمات ٤ نقاط.</p>
+  <p>مجموعة الاختبار تخبرنا <b>بعد</b> التدريب هل عمّم النموذج. والنظرية تريد أن تضمن ذلك <b>قبله</b>: إن كانت فئة النماذج غير مرنة كثيراً، فخطأ التدريب قريب من الخطأ الحقيقي <b>لكل</b> نماذج الفئة معاً (<b>التقارب المنتظم</b>). ومقياس المرونة الشهير <b>بعد VC</b> (فابنيك وتشيرفوننكيس): أكبر عدد من النقاط تستطيع الفئة أن تفصلها بكل التوسيمات الممكنة. للنماذج الخطية في d بعداً يساوي <span class="mono" dir="ltr">d + 1</span>: في المستوى، الخط يفصل أي 3 نقاط (غير مستقيمة) بأي توسيم، لكن لا يفصل كل توسيمات 4 نقاط.</p>
   <div class="w" id="vcBox"><div class="cap">هل يستطيع خط مستقيم فصل هذا التوسيم؟ (انقر نقطة لتغيير صنفها)</div>
-    <div class="row"><span class="seg" id="vcN"><button data-v="3" class="on">٣ نقاط</button><button data-v="4">٤ نقاط</button></span><button class="pill" id="vcAll">جرّب كل التوسيمات</button></div>
+    <div class="row"><span class="seg" id="vcN"><button data-v="3" class="on">3 نقاط</button><button data-v="4">4 نقاط</button></span><button class="pill" id="vcAll">جرّب كل التوسيمات</button></div>
     <div id="vcPlot"></div><div class="calc" id="vcCalc"></div></div>
   <div class="eq">R[p, f] − R_emp[X, Y, f] &lt; α &nbsp; with probability ≥ 1 − δ, &nbsp; for α ≥ c √((VC − log δ) / n)</div>
   <p>الضمان يتحسن أيضاً بمعدّل <span class="mono" dir="ltr">1/√n</span>، ويسوء مع بعد VC. لكن الكتاب صريح: هذه الحدود متشائمة جداً للنماذج المعقدة، ولا تفسر الشبكات العميقة. فالشبكات العميقة تستطيع حفظ توسيمات <b>عشوائية</b> تماماً (أي بعدها الفعلي هائل)، ومع ذلك تعمّم جيداً على البيانات الحقيقية، وكثيراً ما تعمّم أفضل كلما كبرت. وهذا لغز يعود إليه الكتاب لاحقاً.</p>
@@ -223,7 +223,7 @@
 
 <!-- ============ 3.6 ============ -->
 <section class="sec" id="s3-6">
-  <header><div class="kicker">القسم ٣٫٦ <a class="pg" href="https://d2l.ai/chapter_linear-classification/environment-and-distribution-shift.html">d2l.ai ↗</a></div><h2>البيئة وتغيّر التوزيع</h2></header>
+  <header><div class="kicker">القسم 3.6 <a class="pg" href="https://d2l.ai/chapter_linear-classification/environment-and-distribution-shift.html">d2l.ai ↗</a></div><h2>البيئة وتغيّر التوزيع</h2></header>
   <div class="brief"><b>باختصار</b>كل ضمانات التعميم تفترض أن بيانات الاستعمال من توزيع بيانات التدريب نفسه. وهذا يفشل كثيراً: تتغير الأجهزة، وتتغير نسب الأمراض، وتتغير اللغة، بل قد يغيّر النموذج نفسه ما يتنبأ به. يميز الكتاب ثلاثة أنواع: تغيّر المدخلات (نعالجه بأوزان الأهمية)، وتغيّر نسب الأصناف (نعالجه بمصفوفة الالتباس)، وتغيّر المفهوم (لا علاج له إلا بيانات جديدة).</div>
   <div class="terms"><span>تغيّر التوزيع <i>distribution shift</i></span><span>تغيّر المتغيرات المصاحبة <i>covariate shift</i></span><span>تغيّر الأصناف <i>label shift</i></span><span>تغيّر المفهوم <i>concept shift</i></span><span>أوزان الأهمية <i>importance weights</i></span><span>مصنّف المجال <i>domain classifier</i></span><span>الحلقة الراجعة <i>feedback loop</i></span></div>
   <p>مثال الكتاب الافتتاحي على <b>قانون غودهارت</b>: بنك لاحظ أن من يلبسون أحذية «أكسفورد» يسددون قروضهم أكثر، فجعلها معياراً للإقراض. فلبس الجميع أكسفورد، وفقدت العلامة قيمتها. حين يصير المؤشر هدفاً يتوقف عن أن يكون مؤشراً جيداً.</p>
@@ -253,12 +253,12 @@
   <h3>علاج تغيّر نسب الأصناف: مصفوفة الالتباس</h3>
   <p>هنا الوزن لكل صنف: <span class="mono" dir="ltr">β(y) = p_T(y) / p_S(y)</span>. لكن كيف نعرف نسب الأصناف في الهدف وليس عندنا وسومه؟ من أخطاء مصنّفنا نفسه. نحسب على بيانات التحقق <b>مصفوفة الالتباس</b> C، حيث <span class="mono" dir="ltr">C_ij</span> احتمال أن يقول المصنّف i حين يكون الصحيح j. وفي الهدف نعدّ نسب تنبؤاته μ. ولأن <span class="mono" dir="ltr">C · p_T = μ</span> نحلّ: <span class="mono" dir="ltr">p̂_T = C⁻¹ μ</span>. ويضمن الكتاب أن C قابلة للعكس إن كانت قيم قطرها كلها أكبر من ½ (المصنّف يصيب كل صنف أكثر مما يخطئ).</p>
   <div class="w" id="lbBox"><div class="cap">تقدير نسب الأصناف في الهدف من تنبؤات مصنّف يخطئ (صنفان، الأرقام من صنعنا)</div>
-    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">نسبة المرض الحقيقية في الهدف: <b id="lbPo"></b> <input type="range" id="lbP" min="0.05" max="0.6" step="0.05" value="0.3"></label><span class="seg" id="lbN"><button data-v="500">٥٠٠ مثال</button><button data-v="5000" class="on">٥٬٠٠٠</button><button data-v="50000">٥٠٬٠٠٠</button></span><button class="pill" id="lbGo">عينة جديدة</button></div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">نسبة المرض الحقيقية في الهدف: <b id="lbPo"></b> <input type="range" id="lbP" min="0.05" max="0.6" step="0.05" value="0.3"></label><span class="seg" id="lbN"><button data-v="500">500 مثال</button><button data-v="5000" class="on">5,000</button><button data-v="50000">50,000</button></span><button class="pill" id="lbGo">عينة جديدة</button></div>
     <div class="calc" id="lbCalc"></div></div>
-  <p>والبديل الأسرع إن كان المصنّف معايَراً جيداً: لا تعِد التدريب، بل أضف إلى درجة كل صنف <span class="mono" dir="ltr">log(p̂_T(y) / p_S(y))</span>. وفي تجربة الكتاب على Fashion-MNIST، مع بيانات هدف نصفها قمصان، قدّرت الطريقة نسبة القمصان قريباً من الحقيقة، ورفع التعديل الدقة بين ٥ و١٥ نقطة مئوية.</p>
+  <p>والبديل الأسرع إن كان المصنّف معايَراً جيداً: لا تعِد التدريب، بل أضف إلى درجة كل صنف <span class="mono" dir="ltr">log(p̂_T(y) / p_S(y))</span>. وفي تجربة الكتاب على Fashion-MNIST، مع بيانات هدف نصفها قمصان، قدّرت الطريقة نسبة القمصان قريباً من الحقيقة، ورفع التعديل الدقة بين 5 و15 نقطة مئوية.</p>
 
   <h3>تغيّر المفهوم والحلقات الراجعة</h3>
-  <p>حين يتغير معنى الأشياء نفسه (<span class="mono" dir="ltr">p(y|x)</span>)، فالوسوم القديمة صارت خاطئة، ولا تنفع إعادة الوزن. العلاج الوحيد: مراقبة مستمرة، ووسوم جديدة، وإعادة تدريب دورية. وأخطر من ذلك حين يغيّر النموذج نفسه بياناته المستقبلية: في «الشرطة التنبؤية» يرسل النموذج دوريات أكثر إلى حي ما، فتُسجَّل فيه حوادث أكثر، فتدخل في التدريب التالي، فيرسل دوريات أكثر. ولكسر هذه الحلقة يلزم استكشاف عشوائي أو جمع بيانات مستقل، وهذا موضوع التعلّم المعزَّز (الفصل ١٤).</p>
+  <p>حين يتغير معنى الأشياء نفسه (<span class="mono" dir="ltr">p(y|x)</span>)، فالوسوم القديمة صارت خاطئة، ولا تنفع إعادة الوزن. العلاج الوحيد: مراقبة مستمرة، ووسوم جديدة، وإعادة تدريب دورية. وأخطر من ذلك حين يغيّر النموذج نفسه بياناته المستقبلية: في «الشرطة التنبؤية» يرسل النموذج دوريات أكثر إلى حي ما، فتُسجَّل فيه حوادث أكثر، فتدخل في التدريب التالي، فيرسل دوريات أكثر. ولكسر هذه الحلقة يلزم استكشاف عشوائي أو جمع بيانات مستقل، وهذا موضوع التعلّم المعزَّز (الفصل 14).</p>
 </section>
 
 <!-- ============ EX ============ -->
@@ -273,12 +273,12 @@
   </ul>
   <h3>تمارين (مختارة ومبسطة من تمارين الكتاب)</h3>
   <ol class="clean">
-    <li>هل تعمل السوفتماكس الساذجة مع درجة ١٠٠؟ ومع درجات كلها أقل من −١٠٠؟ أصلحها. <details><summary>الحل</summary>لا: ‏exp(100) يطفح في ٣٢ بت (مالانهاية/مالانهاية = nan)، وexp(−101) يتلاشى إلى صفر (٠/٠ = nan). الإصلاح: اطرح أكبر درجة من الكل قبل الأس. جرّب في أداة «سوفتماكس ساذجة مقابل مستقرة».</details></li>
-    <li>احسب الإنتروبيا التقاطعية في مثال الكتاب: <span class="mono" dir="ltr">y = [0, 2]</span> و<span class="mono" dir="ltr">ŷ = [[0.1, 0.3, 0.6], [0.3, 0.2, 0.5]]</span>. <details><summary>الحل</summary>نلتقط ٠٫١ و٠٫٥. الخسارة = −(ln 0.1 + ln 0.5) / 2 = (2.3026 + 0.6931) / 2 ≈ ١٫٤٩٧٩.</details></li>
-    <li>هل اختيار الصنف الأكثر احتمالاً دائماً حكيم؟ فكّر في التشخيص الطبي. <details><summary>تلميح</summary>إن كان احتمال مرض خطير ٣٠٪ فالـargmax يقول «سليم»، لكن كلفة إغفال المرض أكبر بكثير من كلفة فحص إضافي. القرار الأمثل يزن الاحتمالات بالكلفة، وهذا موضوع تمرين القسم ٣٫٤ في الكتاب.</details></li>
+    <li>هل تعمل السوفتماكس الساذجة مع درجة 100؟ ومع درجات كلها أقل من −100؟ أصلحها. <details><summary>الحل</summary>لا: ‏exp(100) يطفح في 32 بت (مالانهاية/مالانهاية = nan)، وexp(−101) يتلاشى إلى صفر (0/0 = nan). الإصلاح: اطرح أكبر درجة من الكل قبل الأس. جرّب في أداة «سوفتماكس ساذجة مقابل مستقرة».</details></li>
+    <li>احسب الإنتروبيا التقاطعية في مثال الكتاب: <span class="mono" dir="ltr">y = [0, 2]</span> و<span class="mono" dir="ltr">ŷ = [[0.1, 0.3, 0.6], [0.3, 0.2, 0.5]]</span>. <details><summary>الحل</summary>نلتقط 0.1 و0.5. الخسارة = −(ln 0.1 + ln 0.5) / 2 = (2.3026 + 0.6931) / 2 ≈ 1.4979.</details></li>
+    <li>هل اختيار الصنف الأكثر احتمالاً دائماً حكيم؟ فكّر في التشخيص الطبي. <details><summary>تلميح</summary>إن كان احتمال مرض خطير 30% فالـargmax يقول «سليم»، لكن كلفة إغفال المرض أكبر بكثير من كلفة فحص إضافي. القرار الأمثل يزن الاحتمالات بالكلفة، وهذا موضوع تمرين القسم 3.4 في الكتاب.</details></li>
     <li>ما المشكلات حين نستعمل السوفتماكس للتنبؤ بالكلمة التالية من مفردات ضخمة؟ <details><summary>تلميح</summary>المقام يجمع على كل المفردات (عشرات أو مئات الآلاف) في كل خطوة، ومصفوفة الأوزان ضخمة، وأغلب الكلمات نادرة فتقديراتها ضعيفة. وهذا بالضبط طبقة المخرج في النماذج اللغوية الكبيرة.</details></li>
-    <li>كم مثالاً تحتاج لتقدير خطأ نموذج بهامش ٠٫٠٠٠١ وثقة أكثر من ٩٩٫٩٪ (بهوفدينغ)؟ <details><summary>الحل</summary>‏exp(−2nt²) = 0.001 ⇒ n = ln(1000) / (2 × 10⁻⁸) ≈ ٣٤٥ مليون مثال. جرّب حاسبة حجم الاختبار لترى كيف يتغير ذلك مع الهامش.</details></li>
-    <li>ما بعد VC للمستطيلات الموازية للمحاور في المستوى؟ <details><summary>الحل</summary>٤: أربع نقاط على شكل معيّن (أعلى وأسفل ويمين ويسار) تُفصل بكل التوسيمات، لكن من أي ٥ نقاط خذ الأعلى والأسفل والأيمن والأيسر: المستطيل الذي يحويها يحوي الخامسة حتماً، فلا تستطيع جعلها وحدها سالبة.</details></li>
+    <li>كم مثالاً تحتاج لتقدير خطأ نموذج بهامش 0.0001 وثقة أكثر من 99.9% (بهوفدينغ)؟ <details><summary>الحل</summary>‏exp(−2nt²) = 0.001 ⇒ n = ln(1000) / (2 × 10⁻⁸) ≈ 345 مليون مثال. جرّب حاسبة حجم الاختبار لترى كيف يتغير ذلك مع الهامش.</details></li>
+    <li>ما بعد VC للمستطيلات الموازية للمحاور في المستوى؟ <details><summary>الحل</summary>4: أربع نقاط على شكل معيّن (أعلى وأسفل ويمين ويسار) تُفصل بكل التوسيمات، لكن من أي 5 نقاط خذ الأعلى والأسفل والأيمن والأيسر: المستطيل الذي يحويها يحوي الخامسة حتماً، فلا تستطيع جعلها وحدها سالبة.</details></li>
     <li>لماذا لا تنفع أوزان الأهمية إن كان في الهدف منطقة لا يوجد فيها أي مثال من المصدر؟ <details><summary>الحل</summary>لأن الخسارة الموزونة مجموع على أمثلة المصدر فقط؛ المنطقة الغائبة لا تساهم بأي حد مهما كبرت الأوزان. لا يمكن تعلّم ما لم يُرَ.</details></li>
   </ol>
   <h3>مسرد مصطلحات الفصل</h3>

@@ -9,13 +9,13 @@ const GL=[
 ['البث','broadcasting','تمديد الموتر الأصغر تلقائياً ليوافق شكل الأكبر في العمليات.'],
 ['القيمة المفقودة','missing value (NaN)','خانة لا قيمة فيها.'],
 ['الإكمال','imputation','ملء القيم المفقودة بتقدير معقول كالمتوسط.'],
-['الترميز الأحادي','one-hot / dummy','تحويل عمود فئوي إلى أعمدة ٠/١، عمود لكل فئة.'],
+['الترميز الأحادي','one-hot / dummy','تحويل عمود فئوي إلى أعمدة 0/1، عمود لكل فئة.'],
 ['ضرب هادامار','Hadamard product (⊙)','ضرب عنصر بعنصر لموترين بالشكل نفسه.'],
 ['الاختزال','reduction','تقليل المحاور بالجمع أو المتوسط على محور.'],
 ['الضرب النقطي','dot product','مجموع حواصل ضرب العناصر المتقابلة؛ يقيس التوافق.'],
 ['ضرب المصفوفات','matrix multiplication','كل عنصر ناتج = ضرب نقطي لصف في عمود.'],
 ['المعيار','norm','عدد يقيس حجم المتجه: ℓ₂ الطول، ℓ₁ مجموع القيم المطلقة.'],
-['التشابه بجيب التمام','cosine similarity','الضرب النقطي مقسوماً على حاصل ضرب الطولين؛ بين −١ و١.'],
+['التشابه بجيب التمام','cosine similarity','الضرب النقطي مقسوماً على حاصل ضرب الطولين؛ بين −1 و1.'],
 ['القيمة الذاتية','eigenvalue','معامل مطّ اتجاه لا يغيّره الضرب في المصفوفة.'],
 ['المشتقة','derivative','ميل الدالة: تغيّر المخرج مقسوماً على تغيّر صغير جداً في المدخل.'],
 ['التدرّج','gradient (∇)','متجه المشتقات الجزئية؛ يشير إلى أسرع صعود.'],
@@ -234,9 +234,9 @@ function drawBS(){
   const N=100000,sick=N*p,well=N-sick;
   const s1=1.0,s2=0.98,f2=0.03;
   const tp=sick*s1*(two?s2:1),fpN=well*fp*(two?f2:1),post=tp/(tp+fpN);
-  $('#bsOut').innerHTML=bar('مصابون وإيجابيون',tp,Math.max(tp,fpN),Math.round(tp).toLocaleString('ar-EG'),'var(--green)')+bar('أصحاء وإيجابيون خطأً',fpN,Math.max(tp,fpN),Math.round(fpN).toLocaleString('ar-EG'),'var(--rose)');
+  $('#bsOut').innerHTML=bar('مصابون وإيجابيون',tp,Math.max(tp,fpN),Math.round(tp).toLocaleString('en-US'),'var(--green)')+bar('أصحاء وإيجابيون خطأً',fpN,Math.max(tp,fpN),Math.round(fpN).toLocaleString('en-US'),'var(--rose)');
   const pD=p*s1*(two?s2:1)+(1-p)*fp*(two?f2:1);
-  $('#bsCalc').textContent=`out of ${N.toLocaleString()} people: ${fmt(+sick.toFixed(1))} infected, ${fmt(+well.toFixed(1))} healthy\n`+
+  $('#bsCalc').textContent=`out of ${N.toLocaleString('en-US')} people: ${fmt(+sick.toFixed(1))} infected, ${fmt(+well.toFixed(1))} healthy\n`+
    (two?`both tests positive: P(D1,D2|H=1) = 1.00×0.98 = 0.98   P(D1,D2|H=0) = ${fp}×0.03 = ${(fp*0.03).toPrecision(3)}\n`:`test positive: P(D|H=1) = 1.00   P(D|H=0) = ${fp}\n`)+
    `P(D) = ${(two?0.98:1)}×${p} + ${(two?fp*0.03:fp).toPrecision(3)}×${(1-p).toFixed(4)} = ${pD.toPrecision(6)}\nP(infected | positive) = ${(p*(two?0.98:1)).toPrecision(4)} / ${pD.toPrecision(6)} = ${post.toFixed(4)}  ≈ ${(post*100).toFixed(1)}%`;
 }

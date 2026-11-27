@@ -8,7 +8,7 @@ const GL=[
 ['GELU','Gaussian error linear unit','z·Φ(z)؛ افتراضية المحوّلات.'],
 ['السيغمويد / tanh','sigmoid / tanh','دالتان مشبعتان؛ مداهما (0,1) و(−1,1).'],
 ['الوحدة الميتة','dead unit','وحدة ReLU مدخلها سالب دائماً فلا تتعلّم.'],
-['XOR','exclusive or','١ حين يختلف المدخلان؛ لا يفصله خط.'],
+['XOR','exclusive or','1 حين يختلف المدخلان؛ لا يفصله خط.'],
 ['التقريب الشامل','universal approximation','طبقة مخفية عريضة تقرّب أي دالة متصلة.'],
 ['الشبكة متعددة الطبقات','multilayer perceptron (MLP)','طبقات كاملة الاتصال بينها تنشيطات غير خطية.'],
 ['الانتشار العكسي','backpropagation','حساب التدرّجات من الخسارة إلى المدخلات بقاعدة السلسلة.'],
@@ -189,14 +189,14 @@ function drawDO(){
   const mask=X.map(()=>p>=1?0:R()>=p?1:0),out=X.map((v,i)=>p>=1?0:mask[i]*v/(1-p));
   $('#doOut').innerHTML=lab('X',grid([X]))+lab('mask (keep with prob. 1 − p)',grid([mask],(i,j)=>mask[j]?'g':'x'))+lab(`X · mask / (1 − ${p.toFixed(1)})`,grid([out.map(v=>+v.toFixed(2))],(i,j)=>mask[j]?'h':'x'));
   const R2=rng(doSeed+100),N=100000;let s=0,s2=0;for(let i=0;i<N;i++){const v=p>=1?0:(R2()>=p?1/(1-p):0);s+=v;s2+=v*v}const m=s/N;
-  $('#doCalc').textContent=`kept ${mask.reduce((a,b)=>a+b,0)} of 16; survivors multiplied by 1/(1 − p) = ${p<1?(1/(1-p)).toFixed(2):'—'}\ncheck on ${N.toLocaleString()} ones: mean ${m.toFixed(3)} (theory 1)   variance ${(s2/N-m*m).toFixed(3)} (theory p/(1 − p) = ${p<1?(p/(1-p)).toFixed(3):'—'})`;
+  $('#doCalc').textContent=`kept ${mask.reduce((a,b)=>a+b,0)} of 16; survivors multiplied by 1/(1 − p) = ${p<1?(1/(1-p)).toFixed(2):'—'}\ncheck on ${N.toLocaleString('en-US')} ones: mean ${m.toFixed(3)} (theory 1)   variance ${(s2/N-m*m).toFixed(3)} (theory p/(1 − p) = ${p<1?(p/(1-p)).toFixed(3):'—'})`;
 }
 $('#doP').addEventListener('input',drawDO);$('#doGo').onclick=()=>{doSeed++;drawDO()};drawDO();
 
 /* ---------- 4.7 log error ---------- */
 function drawLR(){
-  const e=+$('#lrE').value;$('#lrEo').textContent=e.toLocaleString();
-  const row=(p)=>{const q=p+e,le=Math.log(q)-Math.log(p);return`  price $${p.toLocaleString().padEnd(10)} predicted $${q.toLocaleString().padEnd(10)} relative ${(e/p*100).toFixed(1).padStart(5)}%   log error ${le.toFixed(3)}`};
-  $('#lrCalc').textContent=`the same $${e.toLocaleString()} error:\n${row(125000)}\n${row(4000000)}\nsquared error in dollars treats both alike; log error sees ${((Math.log(125000+e)-Math.log(125000))/(Math.log(4000000+e)-Math.log(4000000))).toFixed(0)}× more error in the cheap house\nfor small errors log error ≈ relative error: log(1.1) = ${Math.log(1.1).toFixed(3)}`;
+  const e=+$('#lrE').value;$('#lrEo').textContent=e.toLocaleString('en-US');
+  const row=(p)=>{const q=p+e,le=Math.log(q)-Math.log(p);return`  price $${p.toLocaleString('en-US').padEnd(10)} predicted $${q.toLocaleString('en-US').padEnd(10)} relative ${(e/p*100).toFixed(1).padStart(5)}%   log error ${le.toFixed(3)}`};
+  $('#lrCalc').textContent=`the same $${e.toLocaleString('en-US')} error:\n${row(125000)}\n${row(4000000)}\nsquared error in dollars treats both alike; log error sees ${((Math.log(125000+e)-Math.log(125000))/(Math.log(4000000+e)-Math.log(4000000))).toFixed(0)}× more error in the cheap house\nfor small errors log error ≈ relative error: log(1.1) = ${Math.log(1.1).toFixed(3)}`;
 }
 $('#lrE').addEventListener('input',drawLR);drawLR();

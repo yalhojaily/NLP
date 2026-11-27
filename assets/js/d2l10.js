@@ -99,7 +99,7 @@ function drawRO(){const i=+$('#roI').value,j=+$('#roJ').value;$('#roIo').textCon
 /* ---------- 10.5 memory of naive attention ---------- */
 const fmb=b=>b>=2**30?(b/2**30).toFixed(b>=2**33?0:1)+' GiB':b>=2**20?(b/2**20).toFixed(b>=2**23?0:1)+' MiB':(b/1024).toFixed(0)+' KiB';
 function drawFM(){const n=2**+$('#fmN').value;$('#fmNo').textContent=N(n);const S=8*n*n,I=3*n*64*4,C=n*512*4;
-  $('#fmOut').innerHTML=bar('مصفوفتا الدرجات والأوزان',S,S,fmb(S),'var(--rose)')+bar('شريط بعرض ٥١٢ (متصل)',C,S,fmb(C),'var(--green)')+bar('المدخلات Q وK وV',I,S,fmb(I),'var(--math)');
+  $('#fmOut').innerHTML=bar('مصفوفتا الدرجات والأوزان',S,S,fmb(S),'var(--rose)')+bar('شريط بعرض 512 (متصل)',C,S,fmb(C),'var(--green)')+bar('المدخلات Q وK وV',I,S,fmb(I),'var(--math)');
   $('#fmCalc').textContent=`naive: scores (4n²) + weights (4n²) = 8 × ${N(n)}² bytes = ${fmb(S)} per head\ninputs Q, K, V: 3 × ${N(n)} × 64 × 4 bytes = ${fmb(I)}  → scratch is ${(S/I).toFixed(0)}× larger\nonline softmax with key blocks of c = 512: ${fmb(C)} for the current stripe`}
 $('#fmN').addEventListener('input',drawFM);drawFM();
 

@@ -27,7 +27,7 @@ const GL=[
 ['الانتشار العكسي المقطوع','truncated BPTT','إيقاف التدرّج عند حدود مقاطع بطول T₀.'],
 ['البحث الجشع','greedy search','اختيار الرمز الأعلى احتمالاً عند كل خطوة.'],
 ['البحث بالحزمة','beam search','الاحتفاظ بأفضل w بادئات عند كل خطوة.'],
-['الحرارة','temperature','قسمة اللوجتات على τ: أقل من ١ أحدّ، وأكبر أسطح.'],
+['الحرارة','temperature','قسمة اللوجتات على τ: أقل من 1 أحدّ، وأكبر أسطح.'],
 ['top-k / top-p / min-p','truncated sampling','حذف ذيل التوزيع قبل السحب بعدد أو كتلة أو حد نسبي.'],
 ['تدهور النص','text degeneration','التكرار والحلقات عند فك الترميز بتعظيم الاحتمال.']];
 initPage(SECS,GL);
@@ -126,7 +126,7 @@ const BM={A:[0.5,{X:0.3,Y:0.3,Z:0.2,W:0.2}],B:[0.4,{X:0.9,Y:0.05,Z:0.05}],C:[0.1
 function drawBM(){const w=+segVal('#bmW','v');const first=Object.keys(BM).sort((a,b)=>BM[b][0]-BM[a][0]),keep=first.slice(0,w);
   const cands=[];keep.forEach(a=>Object.entries(BM[a][1]).forEach(([b,p])=>cands.push([a+b,BM[a][0]*p])));cands.sort((a,b)=>b[1]-a[1]);
   const best=w===1?[cands[0]]:cands.slice(0,w);
-  $('#bmOut').innerHTML=lab('الخطوة ١',first.map(a=>bar(a,BM[a][0],1,BM[a][0].toFixed(2),keep.includes(a)?'var(--green)':'var(--soft)')).join(''))+lab(`الخطوة ٢ (${cands.length} مرشحاً)`,cands.map(c=>bar(c[0],c[1],0.5,c[1].toFixed(3),best.some(b=>b[0]===c[0])?'var(--green)':'var(--soft)')).join(''));
+  $('#bmOut').innerHTML=lab('الخطوة 1',first.map(a=>bar(a,BM[a][0],1,BM[a][0].toFixed(2),keep.includes(a)?'var(--green)':'var(--soft)')).join(''))+lab(`الخطوة 2 (${cands.length} مرشحاً)`,cands.map(c=>bar(c[0],c[1],0.5,c[1].toFixed(3),best.some(b=>b[0]===c[0])?'var(--green)':'var(--soft)')).join(''));
   $('#bmCalc').textContent=(w===1?`greedy: A (0.50) then its best child (0.30) → ${best[0][0]} with 0.50 × 0.30 = 0.150\nmissed: BX = 0.40 × 0.90 = 0.360 (2.4× higher)`:`beam w = 2: keep A and B, expand both, keep top 2\nbest: ${best[0][0]} = ${best[0][1].toFixed(3)}; evaluations: ${Object.keys(BM).length} + ${cands.length} instead of every path`)}
 segOn('#bmW',drawBM);drawBM();
 

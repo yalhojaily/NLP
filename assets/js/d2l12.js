@@ -65,7 +65,7 @@ $('#s4D').addEventListener('input',drawS4);drawS4();
 /* ---------- 12.5 selective gate ---------- */
 const MBX=Array(24).fill(0);[2,9,15].forEach(i=>MBX[i]=1);
 function drawMB(){const h=[],hf=[];let s=0,sf=0;MBX.forEach(m=>{const st=m?2:-4.6,z=sig(-st);s=z*s+(1-z)*(m?1:0);h.push(s);sf=0.5*sf+0.5*(m?1:0);hf.push(sf)});
-  $('#mbIn').innerHTML=lab('الرموز (١ = مهم، ٠ = حشو)',grid([MBX],(i,j)=>MBX[j]?'h':'',{click:1}));
+  $('#mbIn').innerHTML=lab('الرموز (1 = مهم، 0 = حشو)',grid([MBX],(i,j)=>MBX[j]?'h':'',{click:1}));
   $$('#mbIn .tgrid.click i').forEach(e=>e.addEventListener('click',()=>{const j=+e.dataset.j;MBX[j]=1-MBX[j];drawMB()}));
   plot($('#mbPlot'),{xmin:0.5,xmax:24.5,ymin:0,ymax:1.05,H:200,xt:[1,6,12,18,24],yt:[0,0.5,1],xl:'t',lines:[{pts:h.map((v,i)=>[i+1,v]),c:'var(--green)',w:2.6},{pts:hf.map((v,i)=>[i+1,v]),c:'var(--rose)',w:1.6,dash:1}]});
   $('#mbCalc').textContent=`marked token: s = +2 → Δ = softplus(2) = ${Math.log(1+Math.exp(2)).toFixed(2)}, keep gate e^(−Δ) = σ(−2) = ${sig(-2).toFixed(2)} (overwrite)\nfiller token: s = −4.6 → Δ = ${Math.log(1+Math.exp(-4.6)).toFixed(3)}, keep gate ${sig(4.6).toFixed(3)} (freeze)\ngreen: selective state, final ${h[23].toFixed(3)} · dashed red: fixed gate 0.5 (time-invariant), final ${hf[23].toFixed(3)}`}

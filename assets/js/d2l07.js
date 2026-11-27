@@ -106,7 +106,7 @@ $('#dsS').addEventListener('input',drawDS);$('#dsGo').addEventListener('click',(
 let ntSel=[1,2];
 function drawNT(){const m=segVal('#ntS','v'),[si,sj]=ntSel;const M=[];for(let i=0;i<4;i++){M.push([]);for(let j=0;j<8;j++)M[i].push('c'+(j+1))}
   const same=(i,j)=>m==='bn'?j===sj:m==='ln'?i===si:m==='gn'?i===si&&Math.floor(j/4)===Math.floor(sj/4):i===si&&j===sj;
-  $('#ntOut').innerHTML=lab('الصفوف: الأمثلة ٤ · الأعمدة: القنوات ٨',grid(M,(i,j)=>i===si&&j===sj?'m':same(i,j)?'h':'x',{click:1}));
+  $('#ntOut').innerHTML=lab('الصفوف: الأمثلة 4 · الأعمدة: القنوات 8',grid(M,(i,j)=>i===si&&j===sj?'m':same(i,j)?'h':'x',{click:1}));
   $$('#ntOut .tgrid i').forEach(e=>e.addEventListener('click',()=>{ntSel=[+e.dataset.i,+e.dataset.j];drawNT()}));
   let k=0;for(let i=0;i<4;i++)for(let j=0;j<8;j++)if(same(i,j))k++;
   const nm={bn:'batch norm: one channel, all examples',ln:'layer norm: one example, all channels',gn:'group norm: one example, its group of 4 channels',in:'instance norm: one example, one channel'}[m];
@@ -215,7 +215,7 @@ function drawEM(){const rho=+segVal('#emS','v');let s=0;const e=EMT.map(v=>s=rho
 segOn('#emS',drawEM);drawEM();
 
 /* ---------- 7.7 ConvNeXt roadmap ---------- */
-const CN=[['ResNet-50 (٢٠١٥)',76.1,'starting point'],['وصفة حديثة',78.8,'300 epochs, AdamW, Mixup, label smoothing, stochastic depth'],['مراحل 3,3,9,3',79.4,'blocks per stage (3,4,6,3) → (3,3,9,3)'],['جذع 4×4',79.5,'7×7/2 conv + pool → one 4×4 stride-4 conv'],['عمقي، عرض ٩٦',80.5,'3×3 becomes depthwise; width 64 → 96'],['عنق مقلوب',80.6,'expand 4× inside the block'],['عمقي 7×7',80.6,'moved to front (79.9) then enlarged to 7×7'],['GELU',80.6,'smooth activation; no change alone'],['GELU واحد',81.3,'one GELU per block instead of three'],['تطبيع واحد',81.4,'one normalization per block instead of three'],['BN ← LN',81.5,'layer norm over channels at each position'],['تصغير منفصل',82.0,'LN + 2×2 stride-2 conv between stages']];
+const CN=[['ResNet-50 (2015)',76.1,'starting point'],['وصفة حديثة',78.8,'300 epochs, AdamW, Mixup, label smoothing, stochastic depth'],['مراحل 3,3,9,3',79.4,'blocks per stage (3,4,6,3) → (3,3,9,3)'],['جذع 4×4',79.5,'7×7/2 conv + pool → one 4×4 stride-4 conv'],['عمقي، عرض 96',80.5,'3×3 becomes depthwise; width 64 → 96'],['عنق مقلوب',80.6,'expand 4× inside the block'],['عمقي 7×7',80.6,'moved to front (79.9) then enlarged to 7×7'],['GELU',80.6,'smooth activation; no change alone'],['GELU واحد',81.3,'one GELU per block instead of three'],['تطبيع واحد',81.4,'one normalization per block instead of three'],['BN ← LN',81.5,'layer norm over channels at each position'],['تصغير منفصل',82.0,'LN + 2×2 stride-2 conv between stages']];
 function drawCN(){const k=+$('#cnS').value;$('#cnSo').textContent=k;
   $('#cnOut').innerHTML=CN.map((r,i)=>`<div style="opacity:${i<=k?1:.3}">${bar(r[0],r[1]-75,8,r[1].toFixed(1)+'%',i===0?'var(--rose)':i===1?'var(--amber)':'var(--math)')}</div>`).join('')+bar('Swin-T',81.3-75,8,'81.3%','var(--soft)');
   const d=k?CN[k][1]-CN[k-1][1]:0,tot=CN[k][1]-76.1,rec=Math.min(tot,2.7);

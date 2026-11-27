@@ -51,7 +51,7 @@ function drawOL(){
   plot($('#olPlot'),{xmin:0,xmax:21,ymin:0,ymax:60,yt:[0,20,40,60],xt:[5,10,15,20],xl:'x',yl:'y',H:220,
     curves:[{f:x=>wls*x,c:'var(--rose)'},{f:x=>wlad*x,c:'var(--green)',dash:1}],
     pts:X.map((x,i)=>Y[i]>60?{x,y:58,c:'var(--rose)',t:'↑ 10,000'}:{x,y:Y[i],c:'var(--amber)',r:3.5})});
-  $('#olCalc').textContent=`squared loss slope  = Σxy / Σx² = ${sxy.toLocaleString()} / ${sxx} = ${wls.toFixed(2)}   (red)\nabsolute loss slope = weighted median of y/x = ${wlad.toFixed(2)}   (green dashed)\ntrue slope = 2.00`+(bad?`\none label in twenty moved the squared-loss line by ${(wls-2).toFixed(2)}`:'');
+  $('#olCalc').textContent=`squared loss slope  = Σxy / Σx² = ${sxy.toLocaleString('en-US')} / ${sxx} = ${wls.toFixed(2)}   (red)\nabsolute loss slope = weighted median of y/x = ${wlad.toFixed(2)}   (green dashed)\ntrue slope = 2.00`+(bad?`\none label in twenty moved the squared-loss line by ${(wls-2).toFixed(2)}`:'');
 }
 $('#olOn').addEventListener('change',drawOL);drawOL();document.addEventListener('themechange',drawOL);
 

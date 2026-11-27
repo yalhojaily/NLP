@@ -1,7 +1,7 @@
 /* Chapter 9 · Masked Language Models — interactive widgets */
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const AR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const AR=n=>String(n).replace(/\d/g,d=>'0123456789'[d]);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const r2=v=>(+v).toFixed(2);
 const fmtN=n=>Math.round(n).toLocaleString('en-US');
@@ -20,9 +20,9 @@ function onScroll(){const h=document.documentElement;$('#prog').style.width=(h.s
 addEventListener('scroll',onScroll,{passive:true});onScroll();
 
 /* ---------- 9.1 three architectures ---------- */
-const ART={dec:['المفكِّك (Decoder)','يأخذ سلسلة رموز ويولّد رمزاً بعد رمز. المعلومات تتدفق من اليسار إلى اليمين: كل مخرج يعتمد على المدخلات السابقة فقط. نموذج <b>توليدي</b>. ومنه GPT وClaude وLlama وMistral (الفصل ٧).'],
+const ART={dec:['المفكِّك (Decoder)','يأخذ سلسلة رموز ويولّد رمزاً بعد رمز. المعلومات تتدفق من اليسار إلى اليمين: كل مخرج يعتمد على المدخلات السابقة فقط. نموذج <b>توليدي</b>. ومنه GPT وClaude وLlama وMistral (الفصل 7).'],
  enc:['المرمِّز (Encoder)','يأخذ سلسلة رموز ويُخرج <b>متجهاً لكل رمز</b> (ترميزاً). كل مخرج يرى المدخل كله. يُدرَّب عادةً بالقناع (BERT وRoBERTa). ليس توليدياً، بل يُستعمل غالباً لبناء مصنّفات (نص ← وسم) بعد ضبطه على بيانات موسومة.'],
- ed:['المرمِّز-المفكِّك (Encoder-Decoder)','يأخذ سلسلة ويولّد سلسلة. الفرق عن المفكِّك: العلاقة بين رموز المدخل والمخرج «أرخى»، فقد تكون من نوع مختلف تماماً أو أطول أو أقصر كثيراً. مثل الترجمة (لغة ← لغة أخرى، الفصل ١٣) والتعرف على الكلام (رموز صوت ← رموز نص، الفصل ١٦).']};
+ ed:['المرمِّز-المفكِّك (Encoder-Decoder)','يأخذ سلسلة ويولّد سلسلة. الفرق عن المفكِّك: العلاقة بين رموز المدخل والمخرج «أرخى»، فقد تكون من نوع مختلف تماماً أو أطول أو أقصر كثيراً. مثل الترجمة (لغة ← لغة أخرى، الفصل 13) والتعرف على الكلام (رموز صوت ← رموز نص، الفصل 16).']};
 function drawAR(){const m=segVal('#arM','m');const W=560,H=190;let s=`<svg class="map" viewBox="0 0 ${W} ${H}" role="img" style="max-width:600px"><defs><marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--soft)"/></marker></defs>`;
   const node=(x,y,t,c)=>`<circle cx="${x}" cy="${y}" r="15" fill="var(--paper)" stroke="${c}" stroke-width="2"/><text x="${x}" y="${y+4}" font-size="11" text-anchor="middle" fill="${c}" font-family="Noto Sans Mono">${t}</text>`;
   const ln=(x1,y1,x2,y2,c='var(--soft)')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="1.1" marker-end="url(#arA)" opacity=".75"/>`;

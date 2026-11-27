@@ -3,7 +3,7 @@
 Fragment format: header lines '@key value', '@minute' followed by '- item' lines, then '@body' and raw HTML."""
 import re, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-AD = lambda n: ''.join('٠١٢٣٤٥٦٧٨٩'[int(c)] if c.isdigit() else c for c in str(n))
+AD = lambda n: ''.join('0123456789'[int(c)] if c.isdigit() else c for c in str(n))
 LESSONS = [
  (1,'01-script','الحرف والترميز','Script, Unicode and Normalization'),
  (2,'02-tokenization','الكلمة والرمز','Clitics, Segmentation and Subword Tokens'),
@@ -21,7 +21,7 @@ N = len(LESSONS)
 idx = (ROOT/'slp'/'index.html').read_text()
 CH = {}
 for href, no, ti in re.findall(r'<a class="ch" href="([^"]+)"><span class="no">([^<]+)</span><span class="ti">([^<]+)</span>', idx):
-    n = int(''.join(str('٠١٢٣٤٥٦٧٨٩'.index(c)) for c in no))
+    n = int(''.join(str('0123456789'.index(c)) for c in no))
     CH[n] = (href, ti)
 HEAD = '''<!doctype html>
 <html lang="ar" dir="rtl">

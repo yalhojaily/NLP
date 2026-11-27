@@ -21,7 +21,7 @@ const GL=[
 ['تجميع العظمى / المتوسط','max / average pooling','تلخيص كل نافذة بأكبر قيمة أو بالمتوسط.'],
 ['التجميع الشامل','global pooling','تلخيص الخريطة كلها في رقم لكل قناة.'],
 ['التشويه بالاعتيان','aliasing','ضياع أو تشوه الإشارة السريعة عند الاعتيان بخطوة.'],
-['LeNet','LeNet-5','شبكة ليكون الالتفافية (١٩٩٨) لقراءة الأرقام.'],
+['LeNet','LeNet-5','شبكة ليكون الالتفافية (1998) لقراءة الأرقام.'],
 ['التحيز الاستقرائي المكاني','spatial inductive bias','افتراض أن الجيران في المصفوفة جيران في الصورة.']];
 initPage(SECS,GL);
 const corr=(X,K)=>{const H=X.length-K.length+1,W=X[0].length-K[0].length+1,Y=[];for(let i=0;i<H;i++){Y.push([]);for(let j=0;j<W;j++){let s=0;for(let a=0;a<K.length;a++)for(let b=0;b<K[0].length;b++)s+=K[a][b]*X[i+a][j+b];Y[i].push(+s.toFixed(4))}}return Y};
@@ -133,8 +133,8 @@ function drawCC(){
   const P=co*ci*k*k+co,M=h*h*co*ci*k*k,A=h*h*co;
   const b=Math.max(1,Math.round(Math.min(ci,co)/4)),PB=ci*b+b*b*k*k+b*co,MB=h*h*PB;
   const mx=Math.max(P,PB);
-  $('#ccOut').innerHTML=bar('معاملات الطبقة',P,mx,P.toLocaleString(),'var(--rose)')+bar(`عنق زجاجة ${ci}→${b}→${b}→${co}`,PB,mx,PB.toLocaleString(),'var(--green)');
-  $('#ccCalc').textContent=`parameters  cₒcᵢk² + cₒ = ${co}·${ci}·${k*k} + ${co} = ${P.toLocaleString()}\nmultiply-adds h·w·cₒcᵢk² = ${h}²·${(co*ci*k*k).toLocaleString()} ≈ ${M.toExponential(2)} per image\nactivations h·w·cₒ = ${A.toLocaleString()} per image  (${(A/P).toFixed(A/P<10?2:0)}× the parameters)\nbottleneck (1×1 to ${b}, ${k}×${k}, 1×1 back, no biases): ${PB.toLocaleString()} weights, ${(P/PB).toFixed(1)}× fewer`;
+  $('#ccOut').innerHTML=bar('معاملات الطبقة',P,mx,P.toLocaleString('en-US'),'var(--rose)')+bar(`عنق زجاجة ${ci}→${b}→${b}→${co}`,PB,mx,PB.toLocaleString('en-US'),'var(--green)');
+  $('#ccCalc').textContent=`parameters  cₒcᵢk² + cₒ = ${co}·${ci}·${k*k} + ${co} = ${P.toLocaleString('en-US')}\nmultiply-adds h·w·cₒcᵢk² = ${h}²·${(co*ci*k*k).toLocaleString('en-US')} ≈ ${M.toExponential(2)} per image\nactivations h·w·cₒ = ${A.toLocaleString('en-US')} per image  (${(A/P).toFixed(A/P<10?2:0)}× the parameters)\nbottleneck (1×1 to ${b}, ${k}×${k}, 1×1 back, no biases): ${PB.toLocaleString('en-US')} weights, ${(P/PB).toFixed(1)}× fewer`;
 }
 ['#ccI','#ccO','#ccK','#ccH'].forEach(id=>$(id).addEventListener('input',drawCC));drawCC();
 
@@ -154,9 +154,9 @@ function drawPL(){
 const LN=[['conv 5×5, 1→6',156,117600],['conv 5×5, 6→16',2416,240000],['dense 400→120',48120,48000],['dense 120→84',10164,10080],['dense 84→10',850,840]];
 function drawLN(){
   const m=segVal('#lnS','v'),idx=m==='p'?1:2,T=LN.reduce((a,r)=>a+r[idx],0),mx=Math.max(...LN.map(r=>r[idx]));
-  $('#lnOut').innerHTML=LN.map((r,i)=>bar(r[0],r[idx],mx,`${r[idx].toLocaleString()} · ${(r[idx]/T*100).toFixed(0)}%`,i<2?'var(--math)':'var(--amber)')).join('');
+  $('#lnOut').innerHTML=LN.map((r,i)=>bar(r[0],r[idx],mx,`${r[idx].toLocaleString('en-US')} · ${(r[idx]/T*100).toFixed(0)}%`,i<2?'var(--math)':'var(--amber)')).join('');
   const conv=LN[0][idx]+LN[1][idx];
-  $('#lnCalc').textContent=`total ${m==='p'?'parameters':'multiply-adds per image'}: ${T.toLocaleString()}\nconvolutions: ${(conv/T*100).toFixed(0)}%   dense layers: ${(100-conv/T*100).toFixed(0)}%   first dense layer alone: ${(LN[2][idx]/T*100).toFixed(0)}%\nMLP of chapter 4 for comparison: 203,530 parameters, ≈ 203,000 multiply-adds`;
+  $('#lnCalc').textContent=`total ${m==='p'?'parameters':'multiply-adds per image'}: ${T.toLocaleString('en-US')}\nconvolutions: ${(conv/T*100).toFixed(0)}%   dense layers: ${(100-conv/T*100).toFixed(0)}%   first dense layer alone: ${(LN[2][idx]/T*100).toFixed(0)}%\nMLP of chapter 4 for comparison: 203,530 parameters, ≈ 203,000 multiply-adds`;
 }
 segOn('#lnS',drawLN);drawLN();
 

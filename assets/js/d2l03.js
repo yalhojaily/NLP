@@ -2,7 +2,7 @@
 const SECS=[['s3-1','3.1','انحدار السوفتماكس'],['s3-2','3.2','بيانات تصنيف الصور'],['s3-3','3.3','التنفيذ'],['s3-4','3.4','قياس المصنّفات'],['s3-5','3.5','التعميم في التصنيف'],['s3-6','3.6','تغيّر التوزيع'],['ex','','الخلاصة والتمارين']];
 const GL=[
 ['التصنيف','classification','التنبؤ بصنف من مجموعة أصناف.'],
-['الترميز الأحادي','one-hot encoding','متجه فيه ١ في موقع الصنف وأصفار في البقية.'],
+['الترميز الأحادي','one-hot encoding','متجه فيه 1 في موقع الصنف وأصفار في البقية.'],
 ['اللوجِت','logit','الدرجة الخطية لصنف قبل السوفتماكس.'],
 ['السوفتماكس','softmax','exp(oⱼ)/Σexp(oₖ): تحويل الدرجات إلى احتمالات.'],
 ['الإنتروبيا التقاطعية','cross-entropy','−log الاحتمال المعطى للصنف الصحيح.'],
@@ -140,7 +140,7 @@ drawAC();
 function drawSS(){
   const e=+$('#ssE').value,c=+segVal('#ssC','v');$('#ssEo').textContent=e.toFixed(3);
   const z={0.68:1,0.95:2,0.999:3.29}[c],nC=Math.ceil(z*z*0.25/(e*e)),nH=Math.ceil(Math.log(1/(1-c))/(2*e*e));
-  $('#ssCalc').textContent=`margin ±${e} with ${c*100}% confidence (worst case ε = 0.5):\n  central limit (≈${z} standard deviations): n = ${z}² × 0.25 / ${e}² ≈ ${nC.toLocaleString()}\n  Hoeffding, exp(−2nt²) < ${(1-c).toFixed(3)}:            n = ln(1/${(1-c).toFixed(3)}) / (2 × ${e}²) ≈ ${nH.toLocaleString()}\nhalve the margin → ×4 the examples`;
+  $('#ssCalc').textContent=`margin ±${e} with ${c*100}% confidence (worst case ε = 0.5):\n  central limit (≈${z} standard deviations): n = ${z}² × 0.25 / ${e}² ≈ ${nC.toLocaleString('en-US')}\n  Hoeffding, exp(−2nt²) < ${(1-c).toFixed(3)}:            n = ln(1/${(1-c).toFixed(3)}) / (2 × ${e}²) ≈ ${nH.toLocaleString('en-US')}\nhalve the margin → ×4 the examples`;
 }
 $('#ssE').addEventListener('input',drawSS);segOn('#ssC',drawSS);drawSS();
 
@@ -189,6 +189,6 @@ function drawLB(){
   const sens=0.85,fpr=0.10,R=rng(lbSeed);let pos=0,trueSick=0;
   for(let i=0;i<n;i++){const sick=R()<p;if(sick)trueSick++;const pred=sick?R()<sens:R()<fpr;if(pred)pos++}
   const mu=pos/n,est=(mu-fpr)/(sens-fpr);
-  $('#lbCalc').textContent=`classifier measured on source validation data: P(says sick | sick) = ${sens}, P(says sick | healthy) = ${fpr}\nC = [[${sens}, ${fpr}], [${(1-sens).toFixed(2)}, ${(1-fpr).toFixed(2)}]]   (columns: true sick, true healthy)\n\ntarget: ${n.toLocaleString()} unlabelled examples, true share of sick = ${p.toFixed(2)} (unknown to us)\nshare the classifier calls sick: μ̂ = ${mu.toFixed(4)}   ← naive estimate, biased\nsolve C p = μ:  p̂ = (μ̂ − ${fpr}) / (${sens} − ${fpr}) = ${est.toFixed(4)}   (true ${p.toFixed(2)}, error ${(est-p>=0?'+':'')+(est-p).toFixed(4)})\nclass weights if the source had 10% sick: β(sick) = ${(est/0.1).toFixed(2)}, β(healthy) = ${((1-est)/0.9).toFixed(2)}`;
+  $('#lbCalc').textContent=`classifier measured on source validation data: P(says sick | sick) = ${sens}, P(says sick | healthy) = ${fpr}\nC = [[${sens}, ${fpr}], [${(1-sens).toFixed(2)}, ${(1-fpr).toFixed(2)}]]   (columns: true sick, true healthy)\n\ntarget: ${n.toLocaleString('en-US')} unlabelled examples, true share of sick = ${p.toFixed(2)} (unknown to us)\nshare the classifier calls sick: μ̂ = ${mu.toFixed(4)}   ← naive estimate, biased\nsolve C p = μ:  p̂ = (μ̂ − ${fpr}) / (${sens} − ${fpr}) = ${est.toFixed(4)}   (true ${p.toFixed(2)}, error ${(est-p>=0?'+':'')+(est-p).toFixed(4)})\nclass weights if the source had 10% sick: β(sick) = ${(est/0.1).toFixed(2)}, β(healthy) = ${((1-est)/0.9).toFixed(2)}`;
 }
 $('#lbP').addEventListener('input',drawLB);segOn('#lbN',drawLB);$('#lbGo').onclick=()=>{lbSeed++;drawLB()};drawLB();

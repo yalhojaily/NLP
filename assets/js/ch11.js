@@ -123,7 +123,7 @@ const MM=[['College Computer Science','Any set of Boolean operators that is suff
  ['Prehistory','Unlike most other early civilizations, Minoan culture shows little evidence of',['trade.','warfare.','the development of a common religion.','conspicuous consumption by elites.'],1]];
 $('#mmList').innerHTML=MM.map((m,i)=>`<div class="card" dir="ltr" style="margin-bottom:8px"><b>${m[0]}</b><br>${esc(m[1])}<div style="margin-top:6px">${m[2].map((o,j)=>`<button class="btn" data-i="${i}" data-j="${j}" style="display:block;margin:3px 0;text-align:left;width:100%">(${'ABCD'[j]}) ${esc(o)}</button>`).join('')}</div><div class="note" id="mmR${i}" dir="rtl"></div></div>`).join('');
 $$('#mmList button').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i,j=+b.dataset.j,c=MM[i][3];$$(`#mmList button[data-i="${i}"]`).forEach(x=>{const jj=+x.dataset.j;x.style.background=jj===c?'var(--green)':jj===j?'var(--rose-soft)':'';x.style.color=jj===c?'var(--paper)':''});
-  $('#mmR'+i).innerHTML=j===c?'<b style="color:var(--green)">تطابق تام: ١</b>':`<b style="color:var(--rose)">تطابق تام: ٠</b> · الإجابة (${'ABCD'[c]})`}));
+  $('#mmR'+i).innerHTML=j===c?'<b style="color:var(--green)">تطابق تام: 1</b>':`<b style="color:var(--rose)">تطابق تام: 0</b> · الإجابة (${'ABCD'[c]})`}));
 
 /* ---------- QA eval ---------- */
 function drawQA(){const norm=s=>toks(s.replace(/[^\w\s’']/g,' ')),g=norm($('#qaG').value),p=norm($('#qaP').value);

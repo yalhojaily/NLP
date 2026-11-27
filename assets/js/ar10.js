@@ -1,27 +1,27 @@
 /* Arabic track · Lesson 10: tools, corpora, benchmarks, pipelines */
-const SECS=[['a10-1','١','الخريطة'],['a10-2','٢','الأنبوب'],['ex','','ختام المسار']];
+const SECS=[['a10-1','1','الخريطة'],['a10-2','2','الأنبوب'],['ex','','ختام المسار']];
 const GL=[['الأداة','toolkit','مكتبة برمجية تنفّذ خطوات المعالجة.'],['المدوّنة الموسومة','annotated corpus','نصوص عليها وسوم بشرية.'],['الشجرة الموسومة','treebank','مدوّنة بأشجار نحوية.'],['المعيار','benchmark','مجموعة اختبار قياسية.'],['أنبوب المعالجة','pipeline','سلسلة خطوات تمر بها البيانات.'],['النظام الشامل','end-to-end system','نموذج واحد من المدخل إلى المخرج.'],['LDC','Linguistic Data Consortium','جهة توزّع مدوّنات لغوية كثيرة بتراخيص.']];
 initPage(SECS,GL);
 
 const RS=[
- ['tool','CAMeL Tools','أداة بايثون من CAMeL Lab (جامعة نيويورك أبوظبي): التطبيع، والتحليل الصرفي وإزالة غموضه، والتقطيع، وتحديد اللهجة، والكيانات، والمشاعر.','١، ٢، ٣، ٧، ٩','https://github.com/CAMeL-Lab/camel_tools'],
- ['tool','Farasa','مجموعة أدوات من QCRI لتقطيع النص العربي ووسمه وتحليله (منها التقطيع الذي استعملته بعض نسخ AraBERT).','٢، ٣، ٤','https://farasa.qcri.org'],
- ['tool','Stanza','مكتبة ستانفورد متعددة اللغات، فيها نماذج عربية مدرَّبة على UD: تقطيع، ووسم، ولِمّات، وتحليل اعتمادي.','٦','https://stanfordnlp.github.io/stanza/'],
- ['data','شجرة بن العربية (PATB)','الشجرة الموسومة العربية الكبرى: صرف وأقسام كلام وأشجار مكوّنات؛ توزّعها LDC.','٣، ٦',''],
- ['data','UD Arabic-PADT','شجرة براغ العربية بصيغة Universal Dependencies: أشجار اعتماد مفتوحة.','٦','https://universaldependencies.org/treebanks/ar_padt/index.html'],
- ['data','OntoNotes (العربي)','نحو ٣٠٠ ألف كلمة أخبار عربية موسومة بالإحالة والكيانات وغيرها (الفصل ٢٤)؛ عبر LDC.','٩',''],
- ['data','MADAR','جمل متوازية في لهجات ٢٥ مدينة عربية، لتحديد اللهجة والترجمة بين اللهجات.','٧',''],
- ['data','NADI','سلسلة مسابقات لتحديد اللهجات العربية على مستوى البلد والمنطقة.','٧',''],
- ['data','MGB','تحديات تعرّف على الكلام العربي متعدد اللهجات من البث (منه الجزيرة).','٨',''],
- ['data','Common Voice (العربية)','تسجيلات صوتية مفتوحة يقرؤها متطوعون.','٨','https://commonvoice.mozilla.org/ar'],
- ['data','ArSenL','معجم مشاعر عربي واسع (٢٠١٤).','٩',''],
- ['model','AraBERT','مرمِّز عربي (AUB MIND Lab).','٥','https://huggingface.co/aubmindlab/bert-base-arabertv2'],
- ['model','CAMeLBERT','مرمِّزات للفصحى واللهجات والتراث (CAMeL Lab).','٥، ٧','https://huggingface.co/CAMeL-Lab'],
- ['model','ALLaM','نماذج كبيرة عربية-إنجليزية من سدايا.','٥','https://arxiv.org/abs/2407.15390'],
- ['model','فنار Fanar','منصة ونماذج عربية من QCRI، بمقطِّع MorphBPE.','٢، ٥','https://arxiv.org/abs/2501.13944'],
- ['model','Jais 2 / Jais 3','نماذج عربية مفتوحة من MBZUAI وCerebras وInception.','٢، ٥','https://arxiv.org/abs/2611.10224'],
- ['bench','BALSAM','منصة لقياس النماذج العربية الكبيرة على مهام متنوعة (٢٠٢٥).','٥','https://arxiv.org/abs/2507.22603'],
- ['bench','ArabicMMLU','أسئلة معرفية متعددة الخيارات مكتوبة أصلاً بالعربية من مناهج دراسية عربية.','٥','']];
+ ['tool','CAMeL Tools','أداة بايثون من CAMeL Lab (جامعة نيويورك أبوظبي): التطبيع، والتحليل الصرفي وإزالة غموضه، والتقطيع، وتحديد اللهجة، والكيانات، والمشاعر.','1، 2، 3، 7، 9','https://github.com/CAMeL-Lab/camel_tools'],
+ ['tool','Farasa','مجموعة أدوات من QCRI لتقطيع النص العربي ووسمه وتحليله (منها التقطيع الذي استعملته بعض نسخ AraBERT).','2، 3، 4','https://farasa.qcri.org'],
+ ['tool','Stanza','مكتبة ستانفورد متعددة اللغات، فيها نماذج عربية مدرَّبة على UD: تقطيع، ووسم، ولِمّات، وتحليل اعتمادي.','6','https://stanfordnlp.github.io/stanza/'],
+ ['data','شجرة بن العربية (PATB)','الشجرة الموسومة العربية الكبرى: صرف وأقسام كلام وأشجار مكوّنات؛ توزّعها LDC.','3، 6',''],
+ ['data','UD Arabic-PADT','شجرة براغ العربية بصيغة Universal Dependencies: أشجار اعتماد مفتوحة.','6','https://universaldependencies.org/treebanks/ar_padt/index.html'],
+ ['data','OntoNotes (العربي)','نحو 300 ألف كلمة أخبار عربية موسومة بالإحالة والكيانات وغيرها (الفصل 24)؛ عبر LDC.','9',''],
+ ['data','MADAR','جمل متوازية في لهجات 25 مدينة عربية، لتحديد اللهجة والترجمة بين اللهجات.','7',''],
+ ['data','NADI','سلسلة مسابقات لتحديد اللهجات العربية على مستوى البلد والمنطقة.','7',''],
+ ['data','MGB','تحديات تعرّف على الكلام العربي متعدد اللهجات من البث (منه الجزيرة).','8',''],
+ ['data','Common Voice (العربية)','تسجيلات صوتية مفتوحة يقرؤها متطوعون.','8','https://commonvoice.mozilla.org/ar'],
+ ['data','ArSenL','معجم مشاعر عربي واسع (2014).','9',''],
+ ['model','AraBERT','مرمِّز عربي (AUB MIND Lab).','5','https://huggingface.co/aubmindlab/bert-base-arabertv2'],
+ ['model','CAMeLBERT','مرمِّزات للفصحى واللهجات والتراث (CAMeL Lab).','5، 7','https://huggingface.co/CAMeL-Lab'],
+ ['model','ALLaM','نماذج كبيرة عربية-إنجليزية من سدايا.','5','https://arxiv.org/abs/2407.15390'],
+ ['model','فنار Fanar','منصة ونماذج عربية من QCRI، بمقطِّع MorphBPE.','2، 5','https://arxiv.org/abs/2501.13944'],
+ ['model','Jais 2 / Jais 3','نماذج عربية مفتوحة من MBZUAI وCerebras وInception.','2، 5','https://arxiv.org/abs/2611.10224'],
+ ['bench','BALSAM','منصة لقياس النماذج العربية الكبيرة على مهام متنوعة (2025).','5','https://arxiv.org/abs/2507.22603'],
+ ['bench','ArabicMMLU','أسئلة معرفية متعددة الخيارات مكتوبة أصلاً بالعربية من مناهج دراسية عربية.','5','']];
 const TN={tool:'أداة',data:'بيانات',model:'نموذج',bench:'معيار'};
 function drawRS(){const t=segVal('#rsT','t');$('#rsTab').innerHTML='<tr><th>المورد</th><th>النوع</th><th>الوصف</th><th>الدروس</th></tr>'+RS.filter(r=>t==='all'||r[0]===t).map(r=>`<tr><td><b>${r[4]?`<a href="${r[4]}" rel="noopener">${r[1]}</a>`:r[1]}</b></td><td>${TN[r[0]]}</td><td>${r[2]}</td><td class="c">${r[3]}</td></tr>`).join('')}
 segOn('#rsT',drawRS);drawRS();

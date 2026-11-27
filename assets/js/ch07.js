@@ -1,7 +1,7 @@
 /* Chapter 7 · Transformers and Pretraining — interactive widgets */
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const AR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const AR=n=>String(n).replace(/\d/g,d=>'0123456789'[d]);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sig=z=>1/(1+Math.exp(-z));
 const r3=v=>{const x=+(+v).toFixed(3);return (Object.is(x,-0)?0:x).toString()};
@@ -72,7 +72,7 @@ $('#skD').addEventListener('input',drawSK);$('#skNew').addEventListener('click',
 
 /* ---------- full head, 8 steps ---------- */
 let qkI=4,qkS=8;
-const QKSTEP=['١ المتجهات','٢ قارن','٣ اقسم','٤ سوفتماكس','٥ زِن','٦ اجمع','٧ أعد التشكيل','٨ المخرج'];
+const QKSTEP=['1 المتجهات','2 قارن','3 اقسم','4 سوفتماكس','5 زِن','6 اجمع','7 أعد التشكيل','8 المخرج'];
 $('#qkBtns').innerHTML=TOK.map((t,i)=>`<button class="btn${i===qkI?' pri':''}" data-i="${i}">a${i+1} · ${t}</button>`).join('');
 $$('#qkBtns button').forEach(b=>b.addEventListener('click',()=>{qkI=+b.dataset.i;$$('#qkBtns button').forEach(x=>x.classList.toggle('pri',x===b));drawQK()}));
 $('#qkStp').innerHTML=QKSTEP.map((t,i)=>`<button data-s="${i+1}" style="width:auto;padding:0 10px" title="${t}">${t}</button>`).join('');
@@ -193,7 +193,7 @@ drawDC();
 const PPW=['So','long','and','thanks','for','all'],PP0=[0.05,0.3,0.2,0.6,0.44];
 $('#ppTab').innerHTML=`<tr><th>t</th><th>context w₁..w_t</th><th>true next</th><th>P(next)</th><th>−log P</th></tr>`+PP0.map((p,t)=>`<tr><td class="num">${t+1}</td><td>${PPW.slice(0,t+1).join(' ')}</td><td><b>${PPW[t+1]}</b></td><td><input class="wIn" id="pp${t}" value="${p}"></td><td class="num" id="ppL${t}"></td></tr>`).join('');
 function drawPP(){const P=PP0.map((_,t)=>num($('#pp'+t).value)),ok=P.every(p=>p>0&&p<=1);
-  if(!ok){$('#ppCalc').textContent='كل احتمال يجب أن يكون أكبر من ٠ ولا يزيد على ١';return}
+  if(!ok){$('#ppCalc').textContent='كل احتمال يجب أن يكون أكبر من 0 ولا يزيد على 1';return}
   const L=P.map(p=>-Math.log(p));L.forEach((l,t)=>$('#ppL'+t).textContent=l.toFixed(3));
   const T=P.length,mean=L.reduce((a,b)=>a+b,0)/T,prod=P.reduce((a,b)=>a*b,1);
   $('#ppCalc').textContent=`mean cross-entropy loss = (1/${T})·Σ −log P = ${mean.toFixed(4)} nats\nperplexity via exp:    exp(${mean.toFixed(4)}) = ${Math.exp(mean).toFixed(3)}\nperplexity via (7.57): (${prod.toExponential(3)})^(−1/${T}) = ${Math.pow(prod,-1/T).toFixed(3)}   ← the same number\n\n(teacher forcing: every row gets the TRUE context, whatever the model guessed before)`}
