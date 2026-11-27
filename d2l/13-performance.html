@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ١٣ · الأداء الحسابي | الغوص في التعلّم العميق</title>
+<meta name="description" content="شرح عربي للفصل الثالث عشر من كتاب Dive into Deep Learning: نموذج خط السقف والشدة الحسابية، وتشريح العتاد، والترجمة ودمج العمليات، والذاكرة والدقة والحفظ المؤقت، والتوازي على عدة معالجات وAllreduce الحلقي، وDDP عملياً، وZeRO وFSDP، ودراسة حالة لتسريع محوّل.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">الغوص في التعلّم العميق</a></nav>
+    <div class="chnav"><a class="pill" href="12-state-space.html" style="text-decoration:none">→ الفصل ١٢</a><b>الفصل ١٣ من ٤٢</b></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">البنى والتحسين · الفصل الثالث عشر</div>
+  <h1>الأداء الحسابي</h1>
+  <div class="sub en" style="font-size:16px">Chapter 13 · Computational Performance · <a href="https://d2l.ai/chapter_computational-performance/index.html">d2l.ai</a></div>
+  <p class="epi">حتى الآن كتبنا الشبكة وشغّلنا التدريب وانتظرنا، وأخذنا زمن الخطوة والذاكرة كما هما. هذا لا يصمد حين يستغرق التدريب أياماً، أو لا يتسع النموذج في البطاقة، أو يجعل المعالج الثاني التدريبَ أبطأ. خذ GPT من الفصل ١١ بضعف العرض: عمليات الخطوة مقسومة على قدرة المعالج القصوى تعطي أقصر زمن ممكن، لكن الزمن المقيس أطول بعدة مرات. أين يذهب الباقي؟ ثلاثة حدود: الحساب، والذاكرة، وكلفة إصدار كل عملية من بايثون. ومعرفة أيها يحدّ الخطوة تحدد ما الذي يسرّعها.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم في سطرين</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--tint);border-color:var(--rule)"></i>كود مشروح: كل سطر وبجانبه معناه</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية: جرّب بيدك</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <p>المنهج: <b>عُدّ</b> العمليات والبايتات في الخطوة، و<b>تنبأ</b> بزمنها، و<b>قِس</b>ه، و<b>فسّر</b> الفرق.</p>
+  <ol>
+    <li><b>خط السقف</b>: الإنتاجية ≤ min(قدرة الحساب، الشدة × سرعة الذاكرة). والشدة = عمليات لكل بايت. تحت «نقطة التوازن» تحدّك الذاكرة، وفوقها يحدّك الحساب.</li>
+    <li><b>العتاد</b>: عرض النطاق = عدد الأسلاك × سرعة السلك، وكل ابتعاد عن الشريحة يقسم الأسلاك على عشرة. و<b>الترجمة</b> تدمج العمليات فتقلل حركة الذاكرة وكلفة الإصدار.</li>
+    <li><b>الذاكرة</b>: Adam بـfp32 يحتاج ١٦ بايتاً لكل معامل قبل أي تنشيط. والدقة المختلطة والحفظ المؤقت وتجميع التدرّجات تفسح مكاناً للدفعات.</li>
+    <li><b>عدة معالجات</b>: توازي البيانات يقسم الدفعة ويجمع التدرّجات بـallreduce؛ والحلقي يرسل أقل من ٢S لكل معالج. وDDP يُخفي الاتصال خلف الانتشار العكسي. وZeRO/FSDP يقسّم حالة المحسِّن والأوزان.</li>
+    <li><b>دراسة حالة</b>: خطوات مقيسة تضاعف إنتاجية محوّل صغير إلى نحو ٤٥–٥٠٪ من قدرة البطاقة.</li>
+  </ol>
+</div>
+
+<!-- ============ 13.1 ============ -->
+<section class="sec" id="s13-1">
+  <header><div class="kicker">القسم ١٣٫١ <a class="pg" href="https://d2l.ai/chapter_computational-performance/performance-model.html">d2l.ai ↗</a></div><h2>نموذج خط السقف: الحساب وعرض النطاق والكلفة الإضافية</h2></header>
+  <div class="brief"><b>باختصار</b>ضرب مصفوفتين 8192×8192 يبلغ قرابة ١٠٠٪ من قدرة RTX 4090، وضرب 256×256 أقل من ٢٪. والسبب «الشدة الحسابية»: كم عملية لكل بايت يُنقل من الذاكرة. والمعالج يحتاج نحو ١٦٤ عملية لكل بايت ليبلغ قدرته الكاملة. وفي القياس تذكّر أن بايثون لا ينتظر المعالج: الأوامر تُصفّ، فلا بد من مزامنة قبل قراءة الساعة.</div>
+  <div class="terms"><span>الشدة الحسابية <i>arithmetic intensity</i></span><span>خط السقف <i>roofline</i></span><span>نقطة التوازن <i>ridge point</i></span><span>محدود بالذاكرة <i>bandwidth-bound</i></span><span>محدود بالحساب <i>compute-bound</i></span><span>التنفيذ غير المتزامن <i>asynchronous execution</i></span><span>المحلّل <i>profiler</i></span></div>
+  <div class="math"><div class="mh"><span class="sym">min(P, Iβ)</span>مفهوم رياضي · خط السقف</div><div class="mb">
+    <div class="eq">I = العمليات / البايتات المنقولة &nbsp;&nbsp;&nbsp;&nbsp; الإنتاجية ≤ min(P, I·β) &nbsp;&nbsp;&nbsp;&nbsp; I* = P/β</div>
+    <p>P قدرة الحساب (‏١٦٥٫٢ تيرافلوب/ث بـbf16 في RTX 4090) وβ سرعة الذاكرة (‏١٫٠٠٨ تيرابايت/ث). فنقطة التوازن ١٦٤ عملية لكل بايت: في الزمن الذي تُنقل فيه بايت واحد، تستطيع الأنوية أن تؤدي ١٦٤ عملية. وفي H100 ‏(989 و3.35) نحو ٢٩٥: الحساب نما أسرع من الذاكرة.</p>
+    <p><b>أمثلة</b>: إضافة ١ لكل عنصر بـbf16: عملية واحدة لكل ٤ بايتات (قراءة وكتابة)، ‏I = ٠٫٢٥ أياً كان الحجم: محدودة بالذاكرة دائماً، ولذلك دمج عمليات أخرى معها شبه مجاني. وضرب مصفوفتين مربعتين n × n: ‏2n³ عملية على ‏3n² عنصراً بـ٢ بايت: ‏I = n/3، فيصير محدوداً بالحساب حين n ≳ ٥٠٠. والطبقة الخطية (دفعة B، مدخل D، مخرج F): ‏I ≈ 2·min(B, D, F)/b، فأصغر الأبعاد يحكم: توليد رمز واحد (B = ١) يقرأ كل الأوزان لاستعمال واحد (I ≈ ١)، وتوليد ٦٤ تسلسلاً معاً I ≈ ٦٠ (إنتاجية أعلى ٦٠ مرة بالزمن نفسه)، والتدريب بـ٨٬١٩٢ رمزاً I ≈ ٩١٠.</p>
+  </div></div>
+  <div class="w" id="rfBox"><div class="cap">خط السقف: أين تقع العملية؟ (محوران لوغاريتميان)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="seg" id="rfG" style="flex-wrap:wrap"><button data-v="0" class="on">RTX 4090 bf16</button><button data-v="1">RTX 4090 tf32</button><button data-v="2">H100 bf16</button></span></div>
+    <div class="row" style="flex-wrap:wrap;margin-top:6px"><span class="seg" id="rfO" style="flex-wrap:wrap"><button data-v="ew">عنصر بعنصر</button><button data-v="dec">توليد B = 1</button><button data-v="bat">توليد B = 64</button><button data-v="mm" class="on">ضرب مربع n</button></span><label class="note">n: <b id="rfNo"></b> <input type="range" id="rfN" min="5" max="14" value="13"></label></div>
+    <div id="rfPlot"></div><div class="calc" id="rfCalc"></div></div>
+  <h3>القياس الصحيح</h3>
+  <p>بايثون يضع وصف كل عملية في طابور المعالج ويكمل فوراً، والمعالج يعمل خلفه. فقراءة الساعة قبل العملية وبعدها تقيس زمن الإصدار لا التنفيذ. والصحيح: إحماء (أول تشغيل يحمّل ويترجم)، ثم مزامنة (torch.cuda.synchronize) قبل الساعة وبعدها، وتكرار عدة مرات وأخذ الوسيط. و«المحلّل» يقسم زمن الخطوة على النوى: كم للضرب، وكم للعمليات العنصرية، وكم فراغ ينتظر فيه المعالج بايثون.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>for _ in range(3): f(x)</code><span>إحماء: الترجمة والذاكرة المؤقتة.</span></div>
+    <div class="cl"><code>torch.cuda.synchronize(); t0 = time.perf_counter()</code><span>انتظر انتهاء كل ما في الطابور قبل بدء الساعة.</span></div>
+    <div class="cl"><code>for _ in range(n): f(x)</code><span>كرر لتقليل أثر الضجيج.</span></div>
+    <div class="cl"><code>torch.cuda.synchronize(); t = (time.perf_counter() - t0) / n</code><span>وانتظر مرة أخرى قبل إيقافها.</span></div>
+  </div>
+</section>
+
+<!-- ============ 13.2 ============ -->
+<section class="sec" id="s13-2">
+  <header><div class="kicker">القسم ١٣٫٢ <a class="pg" href="https://d2l.ai/chapter_computational-performance/hardware.html">d2l.ai ↗</a></div><h2>تشريح العتاد: المعالج المركزي والرسومي وأنوية Tensor والذاكرة</h2></header>
+  <div class="brief"><b>باختصار</b>توليد رمز من نموذج بمليار معامل: الحساب ١٢ ميكروثانية، وقراءة ٢ غيغابايت من الأوزان ٢٫٢ ملّي ثانية، أي أطول ٢٠٠ مرة. والذاكرة هرم: سريعة وصغيرة قرب الأنوية، وكبيرة وبطيئة بعيداً. وعرض النطاق = عدد الأسلاك × سرعة كل سلك، وكل خطوة بعيداً عن الشريحة تقل فيها الأسلاك عشر مرات. ولكل نقل زمن بدء ثابت، فالنقلات الصغيرة مهدرة.</div>
+  <div class="terms"><span>هرم الذاكرة <i>memory hierarchy</i></span><span>HBM</span><span>SRAM</span><span>أنوية Tensor <i>Tensor Cores</i></span><span>المعالجات المتعددة الدفق <i>SMs</i></span><span>PCIe / NVLink</span><span>زمن الاستجابة <i>latency</i></span><span>الحجم نصف الأداء <i>n<sub>1/2</sub></i></span></div>
+  <p><b>هرم الذاكرة</b>: السجلات وذاكرة SRAM على الشريحة (L1 وL2، نحو ٠٫١ غيغابايت، عشرات التيرابايت/ث، ١٠–٣٠ نانوثانية)، ثم ذاكرة المعالج الرسومي خارج الشريحة (GDDR6X أو HBM، ‏٢٤–١٨٠ غيغابايت، نحو ١–٨ تيرابايت/ث، نحو ٢٥٠ نانوثانية)، ثم ذاكرة الجهاز، ثم القرص. السعة تكبر بمراتب، والسرعة تنقص بمراتب عند كل حد. و<b>قانون الأسلاك</b>: ذاكرة RTX 4090: ‏٣٨٤ سلكاً × ٢١ غيغابت/ث ≈ ١ تيرابايت/ث. وPCIe 4.0 ×16: ‏١٦ مساراً × ١٦ غيغابت/ث = ٣٢ غيغابايت/ث: السرعة نفسها تقريباً لكل سلك، لكن أسلاك أقل ٢٤ مرة. ولماذا HBM أسرع؟ لأن رصّ شرائح الذاكرة فوق بعضها بجوار المعالج على وسيط سيليكوني يسمح بآلاف الأسلاك (B200: ‏٨ تيرابايت/ث). فالمنطق يملأ مساحة الشريحة (L²)، لكن منافذ الخروج على محيطها فقط (L).</p>
+  <div class="math"><div class="mh"><span class="sym">t = α + n/β</span>مفهوم رياضي · زمن البدء والحجم نصف الأداء</div><div class="mb">
+    <div class="eq">t(n) = α + n/β &nbsp;&nbsp;&nbsp; β<sub>eff</sub>(n) = β / (1 + αβ/n) &nbsp;&nbsp;&nbsp; n<sub>1/2</sub> = αβ</div>
+    <p>α زمن البدء قبل أول بايت. عند الحجم n<sub>1/2</sub> يتساوى زمن البدء وزمن النقل، فنحصل على نصف السرعة. ومنه قواعد عملية: القرص (α ≈ ٧٠ ميكروثانية، ١٤ غيغابايت/ث) ‏n<sub>1/2</sub> ≈ ١ ميغابايت، فقراءات عشوائية بـ٤ كيلوبايت تهدر أكثر من ٩٩٪، فتُخزَّن البيانات في «شظايا» بالميغابايتات. وفي ذاكرة المعالج، القراءة تأتي بقطاعات ٣٢ بايتاً، فالقراءة العشوائية لـ٤ بايتات تهدر ٢٨: الجمع العشوائي أبطأ ٨–١٠ مرات من المتتالي. وإصدار عملية من بايثون (١٠–١٠٠ ميكروثانية) أطول من قراءة الذاكرة ٤٠–٤٠٠ مرة.</p>
+  </div></div>
+  <div class="w" id="ltBox"><div class="cap">السرعة الفعلية بحسب حجم النقل</div>
+    <div class="row"><span class="seg" id="ltP" style="flex-wrap:wrap"><button data-v="0" class="on">قرص NVMe</button><button data-v="1">PCIe 4.0</button><button data-v="2">ذاكرة المعالج</button></span></div>
+    <div id="ltPlot"></div><div class="calc" id="ltCalc"></div></div>
+  <p>والمعالج الرسومي نفسه: عشرات «المعالجات متعددة الدفق» (SMs)، في كل منها أنوية عادية وأنوية Tensor متخصصة في ضرب كتل مصفوفات صغيرة بدقة منخفضة، وهي مصدر معظم الـ١٦٥ تيرافلوب. ولذلك تصل العمليات غير الضربية إلى جزء صغير فقط من القدرة.</p>
+</section>
+
+<!-- ============ 13.3 ============ -->
+<section class="sec" id="s13-3">
+  <header><div class="kicker">القسم ١٣٫٣ <a class="pg" href="https://d2l.ai/chapter_computational-performance/compilation.html">d2l.ai ↗</a></div><h2>المترجمات ودمج العمليات والتقاط المخطط</h2></header>
+  <div class="brief"><b>باختصار</b>في الوضع الفوري، دالة من ٨ عمليات عنصرية تطلق ٨ نوى، كل منها تقرأ مدخلاتها من الذاكرة وتكتب ناتجها إليها، وكل إطلاق يدفع كلفة بايثون. والمترجم «يلتقط» المخطط مسبقاً بتتبع رمزي، ثم يدمج السلسلة في نواة واحدة تبقي القيم الوسيطة في السجلات (حركة ذاكرة أقل ٩ مرات)، ويعيد تشغيل الخطوة كلها بنداء واحد (CUDA graphs).</div>
+  <div class="terms"><span>الوضع الفوري <i>eager mode</i></span><span>التقاط المخطط <i>graph capture</i></span><span>التتبع <i>tracing</i></span><span>دمج العمليات <i>operator fusion</i></span><span>انقطاع المخطط <i>graph break</i></span><span>CUDA graphs</span><span>torch.compile</span></div>
+  <div class="w" id="fsBox"><div class="cap">سلسلة عمليات عنصرية: فوري مقابل مدمج (نموذج خط السقف + كلفة الإصدار)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">عدد العمليات: <b id="fsKo"></b> <input type="range" id="fsK" min="1" max="16" value="8"></label><label class="note">حجم المصفوفة: <b id="fsSo"></b> <input type="range" id="fsS" min="10" max="30" value="25"></label></div>
+    <div id="fsOut" style="margin-top:8px"></div><div class="calc" id="fsCalc"></div></div>
+  <p>مثال الكتاب: <span class="mono">gelu_ish(x)</span> بثماني عمليات على مصفوفة ٦١ ميغابايت: الفوري يقرأ ١٠ مصفوفات ويكتب ٨ (‏١٫٠٧ غيغابايت)، والحد الأدنى قراءة واحدة وكتابة واحدة (١٢٢ ميغابايت). وعلى المصفوفات الصغيرة يغلب زمن الإصدار، فيفيد تشغيل المخطط كله بنداء واحد.</p>
+  <p><b>كيف يرى المترجم المخطط؟</b> الانتشار العكسي الفوري يبني شريطه أثناء التنفيذ، فحين يوجد الشريط تكون كل عملية قد دفعت كلفتها. فيشغّل المترجم الدالة أول مرة بـ«عناصر نائبة» تحمل الشكل والنوع بلا قيم، ويسجّل كل عملية في مخطط (مع فرد الحلقات الثابتة)، ثم يولّد نوى مدمجة يخزّنها بحسب الأشكال. وفي PyTorch: ‏TorchDynamo يلتقط، وAOTAutograd يتتبع الخلفي، وInductor يولّد نوى Triton.</p>
+  <p><b>مشكلة الفروع</b>: <span class="mono">if x.sum() &gt; 0</span> تعتمد على <b>قيمة</b> غير معروفة وقت التتبع. ثلاثة حلول: «جمّد» الفرع الذي سلكه المثال (سريع لكنه خاطئ بصمت لمدخلات أخرى)، أو «ارفض» وطالب بـtorch.where أو torch.cond، أو «اقطع» المخطط (الافتراضي في torch.compile): مخططان ومزامنة بينهما ليقرأ بايثون القيمة. والأفضل إعادة الكتابة: <span class="mono">torch.where(x.sum() &gt; 0, x + 1, x - 1)</span>: مخطط واحد بلا مزامنة. وتغيّر الأشكال يعيد الترجمة، فثبّت أطوال الدفعات أو استعمل أشكالاً ديناميكية.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>model = torch.compile(model)</code><span>التقاط ودمج: أول نداء أبطأ (ترجمة)، والتالية أسرع.</span></div>
+    <div class="cl"><code>model = torch.compile(model, mode='reduce-overhead')</code><span>ومعه CUDA graphs: إعادة تشغيل الخطوة بنداء واحد، مفيد حين تكون النوى صغيرة.</span></div>
+    <div class="cl"><code>torch._dynamo.explain(f)(x)</code><span>يُظهر انقطاعات المخطط وأسبابها.</span></div>
+  </div>
+</section>
+
+<!-- ============ 13.4 ============ -->
+<section class="sec" id="s13-4">
+  <header><div class="kicker">القسم ١٣٫٤ <a class="pg" href="https://d2l.ai/chapter_computational-performance/memory-precision.html">d2l.ai ↗</a></div><h2>الذاكرة والدقة والحفظ المؤقت</h2></header>
+  <div class="brief"><b>باختصار</b>ذاكرة التدريب جزءان: حالة ثابتة لا تعتمد على الدفعة (Adam بـfp32: ‏١٦ بايتاً لكل معامل) وتنشيطات تتناسب مع عدد الرموز. GPT بمليار معامل يأخذ ١٥ غيغابايت حالةً على بطاقة ٢٤، فلا يتسع إلا لتسلسلين أو ثلاثة. الدقة المختلطة تنصّف التنشيطات، والحفظ المؤقت يحفظ مدخلات الكتل فقط ويعيد حساب الباقي، وتجميع التدرّجات يبني دفعة كبيرة من دفعات صغيرة.</div>
+  <div class="terms"><span>حالة المحسِّن <i>optimizer state</i></span><span>ذاكرة التنشيطات <i>activation memory</i></span><span>الدقة المختلطة <i>mixed precision (bf16)</i></span><span>الحفظ المؤقت <i>activation checkpointing</i></span><span>تجميع التدرّجات <i>gradient accumulation</i></span></div>
+  <div class="scroll"><table class="tb">
+    <tr><th>المحسِّن والدقة</th><th>ما يُحفظ لكل معامل</th><th>بايت/معامل</th><th>GPT بمليار معامل</th></tr>
+    <tr><td>SGD ‏(fp32)</td><td>الوزن + التدرّج</td><td>٨</td><td>٧٫٥ غيغابايت</td></tr>
+    <tr><td>SGD بزخم</td><td>+ السرعة</td><td>١٢</td><td>١١٫٣</td></tr>
+    <tr><td>Adam/AdamW ‏(fp32)</td><td>+ العزمان</td><td><b>١٦</b></td><td>١٥٫١</td></tr>
+    <tr><td>Adam بدقة مختلطة</td><td>الأربعة بـfp32 + نسخة bf16 من الأوزان</td><td>١٨</td><td>١٧٫٠</td></tr>
+  </table></div>
+  <p>لاحظ أن الدقة المختلطة لا توفر في الحالة (بل تزيدها). توفيرها في التنشيطات والسرعة. و<b>التنشيطات</b>: كل طبقة تحفظ في الأمامي ما يحتاجه خلفيّها، والذروة عند الانتقال من الخسارة إلى بداية الخلفي. الطبقة الخطية تحفظ مدخلها (لأن تدرّج الوزن ‏Xᵀ∇Y)، والضرب العنصري p ⊙ q يحفظ الاثنين، فـSwiGLU وحدها تحفظ نحو 10.7d قيمة لكل رمز، والكتلة كلها نحو 19–20d (‏١٤٩–١٦٠ كيلوبايت لكل رمز بـfp32 عند d = ٢٬٠٤٨)، وFlashAttention لا يحفظ مصفوفة n × n.</p>
+  <div class="w" id="mmBox"><div class="cap">ميزانية بطاقة ٢٤ غيغابايت: GPT بمليار معامل (١٨ كتلة، d = ٢٬٠٤٨، سياق ١٬٠٢٤)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="seg" id="mmO" style="flex-wrap:wrap"><button data-v="8">SGD</button><button data-v="12">SGD + زخم</button><button data-v="16" class="on">Adam fp32</button><button data-v="18">Adam مختلط</button></span></div>
+    <div class="row" style="flex-wrap:wrap;margin-top:6px"><span class="seg" id="mmA"><button data-v="4" class="on">تنشيطات fp32</button><button data-v="2">تنشيطات bf16</button></span><span class="seg" id="mmC"><button data-v="0" class="on">بلا حفظ مؤقت</button><button data-v="1">حفظ مؤقت لكل كتلة</button></span></div>
+    <div id="mmOut" style="margin-top:8px"></div><div class="calc" id="mmCalc"></div></div>
+  <p><b>الدقة المختلطة</b>: الضرب في bf16 (ضعف سرعة أنوية Tensor ونصف حجم التنشيطات)، والنسخة الرئيسية من الأوزان والعزوم والتطبيعات والخسارة في fp32. وbf16 لها مدى fp32 نفسه (٨ بتات أس)، فلا تحتاج «تقييس الخسارة» الذي احتاجته fp16 (الفصل ٥). و<b>الحفظ المؤقت</b>: احفظ مدخل كل كتلة فقط، وأعد حساب داخلها في الخلفي: ذاكرة أقل بكثير مقابل حساب أمامي إضافي (‏6N ← 8N عملية لكل رمز، أي ٧٥٪ من الإنتاجية تقريباً). و<b>تجميع التدرّجات</b>: شغّل k دفعات صغيرة واجمع تدرّجاتها قبل خطوة المحسِّن: دفعة فعلية k مرات أكبر بذاكرة دفعة واحدة (لكن الزمن لا يقل).</p>
+</section>
+
+<!-- ============ 13.5 ============ -->
+<section class="sec" id="s13-5">
+  <header><div class="kicker">القسم ١٣٫٥ <a class="pg" href="https://d2l.ai/chapter_computational-performance/multiple-gpus.html">d2l.ai ↗</a></div><h2>العمليات الجماعية وتوازي البيانات من الصفر</h2></header>
+  <div class="brief"><b>باختصار</b>توازي البيانات: نسخة كاملة من النموذج على كل معالج، ونقسم الدفعة بينها، وكل معالج يحسب تدرّج جزئه، ثم <b>allreduce</b> يجمع التدرّجات ويضع المجموع عند الجميع، ثم الخطوة نفسها على الكل فتبقى الأوزان متطابقة. والمعالج الثاني يفيد فقط إن كان الحساب الموفَّر أكبر من زمن الاتصال الإضافي. والـallreduce الحلقي يرسل أقل من 2S لكل معالج مهما كثرت.</div>
+  <div class="terms"><span>توازي البيانات <i>data parallelism</i></span><span>توازي الأنابيب والموترات <i>pipeline / tensor parallelism</i></span><span>البث <i>broadcast</i></span><span>allreduce</span><span>allreduce الحلقي <i>ring allreduce</i></span><span>التحجيم القوي والضعيف <i>strong / weak scaling</i></span></div>
+  <p>أنواع التوازي: <b>البيانات</b> (نسخ النموذج وتقسيم الدفعة)، و<b>الأنابيب</b> (تقسيم الطبقات على المعالجات بالعمق)، و<b>الموترات</b> (تقسيم كل مصفوفة وزن بالعرض). والأخيران حين لا يتسع النموذج في بطاقة واحدة، ويتبادلان التنشيطات لا التدرّجات. وخطوة توازي البيانات أربع مراحل: قسّم B مثالاً إلى k جزءاً، وأمامي وخلفي مستقلان، وallreduce، وخطوة المحسِّن متطابقة.</p>
+  <div class="math"><div class="mh"><span class="sym">(1/k) Σ gⱼ</span>مفهوم رياضي · لماذا نقسم على k؟</div><div class="mb">
+    <p>كل معالج يحسب متوسط الخسارة على B/k مثالاً، وallreduce يعطي <b>المجموع</b>. والتدرّج الصحيح للدفعة كلها هو متوسط التدرّجات الجزئية: <span class="mono" dir="ltr">(1/k)Σⱼ gⱼ = ∇(1/B Σᵢ ℓᵢ)</span>. ونسيان القسمة على k لا يسبب خطأ ظاهراً، بل يضرب معدّل التعلّم في k بصمت. وتحقق الكتاب: خطوة SGD على معالج واحد وعلى معالجين من الأوزان نفسها تتطابقان حتى ‏10⁻⁷.</p>
+    <p><b>allreduce النجمي</b>: معالج مركزي يجمع k − 1 تدرّجاً ويعيد k − 1 نسخة: حمله (k − 1)S. و<b>الحلقي</b>: نقسم كل تدرّج إلى k قطعة، ونمررها حول حلقة مرحلتين: «جمع وتوزيع» (k − 1 خطوة، فيملك كل معالج مجموع قطعة واحدة)، ثم «جمع الكل» (k − 1 خطوة، فتصل كل القطع إلى الجميع). كل معالج يرسل <span class="mono" dir="ltr">2(k − 1)S/k</span>: يساوي S عند k = ٢، ويبقى تحت 2S مهما كثرت المعالجات.</p>
+  </div></div>
+  <div class="w" id="rgBox"><div class="cap">نموذج زمن الخطوة: حساب ÷ k + اتصال حلقي (تدرّج S = ٤٥ ميغابايت، PCIe بـ٢٥ غيغابايت/ث)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">زمن الحساب على معالج واحد (ms): <b id="rgTo"></b> <input type="range" id="rgT" min="1" max="200" value="100"></label><span class="seg" id="rgO"><button data-v="0" class="on">بلا تداخل</button><button data-v="1">تداخل مع الخلفي</button></span></div>
+    <div id="rgPlot"></div><div class="calc" id="rgCalc"></div></div>
+  <p>والخطوة الصغيرة جداً لا تستفيد: LeNet على معالجين في الكتاب صار أبطأ، لأن خيط بايثون واحداً يصدر الأوامر للمعالجين بالتتابع (k ضعف كلفة الإصدار)، والاتصال ينتظر نهاية الخلفي كله. وهذا ما يصلحه القسم التالي.</p>
+</section>
+
+<!-- ============ 13.6 ============ -->
+<section class="sec" id="s13-6">
+  <header><div class="kicker">القسم ١٣٫٦ <a class="pg" href="https://d2l.ai/chapter_computational-performance/multi-gpu-practice.html">d2l.ai ↗</a></div><h2>توازي البيانات الموزّع عملياً: الحاويات والتداخل</h2></header>
+  <div class="brief"><b>باختصار</b>DDP في PyTorch: عملية بايثون مستقلة لكل معالج (فلا تتراكم كلفة الإصدار)، ومكتبة NCCL للاتصال الحلقي، و«حاويات» تدرّجات بنحو ٢٥ ميغابايت يبدأ جمعها أثناء الانتشار العكسي، بمجرد أن تكتمل تدرّجات آخر الطبقات. فيختبئ معظم الاتصال خلف الحساب.</div>
+  <div class="terms"><span>DDP</span><span>torchrun</span><span>NCCL</span><span>الحاويات <i>gradient buckets</i></span><span>التداخل <i>overlap</i></span><span>SPMD</span><span>BatchNorm المتزامن <i>SyncBatchNorm</i></span></div>
+  <p>الانتشار العكسي يحسب التدرّجات من آخر طبقة إلى أولها. فلماذا ننتظر حتى النهاية؟ DDP يسجّل «خطافات» على المعاملات، ويجمعها في حاويات بترتيب عكسي، ويطلق allreduce غير متزامن لكل حاوية حين تكتمل، بينما يستمر الخلفي في الطبقات الأسبق. والحاوية الكبيرة جداً تؤخر البدء، والصغيرة جداً تكثر من النقلات الصغيرة المكلفة (تذكّر n<sub>1/2</sub>).</p>
+  <div class="w" id="bkBox"><div class="cap">خط زمني للخلفي (١٢ طبقة) والاتصال بحاويات (من صنعنا: تدرّج كل طبقة بالحجم نفسه)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">طبقات في كل حاوية: <b id="bkBo"></b> <input type="range" id="bkB" min="1" max="12" value="3"></label><label class="note">نسبة زمن الاتصال إلى الحساب: <b id="bkRo"></b> <input type="range" id="bkR" min="10" max="200" value="60"></label></div>
+    <div id="bkPlot"></div><div class="calc" id="bkCalc"></div></div>
+  <p>تجربة الكتاب: ResNet-18 (‏١١٫٢ مليون معامل، تدرّج ٤٥ ميغابايت) على RTX 4090، خطوة نحو ١٠٠ ملّي ثانية لكل بطاقة. وتنبيهات عملية: كل عملية تأخذ جزءاً مختلفاً من البيانات (DistributedSampler)، وBatchNorm يحسب إحصاءاته محلياً على B/k مثالاً (أو نستعمل SyncBatchNorm)، والاتصال يتنافس مع الحساب على المعالجات المتعددة الدفق فلا يختفي تماماً. وفي JAX الطريقة الأخرى: برنامج واحد يُترجم لكل المعالجات، ونعلّم الأوزان «منسوخة» والدفعة «مقسّمة»، والمترجم يُدخل الـallreduce ويجدولها بنفسه.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>torchrun --standalone --nproc-per-node=4 train.py</code><span>أربع عمليات، واحدة لكل بطاقة.</span></div>
+    <div class="cl"><code>dist.init_process_group('nccl'); rank = int(os.environ['LOCAL_RANK'])</code><span>كل عملية تعرف رقمها وتختار بطاقتها.</span></div>
+    <div class="cl"><code>model = DDP(model.to(rank), device_ids=[rank], bucket_cap_mb=25)</code><span>يبث الأوزان من العملية ٠، ويسجّل خطافات الحاويات.</span></div>
+    <div class="cl"><code>sampler = DistributedSampler(dataset)</code><span>كل عملية ترى جزءاً مختلفاً من البيانات.</span></div>
+    <div class="cl"><code>loss.backward(); opt.step()</code><span>الـallreduce يجري أثناء backward نفسه، والمتوسط (القسمة على k) تلقائي.</span></div>
+  </div>
+</section>
+
+<!-- ============ 13.7 ============ -->
+<section class="sec" id="s13-7">
+  <header><div class="kicker">القسم ١٣٫٧ <a class="pg" href="https://d2l.ai/chapter_computational-performance/sharding.html">d2l.ai ↗</a></div><h2>ZeRO وتوازي البيانات المقسّم بالكامل (FSDP)</h2></header>
+  <div class="brief"><b>باختصار</b>توازي البيانات ينسخ ١٦ بايتاً لكل معامل على كل معالج، فنموذج لا يتسع في بطاقة لا يتسع في أربع. لكن عزوم Adam تُستعمل فقط في تحديث كل عنصر وحده، فيكفي أن يملك كل معالج 1/k منها (ZeRO-1). ثم التدرّجات (ZeRO-2)، ثم الأوزان نفسها، تُجمع في وقتها لكل طبقة (ZeRO-3 أو FSDP). والمرحلتان الأوليان بلا اتصال إضافي إطلاقاً.</div>
+  <div class="terms"><span>ZeRO</span><span>FSDP</span><span>جمع وتوزيع <i>reduce-scatter</i></span><span>جمع الكل <i>all-gather</i></span><span>التقسيم <i>sharding</i></span></div>
+  <p>المثال: GPT بـ٣٦ كتلة (١٫٩٢ مليار معامل): حالة Adam بـfp32 تأخذ ٢٨٫٦ غيغابايت، أكبر من بطاقة ٢٤. ومتى نحتاج كل جزء؟ الأوزان: فقط حين تعمل كتلتها. والتدرّجات: من خلفي الكتلة حتى خطوة المحسِّن. والعزوم: <b>فقط</b> داخل تحديث Adam العنصري في آخر الخطوة.</p>
+  <div class="math"><div class="mh"><span class="sym">allreduce = RS + AG</span>مفهوم رياضي · لماذا ZeRO-1 وZeRO-2 مجانيان؟</div><div class="mb">
+    <p>الـallreduce الحلقي نفسه مرحلتان: «جمع وتوزيع» (كل معالج يملك مجموع 1/k من التدرّج) ثم «جمع الكل». فلنضع خطوة Adam <b>بينهما</b>: (١) جمع وتوزيع التدرّجات، (٢) كل معالج يحدّث 1/k من الأوزان بـ1/k من العزوم التي يملكها، (٣) جمع الكل للأوزان المحدّثة. الاتصال الكلي ‏2(k − 1)S/k، تماماً كتوازي البيانات العادي، والعزوم مقسّمة على k.</p>
+    <div class="eq">DDP: 16 &nbsp;&nbsp; ZeRO-1: 8 + 8/k &nbsp;&nbsp; ZeRO-2: 4 + 12/k &nbsp;&nbsp; ZeRO-3/FSDP: 16/k &nbsp;&nbsp; (بايت لكل معامل)</div>
+    <p>وZeRO-3 يضيف جمع الكل للأوزان قبل أمامي كل كتلة ومرة أخرى قبل خلفيّها: نحو ٥٠٪ اتصالاً إضافياً، مقابل أن تقسَّم الأوزان أيضاً.</p>
+  </div></div>
+  <div class="w" id="zrBox"><div class="cap">ذاكرة الحالة لكل معالج لـGPT بـ١٫٩٢ مليار معامل (والخط: بطاقة ٢٤ غيغابايت)</div>
+    <div class="row"><label class="note">عدد المعالجات k: <b id="zrKo"></b> <input type="range" id="zrK" min="1" max="8" value="2"></label></div>
+    <div id="zrOut" style="margin-top:8px"></div><div class="calc" id="zrCalc"></div></div>
+  <p>وFSDP في PyTorch يطبّق ZeRO-3: يلف كل كتلة بوحدة، فتُجمع أوزانها قبل استعمالها وتُحرَّر بعده، ويُجري جمعاً وتوزيعاً لتدرّجاتها في الخلفي فوراً، ويمكن جلب أوزان الكتلة التالية مسبقاً لإخفاء الاتصال خلف حساب الحالية.</p>
+</section>
+
+<!-- ============ 13.8 ============ -->
+<section class="sec" id="s13-8">
+  <header><div class="kicker">القسم ١٣٫٨ <a class="pg" href="https://d2l.ai/chapter_computational-performance/fast-transformer.html">d2l.ai ↗</a></div><h2>دراسة حالة: تسريع محوّل خطوة بخطوة</h2></header>
+  <div class="brief"><b>باختصار</b>GPT بست كتل وعرض ٥١٢ (‏١٩ مليون معامل، ٨٬١٩٢ رمزاً لكل خطوة): الحد النظري ٥٫٧ ملّي ثانية، والمقيس ٢٥. لكل خطوة تسريع: نحلّل، ونحسب الحد الأقصى للفائدة (قانون أمدال)، ثم نطبّق ونقيس. والنتيجة: الإنتاجية تتضاعف تقريباً، إلى نحو ٤٥–٥٠٪ من قدرة البطاقة.</div>
+  <div class="terms"><span>قانون أمدال <i>Amdahl's law</i></span><span>استغلال عمليات النموذج <i>MFU</i></span><span>torch.autocast</span><span>FlashAttention</span></div>
+  <p>الحساب: ‏6Nn ≈ ٠٫٩٣ تيرافلوب لكل خطوة، أي ٥٫٧ ملّي ثانية بقدرة bf16 الكاملة. والبداية بـfp32 (والضرب بـtf32) نحو ٢٥ ملّي ثانية، أي ٢٣٪ من القدرة. والتحليل: المعالج مشغول نحو ١٠٠٪ من الوقت (لا مشكلة إصدار)، والضرب يأخذ ٦٤٪ (‏١٥٫٦ ملّي ثانية)، والعمليات العنصرية والتطبيع ٣٦٪.</p>
+  <div class="math"><div class="mh"><span class="sym">1/(1 − f + f/s)</span>مفهوم رياضي · قانون أمدال: كم يمكن أن نربح؟</div><div class="mb">
+    <p>إن سرّعنا جزءاً نسبته f من الزمن s مرة، فالتسريع الكلي <span class="mono" dir="ltr">1/(1 − f + f/s)</span>. فحتى لو أزال الدمج كل العمليات غير الضربية (f = ٠٫٣٦ وs → ∞)، لا تنزل الخطوة تحت ١٥٫٦ ملّي ثانية: تسريع ≤ ١٫٦. وbf16 يضاعف سرعة الضرب (f ≈ ٠٫٦٨، s = ٢): على الأقل ‏1/(1 − 0.34) ≈ ١٫٥٢، وحتى ٢ إن تنصّفت حركة التنشيطات أيضاً.</p>
+  </div></div>
+  <div class="w" id="amBox"><div class="cap">حاسبة أمدال</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">نسبة الجزء المسرَّع f: <b id="amFo"></b> <input type="range" id="amF" min="1" max="100" value="68"></label><label class="note">تسريعه s: <b id="amSo"></b> <input type="range" id="amS" min="10" max="200" value="20"></label></div>
+    <div id="amPlot"></div><div class="calc" id="amCalc"></div></div>
+  <div class="scroll"><table class="tb">
+    <tr><th>الخطوة</th><th>ما تفعله</th><th>النتيجة في الكتاب</th></tr>
+    <tr><td>١. الترجمة</td><td>torch.compile مع CUDA graphs: دمج العمليات العنصرية وإزالة فجوات الإطلاق</td><td>‏×١٫١٦ (‏٢٤٫٥ ← ٢٢٫٣ ملّي ثانية للعمليات غير الضربية، وإزالة نحو ١ ملّي ثانية فجوات)</td></tr>
+    <tr><td>٢. bf16</td><td>autocast: الضرب وFlashAttention في bf16، والأوزان الرئيسية والتطبيع والخسارة في fp32</td><td>‏×١٫٧٤ (داخل المدى المتوقع ١٫٥٥–٢٫٠)، واللوجتات تتفق في حدود ٠٫٢٪</td></tr>
+    <tr><td>٣. دفعة أكبر (٦٤ ← ٥١٢)</td><td>يستهلك فقط العمل الثابت لكل معامل (AdamW والتحويلات: ٤٠ بايت/معامل)</td><td>بضعة بالمئة، لكنها تطيل الخطوة إلى نحو ٩٥ ملّي ثانية فتفيد التوازي</td></tr>
+    <tr><td>٤. الحفظ المؤقت (اختبار)</td><td>إعادة حساب أمامي كل كتلة</td><td>ذاكرة أقل بثلثين (‏٧–٩ ← ٢٫٦–٣٫٢ غيغابايت) مع ٠٫٧٩–٠٫٨٥ من الإنتاجية، أفضل من الحد ٠٫٧٥ لأن المترجم يدمج العمليات المعاد حسابها</td></tr>
+    <tr><td>المجموع</td><td></td><td>نحو ضعف الإنتاجية، ونحو ٤٥–٥٠٪ من قدرة bf16 القصوى</td></tr>
+  </table></div>
+  <p>و<b>MFU</b> (استغلال عمليات النموذج) = ‏6N × الرموز في الثانية ÷ القدرة القصوى: مقياس واحد يقارن أي إعداد بأي عتاد، ولا يحسب العمليات المعادة (كالحفظ المؤقت) لأنها ليست تقدماً في التدريب. ثم التوسع إلى عدة بطاقات: التسريع يقارب k ما دام زمن الخطوة أطول بكثير من زمن الاتصال، ولهذا كانت الدفعة الأكبر مهمة.</p>
+  <div class="w" id="mfBox"><div class="cap">حاسبة MFU</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">المعاملات N (مليون): <b id="mfNo"></b> <input type="range" id="mfN" min="1" max="1000" value="19"></label><label class="note">الرموز/ثانية (ألف): <b id="mfTo"></b> <input type="range" id="mfT" min="10" max="2000" value="650"></label><span class="seg" id="mfP"><button data-v="165.2" class="on">RTX 4090 bf16</button><button data-v="989">H100 bf16</button></span></div>
+    <div id="mfOut" style="margin-top:8px"></div><div class="calc" id="mfCalc"></div></div>
+</section>
+
+<section class="sec" id="ex">
+  <header><div class="kicker">الخلاصة والتمارين</div><h2>ما تأخذه من الفصل</h2></header>
+  <ul class="clean">
+    <li>الإنتاجية ≤ min(P، Iβ). الشدة الحسابية تقرر من يحدّك، وأصغر أبعاد الضرب يحكم شدته. وقِس بعد المزامنة.</li>
+    <li>عرض النطاق = أسلاك × سرعة، والبعد عن الشريحة يقللها. والنقل الصغير يهدره زمن البدء (n<sub>1/2</sub> = αβ).</li>
+    <li>الدمج يقلل حركة الذاكرة، وCUDA graphs تقلل الإصدار، والفروع على القيم تقطع المخطط.</li>
+    <li>Adam: ‏١٦ بايت/معامل ثابتة. والدقة المختلطة والحفظ المؤقت والتجميع تفسح للتنشيطات.</li>
+    <li>توازي البيانات: allreduce حلقي (أقل من 2S لكل معالج)، ومتوسط لا مجموع، وحاويات تتداخل مع الخلفي. وZeRO يقسّم الحالة بلا اتصال إضافي حتى المرحلة الثانية.</li>
+    <li>حلّل، واحسب حد أمدال، ثم طبّق وقِس. وMFU يلخّص النتيجة.</li>
+  </ul>
+  <h3>تمارين (مختارة ومبسطة من تمارين الكتاب)</h3>
+  <ol class="clean">
+    <li>ما الشدة الحسابية لضرب مصفوفتين 1024×1024 بـbf16؟ وهل هو محدود بالحساب على RTX 4090؟ <details><summary>الحل</summary>‏I = n/3 ≈ 341 &gt; 164: محدود بالحساب.</details></li>
+    <li>نموذج بمليار معامل بـbf16 وذاكرة ٠٫٩ تيرابايت/ث: ما أقصى رموز في الثانية لتوليد تسلسل واحد؟ <details><summary>الحل</summary>‏٢ غيغابايت لكل رمز: ‏2/900 ≈ 2.2 ملّي ثانية، أي نحو ٤٥٠ رمزاً/ث.</details></li>
+    <li>قرص α = ٧٠ ميكروثانية وβ = ١٤ غيغابايت/ث: ما n<sub>1/2</sub>؟ وكم السرعة الفعلية لقراءات ٤ كيلوبايت؟ <details><summary>الحل</summary>‏n½ = 70e-6 × 14e9 ≈ 0.98 ميغابايت. وبـ٤ كيلوبايت: ‏14/(1 + 980/4) ≈ 0.057 غيغابايت/ث، أقل من ٠٫٥٪ من الأقصى.</details></li>
+    <li>كم ذاكرة حالة يحتاج نموذج بـ٧ مليارات معامل مع Adam بدقة مختلطة؟ <details><summary>الحل</summary>‏18 × 7×10⁹ = 126 غيغابايت تقريباً، قبل أي تنشيط.</details></li>
+    <li>allreduce حلقي لتدرّج ١ غيغابايت على ٨ معالجات: كم يرسل كل معالج؟ <details><summary>الحل</summary>‏2 × 7/8 × 1 = 1.75 غيغابايت. والنجمي يجعل المركز يرسل ويستقبل ٧ غيغابايت.</details></li>
+    <li>بـZeRO-2 وk = ٤، كم بايتاً لكل معامل؟ <details><summary>الحل</summary>‏4 + 12/4 = 7 بايت (مقابل ١٦ في DDP).</details></li>
+    <li>الضرب ٦٠٪ من الخطوة وصار أسرع مرتين: ما التسريع الكلي؟ <details><summary>الحل</summary>‏1/(0.4 + 0.3) ≈ 1.43.</details></li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="12-state-space.html">→ الفصل السابق: نماذج فضاء الحالة</a><a href="index.html">فهرس الكتاب ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/d2l-common.js"></script>
+<script src="../assets/js/d2l13.js"></script>
+</body>
+</html>

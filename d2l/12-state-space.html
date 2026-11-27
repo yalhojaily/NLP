@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ١٢ · نماذج فضاء الحالة | الغوص في التعلّم العميق</title>
+<meta name="description" content="شرح عربي للفصل الثاني عشر من كتاب Dive into Deep Learning: LSTM وGRU، وعنق زجاجة التسلسل إلى تسلسل، والتكرارات الخطية والمسح المتوازي، ونماذج فضاء الحالة S4D، وMamba، والحالة المصفوفية والانتباه الخطي المبوّب، وقاعدة الدلتا وGated DeltaNet، والبنى الهجينة.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">الغوص في التعلّم العميق</a></nav>
+    <div class="chnav"><a class="pill" href="11-transformers.html" style="text-decoration:none">→ الفصل ١١</a><b>الفصل ١٢ من ٤٢</b><a class="pill" href="13-performance.html" style="text-decoration:none">الفصل ١٣ ←</a></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">البنى والتحسين · الفصل الثاني عشر</div>
+  <h1>نماذج فضاء الحالة</h1>
+  <div class="sub en" style="font-size:16px">Chapter 12 · State Space Models · <a href="https://d2l.ai/chapter_recurrent-modern/index.html">d2l.ai</a></div>
+  <p class="epi">الشبكة التكرارية تحمل حالة بحجم ثابت، فتوليد الرمز المليون يكلّف ما يكلّفه العاشر. والمحوّل يحتفظ بكل رمز، فتكبر ذاكرته وعمله مع طول السياق. لكن في الفصل السابق تخلّفت الشبكة التكرارية عن GPT بعد بضعة بايتات. فهل تستطيع شبكة تكرارية أفضل أن تسد الفجوة؟ عقبتان: التحديث غير الخطي يجبر التدريب على السير خطوة خطوة، والحالة الثابتة يجب أن تنسى فعليها أن تختار. والحلول تأتي من البوابات، ومن الأنظمة الخطية في نظرية التحكم، ومن الانتباه بلا softmax، وتلتقي كلها في طبقات تكرارية تتدرب بالتوازي.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم في سطرين</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--tint);border-color:var(--rule)"></i>كود مشروح: كل سطر وبجانبه معناه</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية: جرّب بيدك</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <p>كل طبقة في هذا الفصل لها ثلاثة أشياء: <b>حالة</b>، و<b>تحديث</b> يُدخل كل رمز فيها، و<b>قراءة</b> تحسب المخرج. وهذا ما يسميه مهندسو التحكم «نموذج فضاء الحالة».</p>
+  <ol>
+    <li><b>البوابات</b> (LSTM وGRU): خلية ذاكرة تُحدَّث بالجمع، وبوابة نسيان تحدد كم يبقى. و<b>عنق الزجاجة</b>: متجه واحد لا يتسع لجملة طويلة.</li>
+    <li><b>التحديث الخطي</b> hₜ = aₜ ⊙ hₜ₋₁ + bₜ يُحسب بالتوازي بمسح تجميعي في log T جولة.</li>
+    <li><b>S4D</b>: أنظمة خطية في الزمن المتصل بمعدلات تلاشٍ متعددة. و<b>Mamba</b>: خطوة زمنية تعتمد على الرمز، فيقرر كل رمز كم يكتب وكم يُنسي.</li>
+    <li><b>الحالة المصفوفية</b>: ذاكرة مفاتيح وقيم، وهي انتباه خطي. و<b>قاعدة الدلتا</b> تقرأ قبل أن تكتب فتصحح بدل أن تراكم.</li>
+    <li><b>الهجين</b>: الحالة الثابتة لها سعة محدودة رياضياً، فنضيف طبقة انتباه كاملة كل بضع طبقات تكرارية.</li>
+  </ol>
+</div>
+
+<!-- ============ 12.1 ============ -->
+<section class="sec" id="s12-1">
+  <header><div class="kicker">القسم ١٢٫١ <a class="pg" href="https://d2l.ai/chapter_recurrent-modern/lstm.html">d2l.ai ↗</a></div><h2>الشبكات التكرارية المبوّبة: LSTM وGRU</h2></header>
+  <div class="brief"><b>باختصار</b>الشبكة التكرارية العادية تضرب كل الحالة في مصفوفة وتعصرها بـtanh عند كل خطوة، فتتلاشى الإشارة أسياً. LSTM تضيف «خلية ذاكرة» تُحدَّث بالجمع: cₜ = fₜ cₜ₋₁ + iₜ c̃ₜ. المشتقة على طولها حاصل ضرب بوابات النسيان فقط، بلا مصفوفات، فإن بقيت قرب ١ بقيت الذاكرة مئات الخطوات.</div>
+  <div class="terms"><span>خلية الذاكرة <i>memory cell</i></span><span>بوابة النسيان <i>forget gate</i></span><span>بوابة الإدخال <i>input gate</i></span><span>بوابة المخرج <i>output gate</i></span><span>عمر النصف <i>half-life</i></span><span>GRU</span></div>
+  <p>تذكّر الفصل ٨: بوزن تكراري ٠٫٩، الاضطراب يتقلص إلى ‏0.9³⁰ ≈ ٤٪ بعد ٣٠ خطوة، وإلى ‏0.003٪ بعد ١٠٠. والقصّ يمنع الانفجار لكنه لا يعيد تدرّجاً تلاشى. وفكرة LSTM (هوكرايتر وشميدهوبر ١٩٩٧، وبوابة النسيان من غيرز وآخرين ٢٠٠٠): مسار جانبي للذاكرة لا يمر عبر مصفوفة ولا tanh.</p>
+  <div class="math"><div class="mh"><span class="sym">cₜ = fₜcₜ₋₁ + iₜc̃ₜ</span>مفهوم رياضي · LSTM</div><div class="mb">
+    <p>ثلاث بوابات سينية بين ٠ و١، كل منها <span class="mono" dir="ltr">σ(W_x·xₜ + W_h·hₜ₋₁ + b)</span>: الإدخال iₜ، والنسيان fₜ، والمخرج oₜ. ومرشّح جديد ‏<span class="mono" dir="ltr">c̃ₜ = tanh(…)</span>. ثم:</p>
+    <div class="eq">cₜ = fₜ ⊙ cₜ₋₁ + iₜ ⊙ c̃ₜ &nbsp;&nbsp;&nbsp;&nbsp; hₜ = oₜ ⊙ tanh(cₜ)</div>
+    <p>على مسار الخلية، <span class="mono" dir="ltr">∂cₜ/∂cₜ₋₁ = diag(fₜ)</span>: لا ضرب مصفوفات. فعمر النصف للذاكرة <span class="mono" dir="ltr">τ = ln 2 / ln(1/f)</span>: ‏f = ٠٫٥ خطوة واحدة، وf = ٠٫٩٩ نحو ٦٩ خطوة، وf = ٠٫٩٩٩ نحو ٦٩٣. وبوابة المخرج تسمح بـ«تخزين صامت»: الخلية تحفظ قيمتها، والطبقات التالية لا ترى إلا ما تسمح به oₜ. ولأن البوابات الأربع تقرأ المدخلين نفسيهما، تُحسب كلها في ضرب مصفوفة واحد بعرض 4d.</p>
+  </div></div>
+  <div class="w" id="lsBox"><div class="cap">خلية LSTM بعدد واحد: نكتب قيمة في الخطوة ١ ثم ننتظر (البوابات ثابتة هنا لتراها بوضوح)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">النسيان f: <b id="lsFo"></b> <input type="range" id="lsF" min="50" max="999" value="950"></label><label class="note">الإدخال i: <b id="lsIo"></b> <input type="range" id="lsI" min="0" max="100" value="10"></label><label class="note">المخرج o: <b id="lsOo"></b> <input type="range" id="lsO" min="0" max="100" value="20"></label></div>
+    <div id="lsPlot"></div><div class="calc" id="lsCalc"></div></div>
+  <p>مثال الكتاب: f = ٠٫٩٥ وi = ٠٫١ تحفظ الخلية قيمة ٠٫٧١، وبوابة مخرج شبه مغلقة (o = ٠٫٢) تُظهر ٠٫١٢ فقط. وتفصيل عملي مهم: انحياز بوابة النسيان يُبدأ بقيمة موجبة (مثل ١) حتى تبدأ الذاكرة طويلة لا قصيرة.</p>
+  <p><b>GRU</b> (تشو وآخرون، ٢٠١٤) تدمج الخلية والحالة في متجه واحد ببوابتين: بوابة <b>إعادة الضبط</b> rₜ (كم من الماضي يدخل المرشّح) وبوابة <b>التحديث</b> zₜ: <span class="mono" dir="ltr">hₜ = zₜ ⊙ hₜ₋₁ + (1 − zₜ) ⊙ h̃ₜ</span>. أبسط بربع المعاملات تقريباً، وأداؤها قريب من LSTM.</p>
+  <div class="xref"><b>في الكتاب الأول</b>LSTM في معالجة اللغة: <a href="../slp/14-rnns-lstms.html">الفصل ١٤: الشبكات التكرارية وLSTM</a>.</div>
+</section>
+
+<!-- ============ 12.2 ============ -->
+<section class="sec" id="s12-2">
+  <header><div class="kicker">القسم ١٢٫٢ <a class="pg" href="https://d2l.ai/chapter_recurrent-modern/seq2seq.html">d2l.ai ↗</a></div><h2>التعلّم من تسلسل إلى تسلسل، وعنق زجاجة الحالة الثابتة</h2></header>
+  <div class="brief"><b>باختصار</b>تصميم ٢٠١٤ للترجمة: مرمّز تكراري يضغط الجملة كلها في متجه c، ومفكك يولّد الترجمة منه. فكل ما يعرفه المفكك عن المصدر يمر عبر c. والكتاب يقيس السعة الفعلية بمهمة عكس حروف عشوائية: بعرض ٦٤ تنهار الدقة من ٠٫٩٩ (٨ حروف) إلى ٠٫٢٦ (٦٤ حرفاً). ولقياس الترجمة: BLEU هش، وchrF ألين.</div>
+  <div class="terms"><span>المرمّز–المفكك <i>encoder–decoder</i></span><span>متجه السياق <i>context vector c</i></span><span>الفرض القسري للمعلم <i>teacher forcing</i></span><span>BLEU</span><span>chrF</span><span>عقوبة القِصَر <i>brevity penalty</i></span></div>
+  <div class="eq">P(y₁…y_T′ | x₁…x_T) = ∏ P(yₜ′ | y₍&lt;t′₎, c)</div>
+  <p>أعمال تشو وآخرين وسوتسكيفر وآخرين (٢٠١٤): ترجمة إنجليزية–فرنسية عبر متجه واحد. وحيلة عكس المصدر (إدخال x_T … x₁) وضعت x₁ قرب y₁، فقصّرت المسافة الأولى من T + 1 إلى ٢. لكن الجودة بقيت تنهار بعد ٢٠–٣٠ كلمة: «جدار العشرين كلمة». والانتباه (الفصل ١٠) وُلد لحل هذه المشكلة بالضبط: دع المفكك يقرأ كل حالات المرمّز.</p>
+  <h3>قياس الترجمة: BLEU وchrF</h3>
+  <p><b>BLEU</b>: متوسط هندسي لدقة تطابق الكلمات المفردة والأزواج والثلاثيات والرباعيات، مضروباً في عقوبة للترجمات القصيرة. و<b>chrF</b>: يطابق تسلسلات الحروف من ١ إلى ٦ (بلا مسافات)، ويعطي الاستدعاء وزناً أكبر أربع مرات من الدقة (β = ٢). جرّب على مثال الكتاب:</p>
+  <div class="w" id="blBox"><div class="cap">المرجع: we will visit our grandparents tomorrow</div>
+    <div class="row"><input id="blC" value="we will visits our grandparents tomorrow" dir="ltr" style="width:100%;max-width:440px;font:inherit;padding:3px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink)"></div>
+    <div class="row"><span class="seg" id="blP" style="flex-wrap:wrap"><button data-v="0">خطأ صغير</button><button data-v="1">إعادة صياغة</button><button data-v="2">مطابقة</button></span></div>
+    <div id="blOut" style="margin-top:8px"></div><div class="calc" id="blCalc"></div></div>
+  <p>في جملة من ست كلمات لا توجد إلا ثلاث رباعيات، وكلها تحتوي الكلمة الثالثة. فخطأ «visits» يجعل دقة الرباعيات صفراً، فيصير BLEU صفراً كله، بينما chrF نحو ٠٫٩١. وإعادة الصياغة الصحيحة تأخذ أقل من الخطأ النحوي في المقياسين. فلا تعتمد على مقياس سطحي وحده: استعمل chrF أو BLEU على مستوى المجموعة كلها، ومعهما مقيّمات دلالية مثل COMET أو نماذج لغوية حَكَمة.</p>
+  <h3>كم يتسع متجه واحد؟</h3>
+  <p>المهمة: عكس T حرفاً عشوائياً من ١٦ (أي ٤ بتات لكل حرف)، فلا يفيد أي «نموذج لغوي»: كل البتات ‏4T يجب أن تمر عبر c. النتائج: بعرض ٦٤، الدقة ٠٫٩٩ عند ٨ حروف، و٠٫٧٣ عند ١٦، و٠٫٢٦–٠٫٢٧ عند ٦٤. وبعرض ٢٥٦ تبقى ٠٫٩٩ حتى ١٦ وتسترجع نحو النصف عند ٦٤. والسعة الفعلية جزء صغير من البتات الخام: عند ١٦ حرفاً تحمل السلسلة ٦٤ بتاً فقط (بت لكل عدد من أعداد الحالة)، ومع ذلك يضيع ربع الحروف.</p>
+  <div class="xref"><b>في الكتاب الأول</b>المرمّز–المفكك والانتباه وBLEU وchrF في الترجمة: <a href="../slp/13-machine-translation.html">الفصل ١٣: الترجمة الآلية</a>.</div>
+</section>
+
+<!-- ============ 12.3 ============ -->
+<section class="sec" id="s12-3">
+  <header><div class="kicker">القسم ١٢٫٣ <a class="pg" href="https://d2l.ai/chapter_recurrent-modern/linear-recurrence.html">d2l.ai ↗</a></div><h2>التكرارات الخطية والمسح التجميعي المتوازي</h2></header>
+  <div class="brief"><b>باختصار</b>في GRU، الخطوة t تنتظر hₜ₋₁ داخل tanh: ٤٬٠٩٦ خطوة متتالية لـ٤٬٠٩٦ رمزاً. لكن إن جعلنا البوابات تعتمد على المدخل وحده، صار التحديث تآلفياً: hₜ = aₜ ⊙ hₜ₋₁ + bₜ. وتركيب خطوتين تآلفيتين خطوة تآلفية واحدة، والتركيب تجميعي، فنحسب كل الحالات في log₂ T جولة متوازية (١٢ لـ٤٬٠٩٦).</div>
+  <div class="terms"><span>التحديث التآلفي <i>affine update</i></span><span>minGRU</span><span>المسح التجميعي <i>associative scan</i></span><span>مجموع البادئات <i>prefix scan</i></span><span>هيليس–ستيل <i>Hillis–Steele</i></span><span>بليلوك <i>Blelloch</i></span></div>
+  <div class="math"><div class="mh"><span class="sym">(a₁, b₁) • (a₂, b₂)</span>مفهوم رياضي · لماذا يُحسب بالتوازي؟</div><div class="mb">
+    <p>بعدد واحد: <span class="mono" dir="ltr">hₜ = a·hₜ₋₁ + xₜ = Σ<sub>s≤t</sub> a<sup>t−s</sup> xₛ</span>. نبضة تتلاشى كـaᵗ، والمشتقة الراجعة ‏∂hₜ/∂xₛ = a<sup>t−s</sup> هي الوزن الأمامي نفسه. ومع بوابات تعتمد على المدخل: <span class="mono" dir="ltr">hₜ = a(xₜ) ⊙ hₜ₋₁ + b(xₜ)</span>. كل aₜ وbₜ تُحسب لكل المواقع في ضرب مصفوفة واحد، والرموز المهمة تضع aₜ ≈ ٠ لتكتب، والحشو aₜ ≈ ١ ليجمّد الذاكرة.</p>
+    <p>والمفتاح: تطبيق خطوتين متتاليتين <span class="mono" dir="ltr">h ↦ a₂(a₁h + b₁) + b₂</span> خطوة تآلفية واحدة:</p>
+    <div class="eq">(a₁, b₁) • (a₂, b₂) = (a₁a₂, a₂b₁ + b₂)</div>
+    <p>هذه العملية تجميعية (ترتيب التجميع لا يهم، لكن ترتيب العناصر يهم)، فنستعمل خوارزمية «مجموع البادئات» المتوازية: في الجولة r، كل موقع t &gt; 2ʳ يركّب نفسه مع الموقع t − 2ʳ، بخطوات ١ ثم ٢ ثم ٤…</p>
+  </div></div>
+  <div class="w" id="scBox"><div class="cap">مسح هيليس–ستيل على ٨ مواقع: في كل جولة يركّب كل موقع ما قبله بمسافة ١ ثم ٢ ثم ٤</div>
+    <div class="row"><button class="pill" id="scNext">الجولة التالية</button><button class="pill" id="scNew">قيم جديدة</button></div>
+    <div class="tw" id="scOut" style="margin-top:8px"></div><div class="calc" id="scCalc"></div></div>
+  <p>هيليس–ستيل يؤدي O(T log T) تركيباً في log T جولة، وشجرة بليلوك تؤدي نحو 2T تركيباً في ‏2 log T جولة. و<b>minGRU</b> (فنغ وآخرون، ٢٠٢٤) هي GRU بعد حذف hₜ₋₁ من البوابات: <span class="mono" dir="ltr">zₜ = σ(W_z xₜ)</span> و<span class="mono" dir="ltr">hₜ = zₜ ⊙ hₜ₋₁ + (1 − zₜ) ⊙ h̃ₜ</span>، بثلث المعاملات وجاهزة للمسح. والثمن: البوابة لا ترى الحالة، فطبقة واحدة لا تعرف إن كانت الخانة ممتلئة. والعمق يعيد ذلك: الطبقة الثانية ترى حالة الأولى.</p>
+</section>
+
+<!-- ============ 12.4 ============ -->
+<section class="sec" id="s12-4">
+  <header><div class="kicker">القسم ١٢٫٤ <a class="pg" href="https://d2l.ai/chapter_recurrent-modern/ssm.html">d2l.ai ↗</a></div><h2>نماذج فضاء الحالة المهيكلة (S4D)</h2></header>
+  <div class="brief"><b>باختصار</b>اللغة فيها ثلاث مقاييس زمنية: نحو ١٠ رموز، وفقرة ٢٠٠، وكيانات تبقى ألف رمز. فنعطي كل قناة بنكاً من N «متكامِلات متسربة» بمعدلات تلاشٍ مختلفة، معرّفة في الزمن المتصل ومحوّلة إلى خطوات منفصلة بخطوة Δ. والنظام نفسه يُكتب معادلة تفاضلية، أو تكراراً للتوليد، أو التفافاً طويلاً للتدريب.</div>
+  <div class="terms"><span>نموذج فضاء الحالة <i>state space model</i></span><span>المعادلة التفاضلية <i>ODE</i></span><span>التمييز بالاحتفاظ الصفري <i>zero-order hold</i></span><span>الخطوة الزمنية <i>step size Δ</i></span><span>S4D</span><span>HiPPO</span><span>النواة الالتفافية <i>convolution kernel</i></span></div>
+  <p>لماذا لا تكفي البوابات العادية؟ بوابة تبدأ عند σ(0) = ٠٫٥ تُضعف إشارة عمرها ألف خطوة بـ‏2⁻¹⁰⁰⁰، أي صفر في float32: لا تدرّج يصل لتعلّم ذاكرة طويلة أصلاً. فنريد من البداية مدى واسعاً من الذاكرات.</p>
+  <div class="math"><div class="mh"><span class="sym">h′ = Ah + Bx</span>مفهوم رياضي · من الزمن المتصل إلى خطوات</div><div class="mb">
+    <div class="eq">h′(t) = A h(t) + B x(t), &nbsp;&nbsp; y(t) = C h(t) + D x(t)</div>
+    <p>نظام خطي من نظرية التحكم (كالمان، ١٩٦٠). نجعل A قطرية بقيم سالبة λₙ: كل حالة hₙ «متكامِل متسرب» مستقل: <span class="mono" dir="ltr">hₙ′ = λₙhₙ + bₙx</span>، والسالب يضمن أن الحلول e<sup>λt</sup> تتلاشى ولا تنفجر.</p>
+    <p>ونحوّله إلى خطوات منفصلة بافتراض أن المدخل ثابت خلال كل خطوة طولها Δ («الاحتفاظ الصفري»)، فنحل المعادلة بدقة:</p>
+    <div class="eq">hₜ = ā hₜ₋₁ + b̄ xₜ, &nbsp;&nbsp; ā = e<sup>Δλ</sup>, &nbsp;&nbsp; b̄ = (e<sup>Δλ</sup> − 1)/λ</div>
+    <p>ومع λ = −١: ‏<span class="mono" dir="ltr">hₜ = e<sup>−Δ</sup>hₜ₋₁ + (1 − e<sup>−Δ</sup>)xₜ</span>، وهذا هو minGRU بالضبط ببوابة e<sup>−Δ</sup>. وعمر النصف <span class="mono" dir="ltr">τ = ln 2 / (Δ|λ|)</span>: تصغير Δ من ١ إلى ٠٫٠٠١ يمد الذاكرة من ٠٫٧ خطوة إلى ٦٩٣.</p>
+  </div></div>
+  <div class="w" id="s4Box"><div class="cap">تهيئة S4D: λₙ = −n لـn = ١…١٦، وخطوة القناة Δ. كل منحنى استجابة حالة واحدة لنبضة</div>
+    <div class="row"><label class="note">log₁₀ Δ: <b id="s4Do"></b> <input type="range" id="s4D" min="-30" max="0" value="-20"></label></div>
+    <div id="s4Plot"></div><div class="calc" id="s4Calc"></div></div>
+  <p>تهيئة S4D الحقيقية: λₙ = −n لـn = ١ … ١٦ (قطر مصفوفة HiPPO لليجندر، غو وآخرون ٢٠٢٠)، وΔ لكل قناة مسحوبة لوغاريتمياً من ٠٫٠٠١ إلى ٠٫١. فأعمار النصف عند البداية من ٠٫٤٣ خطوة إلى ٦٩٣. وحسابياً: لأن المعاملات لا تتغير مع الزمن، نفرد التكرار إلى <b>التفاف</b> طويل: <span class="mono" dir="ltr">yₜ = Σₖ Kₖ x<sub>t−k</sub></span> و<span class="mono" dir="ltr">Kₖ = Σₙ cₙ āₙᵏ b̄ₙ</span>، ونحسبه لكل المواقع بتحويل فورييه السريع في O(T log T). فالنظام نفسه ثلاثة وجوه: معادلة تفاضلية (للتصميم والتهيئة)، وتكرار (للتوليد بذاكرة ثابتة)، والتفاف (للتدريب المتوازي).</p>
+</section>
+
+<!-- ============ 12.5 ============ -->
+<section class="sec" id="s12-5">
+  <header><div class="kicker">القسم ١٢٫٥ <a class="pg" href="https://d2l.ai/chapter_recurrent-modern/mamba.html">d2l.ai ↗</a></div><h2>نماذج فضاء الحالة الانتقائية (Mamba)</h2></header>
+  <div class="brief"><b>باختصار</b>S4D تزن الرمز الذي قبل k خطوة بوزن ثابت Kₖ، سواء كان اسماً مهماً أو حشواً. واللغة انتقائية: اكتب المهم بقوة واحفظه، وتجاهل الحشو. Mamba تجعل الخطوة Δₜ ومتجهي الكتابة والقراءة Bₜ وCₜ دوال في الرمز: الحشو يأخذ Δ صغيرة فتتجمد الحالة، والرمز المهم يأخذ Δ كبيرة فيكتب. والثمن: لا التفاف بعد الآن، بل مسح متوازي.</div>
+  <div class="terms"><span>الانتقائية <i>selectivity</i></span><span>النسخ الانتقائي <i>selective copying</i></span><span>softplus</span><span>الالتفاف السببي القصير <i>short causal convolution</i></span><span>المسح المرافق <i>adjoint scan</i></span></div>
+  <p>مهمة «النسخ الانتقائي»: ١٬٠٢٤ رمز حشو، تنتشر فيها أربعة رموز مميزة في <b>مواضع عشوائية</b>، ثم أربعة استعلامات تطلب الرموز الأربعة بالترتيب (الصدفة ١/٨). بعد ١٬٥٠٠ خطوة: S4D قرب الصدفة (≤ ٠٫٢٠)، لأن أوزاناً ثابتة بحسب المسافة لا تستطيع ملاحقة مواضع تتغير. وminGRU نجحت (٠٫٧٥–٠٫٩٥)، لأن بوابتها تعتمد على الرمز، فتعلمت أن تُغلق على الحشو.</p>
+  <div class="math"><div class="mh"><span class="sym">Δₜ = softplus(sₜ)</span>مفهوم رياضي · الخطوة الزمنية كبوابة</div><div class="mb">
+    <div class="eq">e<sup>−Δₜ</sup> = e<sup>−log(1 + e<sup>sₜ</sup>)</sup> = 1/(1 + e<sup>sₜ</sup>) = σ(−sₜ)</div>
+    <p>فـΔ = softplus(s) مع λ = −١ تعطي بوابة سينية بالضبط: Mamba بحالة واحدة هي minGRU. رمز حشو (s = −٤٫٦) يعطي Δ ≈ ٠٫٠١ وبوابة إبقاء ٠٫٩٩: تتجمد الحالة. ورمز مهم (s = +٢) يعطي Δ ≈ ٢٫١٣ وإبقاء ٠٫١٢: يُكتب فوق الحالة. وMamba الكاملة تجمع هذا مع بنك S4D: لكل قناة c حالة بعرض N تتلاشى بـ<span class="mono" dir="ltr">e<sup>Δₜ,c λ</sup></span> وتكتب <span class="mono" dir="ltr">Δₜ,c xₜ,c Bₜ</span>، وتُقرأ بـCₜ، وكل من Δ وB وC يُحسب من الرمز.</p>
+  </div></div>
+  <div class="w" id="mbBox"><div class="cap">حالة واحدة تقرأ تسلسلاً: انقر الخانات لتجعلها رموزاً مهمة (s = +2) أو حشواً (s = −4.6)</div>
+    <div class="tw" id="mbIn"></div><div id="mbPlot"></div><div class="calc" id="mbCalc"></div></div>
+  <p>والكتلة كاملة: إسقاط إلى فرعين بعرض 2d، والتفاف سببي قصير (عرض ٤) ثم SiLU على أحدهما حتى «يرى» الاختيار سياقه المحلي، ثم النموذج الانتقائي، مضروباً في بوابة SiLU من الفرع الآخر، ثم إسقاط إلى d. ولأن Δ تتغير مع الزمن، لا يعود الالتفاف بـFFT ممكناً، فنحتاج مسحاً متوازياً على حالة أكبر من المدخل ٣٢ مرة (‏H = 2d وN = ١٦). والحفظ الساذج لكل جولات المسح يكلّف غيغابايتات لكل طبقة، والحل «مسح مرافق»: التدرّج نفسه تكرار خطي إلى الوراء يُحسب بمسح آخر، فلا نحفظ إلا a وh (ذاكرة أقل عشر مرات).</p>
+</section>
+
+<!-- ============ 12.6 ============ -->
+<section class="sec" id="s12-6">
+  <header><div class="kicker">القسم ١٢٫٦ <a class="pg" href="https://d2l.ai/chapter_recurrent-modern/matrix-state.html">d2l.ai ↗</a></div><h2>التكرارات بحالة مصفوفية والانتباه الخطي المبوّب</h2></header>
+  <div class="brief"><b>باختصار</b>اجعل الحالة مصفوفة: Sₜ = Sₜ₋₁ + vₜkₜᵀ، واقرأ بـSₜqₜ. هذه ذاكرة مفاتيح وقيم، وهي بالضبط الانتباه الخطي من الفصل ١٠. وسعتها محدودة: مع n زوجاً ومفاتيح عشوائية بعرض d_k، خطأ الاسترجاع (n − 1)/d_k. والتلاشي aₜ يحوّلها إلى نافذة ناعمة، وMamba نفسها حالة مصفوفية من هذا النوع.</div>
+  <div class="terms"><span>الذاكرة الترابطية <i>associative memory</i></span><span>حاصل الضرب الخارجي <i>outer product</i></span><span>التداخل <i>interference / cross-talk</i></span><span>الانتباه الخطي المبوّب <i>gated linear attention (GLA)</i></span><span>ثنائية فضاء الحالة <i>state space duality</i></span><span>التدريب المقطّع <i>chunked training</i></span></div>
+  <div class="math"><div class="mh"><span class="sym">Sₜ = Sₜ₋₁ + vₜkₜᵀ</span>مفهوم رياضي · ذاكرة المفاتيح والقيم وسعتها</div><div class="mb">
+    <p>مثال: <span class="mono" dir="ltr">S = 3k₁ᵀ + 5k₂ᵀ</span> بمفتاحين متعامدين في ℝ²: ‏Sk₁ = ٣ وSk₂ = ٥ بدقة. فإن أضفنا مفتاحاً ثالثاً (1، 1)/√2 بقيمة ٧، تسرب منه ‏7/√2 إلى Sk₁ فصار نحو ٧٫٩٥: في d_k بعداً لا يتسع إلا d_k مفتاحاً متعامداً.</p>
+    <div class="eq">Sₜqₜ = Σₛ (kₛᵀqₜ) vₛ &nbsp;&nbsp;&nbsp;&nbsp; E‖Skⱼ − vⱼ‖² = (n − 1)/d_k</div>
+    <p>الطرف الأيسر تكرار (حالة ثابتة)، والأيمن انتباه بلا softmax (ضرب مصفوفات متوازٍ): وجهان للحساب نفسه، والتدريب «المقطّع» يجمعهما: انتباه داخل كل قطعة، وتمرير الحالة بين القطع. والخطأ مع مفاتيح عشوائية ينمو مع «الازدحام» n/d_k لا مع العمر.</p>
+  </div></div>
+  <div class="w" id="msBox"><div class="cap">خزّن n زوجاً عشوائياً في مصفوفة d × d ثم استرجعها (حساب حقيقي؛ الاسترجاع صحيح إن كانت أقرب قيمة من ٢٥٦ هي الصحيحة)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">d_k = d_v: <b id="msDo"></b> <input type="range" id="msD" min="3" max="7" value="5"></label><label class="note">الأزواج n: <b id="msNo"></b> <input type="range" id="msN" min="0" max="8" value="5"></label><button class="pill" id="msGo">عيّنة جديدة</button></div>
+    <div id="msOut" style="margin-top:8px"></div><div class="calc" id="msCalc"></div></div>
+  <p>لغز من الكتاب: عند d = ٦٤ وn = ٦٤ الخطأ التربيعي نحو ١ (بحجم الإشارة نفسها!)، ومع ذلك الاسترجاع ١٫٠٠. لماذا؟ لأن التداخل موزع عشوائياً على كل اتجاهات القيم، والمنافس الخاطئ لا يرى إلا مركبته على اتجاهه: تباينها ‏(n − 1)/(d_k d_v). فعدد الأزواج القابلة للاسترجاع يتناسب مع عدد عناصر المصفوفة d_k·d_v: مضاعفة d تضاعف السعة أربع مرات (٣٢ ← ١٢٨ ← ٥١٢ زوجاً عند ٩٥٪). لكن المفاتيح المترابطة (اتجاه مشترك بوزن ρ) تضيف أرضية ‏(n − 1)ρ⁴ لا تصغر مع d: عند ρ = ٠٫٥ نزل الاسترجاع من ١٫٠٠ إلى ٠٫٤٩.</p>
+  <p>والتلاشي: <span class="mono" dir="ltr">Sₜ = aₜSₜ₋₁ + vₜkₜᵀ</span>. بتلاشٍ ثابت a، الزوج الذي عمره ℓ يأخذ aˡ، فالمجموع ‏1/(1 − a): نافذة ناعمة بنحو ١٠ أزواج عند ٠٫٩ و١٠٠ عند ٠٫٩٩، والتداخل محدود مهما طال النص. والعائلة كلها جدول واحد: الانتباه الخطي (بلا تلاشٍ)، وRetNet (تلاشٍ ثابت لكل رأس)، وMamba-2 (تلاشٍ عددي يعتمد على الرمز)، وGLA (تلاشٍ لكل إحداثي مفتاح)، وMamba-1 (تلاشٍ لكل عنصر، وvₜ = Δₜ ⊙ xₜ، والمفتاح Bₜ، والاستعلام Cₜ).</p>
+</section>
+
+<!-- ============ 12.7 ============ -->
+<section class="sec" id="s12-7">
+  <header><div class="kicker">القسم ١٢٫٧ <a class="pg" href="https://d2l.ai/chapter_recurrent-modern/deltanet.html">d2l.ai ↗</a></div><h2>قاعدة الدلتا وGated DeltaNet</h2></header>
+  <div class="brief"><b>باختصار</b>الذاكرة الجمعية لا تستطيع «تحديث» قيمة: إن كتبنا مفتاحاً مرتين أعادت مجموع القيمتين. قاعدة الدلتا تقرأ أولاً ما تتذكره الذاكرة عن المفتاح، ثم تكتب الفرق فقط: Sₜ = Sₜ₋₁ + βₜ(vₜ − Sₜ₋₁kₜ)kₜᵀ. وهي خطوة نزول تدرّجي على خطأ الاسترجاع، أي أن الذاكرة «انحدار يتعلم أثناء القراءة».</div>
+  <div class="terms"><span>قاعدة الدلتا <i>delta rule</i></span><span>اقرأ قبل أن تكتب <i>read before write</i></span><span>انعكاس هاوسهولدر <i>Householder reflection</i></span><span>الانحدار المتصل <i>online regression</i></span><span>Gated DeltaNet</span></div>
+  <p>البرامج والقصص تحدّث الحالة باستمرار: «rate = 0.05» ثم «rate = 0.07»، أو شخصية تنتقل من باريس إلى روما. والذاكرة الجمعية تعيد <span class="mono" dir="ltr">Sk = v⁽¹⁾ + v⁽²⁾ + …</span>. تجربة الكتاب: ٨ مفاتيح متعامدة تماماً في ℝ⁶⁴ (بلا أي تداخل)، كل منها يُكتب R مرة: استرجاع آخر قيمة ٠٫٥١ عند R = ٢ و٠٫٢١ عند R = ٨. والتلاشي العام لا يحل ذلك لأنه يُنسي كل المفاتيح معاً.</p>
+  <div class="math"><div class="mh"><span class="sym">β(v − Sk)kᵀ</span>مفهوم رياضي · قاعدة الدلتا</div><div class="mb">
+    <div class="eq">ℓₜ(S) = ½‖S kₜ − vₜ‖² &nbsp;⟹&nbsp; Sₜ = Sₜ₋₁ + βₜ (vₜ − Sₜ₋₁kₜ) kₜᵀ</div>
+    <p>نقرأ التنبؤ v̂ = Sₜ₋₁kₜ، ونكتب الخطأ فقط. وعند β = ١ ومفتاح بطول ١: ‏Sₜkₜ = vₜ تماماً، استبدال كامل. وإن أخرجنا Sₜ₋₁ عاملاً مشتركاً:</p>
+    <div class="eq">Sₜ = Sₜ₋₁ (I − βₜkₜkₜᵀ) + βₜvₜkₜᵀ</div>
+    <p>المصفوفة ‏I − βkkᵀ قيمتها الذاتية ١ على كل الاتجاهات العمودية على k، و1 − β على اتجاه k. ‏β = ٠: لا شيء. ‏β = ١: إسقاط يمحو اتجاه k قبل الكتابة. ‏β = ٢: انعكاس هاوسهولدر (قيمة −١)، وهذا يتيح عدّ الزوجية الذي لا يستطيعه أي تلاشٍ موجب. ولذلك يجب تطبيع المفاتيح إلى طول ١.</p>
+  </div></div>
+  <div class="w" id="dlBox"><div class="cap">٨ مفاتيح متعامدة في ℝ⁶⁴، كل منها يُكتب R مرة بقيم عشوائية: هل نسترجع آخر قيمة؟ (تشابه جيب التمام بين المسترجَع وآخر قيمة)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><span class="note">β للدلتا:</span><span class="seg" id="dlB"><button data-v="1" class="on">1</button><button data-v="0.5">0.5</button></span><button class="pill" id="dlGo">عيّنة جديدة</button></div>
+    <div id="dlOut" style="margin-top:8px"></div><div class="calc" id="dlCalc"></div></div>
+  <p>وللقاعدة ثمن: كل كتابة بمفتاح عشوائي تُنقص قليلاً (بنحو 1/d_k) القيم المخزنة بمفاتيح أخرى. بعد 2d_k كتابة عشوائية بـβ = ١ تبقى الإشارات القديمة عند ‏e⁻² ≈ ١٣٫٥٪. ولذلك يُتعلَّم βₜ من الرمز، و<b>Gated DeltaNet</b> يضيف تلاشياً عاماً aₜ أيضاً: <span class="mono" dir="ltr">Sₜ = aₜSₜ₋₁(I − βₜkₜkₜᵀ) + βₜvₜkₜᵀ</span>، بثلاثة أوضاع: مسح شامل عند تغيّر الموضوع (aₜ → ٠)، وتحديث مفتاح بعينه (aₜ ≈ ١ وβₜ → ١)، وتراكم لطيف (aₜ ≈ ١ وβₜ ≈ ٠٫٢). والتدريب المتوازي يحتاج حل نظام مثلثي داخل كل قطعة (تمثيل WY)، لأن كل تحديث يعتمد على قراءة الذاكرة قبله.</p>
+</section>
+
+<!-- ============ 12.8 ============ -->
+<section class="sec" id="s12-8">
+  <header><div class="kicker">القسم ١٢٫٨ <a class="pg" href="https://d2l.ai/chapter_recurrent-modern/hybrids.html">d2l.ai ↗</a></div><h2>البنى الهجينة: التكرار مع الانتباه الشامل</h2></header>
+  <div class="brief"><b>باختصار</b>الحالة الثابتة يجب أن تضغط كل البادئة <b>قبل</b> أن تعرف ما سيُسأل عنه، والانتباه يحتفظ بالجدول الخام ويبحث <b>بعد</b> السؤال. وحد ويلش يثبت أن أي ذاكرة مصفوفية خطية بعرض d_k لا تتجنب التداخل حين يتجاوز عدد المفاتيح d_k. فالحل الهجين: طبقة انتباه كاملة لكل ٣ إلى ٧ طبقات تكرارية.</div>
+  <div class="terms"><span>البنية الهجينة <i>hybrid architecture</i></span><span>حد ويلش <i>Welch bound</i></span><span>الضغط قبل السؤال <i>pre-query compression</i></span><span>الربط المحلي بالالتفاف <i>local convolution binding</i></span></div>
+  <p>هل المشكلة نقص البتات؟ لا. نموذج الكتاب التكراري بطبقتين يحمل ٨٬١٩٢ بتاً من float32، و٦٤ جواباً بأربع قيم تحتاج ١٢٨ بتاً فقط. المشكلة جبرية: الذاكرة المصفوفية تتشبع عند رتبتها d_k قبل أن تنفد البتات بكثير.</p>
+  <div class="math"><div class="mh"><span class="sym">Welch</span>مفهوم رياضي · حد ويلش للتداخل</div><div class="mb">
+    <p>لـm مفتاحاً بطول ١ في ℝ<sup>d_k</sup> مع m &gt; d_k: مصفوفة غرام ‏G = Σ kᵢkᵢᵀ أثرها m ورتبتها ≤ d_k، فمن كوشي–شفارتز ‏‖G‖²<sub>F</sub> ≥ m²/d_k. ومنه:</p>
+    <div class="eq">متوسط (kᵢᵀkⱼ)² على i ≠ j ≥ (m − d_k) / (d_k (m − 1))</div>
+    <p>حد أدنى لكل ذاكرة خطية تُقرأ بـSq (GLA وDeltaNet وغيرهما)، مهما كان التدريب.</p>
+  </div></div>
+  <div class="w" id="wlBox"><div class="cap">حد ويلش مقابل تداخل المفاتيح العشوائية (1/d_k)، وذاكرة الهجين مقارنة بالانتباه الكامل</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">d_k: <b id="wlDo"></b> <input type="range" id="wlD" min="1" max="7" value="2"></label><label class="note">المفاتيح m: <b id="wlMo"></b> <input type="range" id="wlM" min="2" max="9" value="6"></label><label class="note">طبقات تكرارية لكل طبقة انتباه r: <b id="wlRo"></b> <input type="range" id="wlR" min="0" max="7" value="3"></label></div>
+    <div id="wlOut" style="margin-top:8px"></div><div class="calc" id="wlCalc"></div></div>
+  <p>تجربة الكتاب (أزواج مفاتيح وقيم ثم أسئلة عن بعضها؛ الصدفة ٠٫٢٥): عند d_k = ٤ وm = ٦٤ حد ويلش ٩٥٪ من التداخل العشوائي، فلا يبقى للتدريب مجال. وتكبير الرأس إلى 16×16 (بالمعاملات نفسها) رفع استرجاع ٦٤ زوجاً من نحو ٠٫٥ إلى ٠٫٨–١٫٠. والنموذج بانتباه كامل والهجين (طبقة DeltaNet ثم طبقة انتباه، بنصف ذاكرة المفاتيح والقيم) يحلان المهمة. وتفصيل مهم: إزالة الالتفاف القصير (عرض ٤) قبل DeltaNet تجعله يفشل حتى مع ٤ أزواج، لأن المفتاح يصل في الخطوة t − 1 والقيمة في t، وبلا خلط محلي لا يستطيع حاصل الضرب الخارجي عند t أن يربطهما.</p>
+  <p>وهكذا تعمل النماذج الحديثة: Jamba وQwen3-Next وغيرها تخلط طبقات تكرارية (Mamba أو Gated DeltaNet) بطبقة انتباه كل بضع طبقات. فتحصل على ذاكرة وحساب شبه ثابتين لمعظم الطبقات، مع قدرة بحث دقيق في الجدول الكامل عند الحاجة.</p>
+</section>
+
+<section class="sec" id="ex">
+  <header><div class="kicker">الخلاصة والتمارين</div><h2>ما تأخذه من الفصل</h2></header>
+  <ul class="clean">
+    <li>LSTM: خلية تُحدَّث بالجمع، وعمر الذاكرة ln 2 / ln(1/f). والمرمّز–المفكك بمتجه واحد له سعة محدودة قابلة للقياس.</li>
+    <li>التحديث الخطي hₜ = aₜhₜ₋₁ + bₜ تركيبه تجميعي، فيُحسب بمسح متوازي في log T جولة.</li>
+    <li>S4D: متكاملات متسربة بمعدلات متعددة، وثلاثة وجوه (معادلة، تكرار، التفاف). وMamba: خطوة Δ تعتمد على الرمز، أي بوابة انتقائية.</li>
+    <li>الحالة المصفوفية = انتباه خطي، والخطأ (n − 1)/d_k، والسعة ∝ d_k·d_v. وقاعدة الدلتا تقرأ قبل أن تكتب فتحدّث بدل أن تراكم.</li>
+    <li>حد ويلش: الذاكرة الخطية لا تهرب من التداخل، فالهجين يضيف انتباهاً كاملاً كل بضع طبقات.</li>
+  </ul>
+  <h3>تمارين (مختارة ومبسطة من تمارين الكتاب)</h3>
+  <ol class="clean">
+    <li>ما عمر النصف لخلية LSTM ببوابة نسيان ٠٫٩٩؟ <details><summary>الحل</summary>‏ln 2 / ln(1/0.99) ≈ 0.693/0.01005 ≈ 69 خطوة.</details></li>
+    <li>ركّب الخطوتين (a₁، b₁) = (0.5، 1) و(a₂، b₂) = (0.5، 2). <details><summary>الحل</summary>‏(0.25، 0.5 × 1 + 2) = (0.25، 2.5). تحقق: من h = 0، الخطوة الأولى ١ ثم ‏0.5 × 1 + 2 = 2.5.</details></li>
+    <li>كم جولة يحتاج مسح هيليس–ستيل لـ٤٬٠٩٦ موقعاً؟ <details><summary>الحل</summary>‏log₂ 4096 = 12 جولة.</details></li>
+    <li>بخطوة Δ = ٠٫٠١ وλ = −١، ما بوابة الإبقاء وعمر النصف؟ <details><summary>الحل</summary>‏e^−0.01 ≈ 0.990، وعمر النصف ‏ln 2 / 0.01 ≈ 69 خطوة.</details></li>
+    <li>ذاكرة مصفوفية بـd_k = ٣٢ ومفاتيح عشوائية: ما الخطأ المتوقع مع ٣٣ زوجاً؟ <details><summary>الحل</summary>‏(33 − 1)/32 = 1: بحجم الإشارة، لكن الاسترجاع بأقرب قيمة قد يبقى جيداً لأن التداخل موزّع على اتجاهات كثيرة.</details></li>
+    <li>في قاعدة الدلتا بـβ = ١ ومفتاح بطول ١، ما Sₜkₜ بعد الكتابة؟ <details><summary>الحل</summary>‏Sₜ₋₁k + (v − Sₜ₋₁k)·kᵀk = v تماماً.</details></li>
+    <li>هجين بنسبة ٣ طبقات تكرارية لكل طبقة انتباه: ما نسبة ذاكرة المفاتيح والقيم إلى نموذج انتباه كامل في سياق طويل جداً؟ <details><summary>الحل</summary>طبقة واحدة من كل أربع تحفظ الجدول: نحو الربع (والطبقات التكرارية حالتها ثابتة صغيرة).</details></li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="11-transformers.html">→ الفصل السابق: المحوّلات</a><a href="13-performance.html">الفصل التالي: الأداء الحسابي ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/d2l-common.js"></script>
+<script src="../assets/js/d2l12.js"></script>
+</body>
+</html>
