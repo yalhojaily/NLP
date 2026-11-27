@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٧ · الشبكات الالتفافية الحديثة | الغوص في التعلّم العميق</title>
+<meta name="description" content="شرح عربي للفصل السابع من كتاب Dive into Deep Learning: AlexNet، والكتل (VGG وNiN وGoogLeNet)، والتطبيع الدفعي، وResNet وResNeXt وDenseNet، والشبكات الفعّالة (MobileNet)، ووصفات التدريب الحديثة، وConvNeXt، وفضاءات التصميم وRegNet.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">الغوص في التعلّم العميق</a></nav>
+    <div class="chnav"><a class="pill" href="06-cnn.html" style="text-decoration:none">→ الفصل ٦</a><b>الفصل ٧ من ٤٢</b></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">البنى والتحسين · الفصل السابع</div>
+  <h1>الشبكات الالتفافية الحديثة</h1>
+  <div class="sub en" style="font-size:16px">Chapter 7 · Modern Convolutional Neural Networks · <a href="https://d2l.ai/chapter_convolutional-modern/index.html">d2l.ai</a></div>
+  <p class="epi">بنت LeNet كل المكونات الأساسية عام ١٩٩٨، ثم بقيت الشبكات الالتفافية على الهامش أربع عشرة سنة. وفي ٢٠١٢ أسقطت AlexNet خطأ مسابقة ImageNet من ٢٦٫٢٪ إلى ١٥٫٣٪ دفعة واحدة. هذا الفصل قصة العقد الذي تلا: كيف صارت الشبكات أعمق بالكتل المتكررة، وأسهل تدريباً بالتطبيع والوصلات المتبقية، وأرخص بالالتفاف العمقي، ثم كيف اكتشف الباحثون أن جزءاً كبيراً من «التقدم» جاء من <b>وصفة التدريب</b> لا من البنية.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم في سطرين</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--tint);border-color:var(--rule)"></i>كود مشروح: كل سطر وبجانبه معناه</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية: جرّب بيدك</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li><b>AlexNet</b> (٢٠١٢) هي LeNet مكبّرة على معالج رسومي، مع ReLU والإسقاط وزيادة البيانات. طبقاتها الالتفافية فيها ٨٪ من المعاملات لكن ٩٥٪ من الحساب.</li>
+    <li><b>الكتل</b>: VGG تكرر كتلة 3×3، وNiN تستبدل الرأس الضخم بالتجميع الشامل، وGoogLeNet تفرّع الكتلة إلى مسارات بأحجام نوى مختلفة وتجعلها رخيصة بعنق الزجاجة 1×1.</li>
+    <li><b>التطبيع الدفعي</b> يعيد كل قناة إلى متوسط صفر وتباين واحد في كل دفعة، فيتحمّل التدريب معدّلات تعلّم أكبر بكثير. وفي الاستدلال يستعمل متوسطات متحركة.</li>
+    <li><b>ResNet</b> تجعل كل كتلة تتعلّم «الفرق» x + g(x). فالعمق لا يضر: الكتلة تستطيع أن تكون الهوية، والتدرّج يجد طريقاً مباشراً. ومن أبنائها ResNeXt وDenseNet.</li>
+    <li><b>الشبكات الفعّالة</b>: الالتفاف العمقي المنفصل يقسم العمل إلى ترشيح مكاني وخلط قنوات، فيوفّر نحو k² مرة من الحساب. لكن عدد العمليات لا يساوي الزمن الفعلي.</li>
+    <li><b>وصفة التدريب</b> وحدها رفعت ResNet-50 من ٧٦٫١٪ إلى ٨٠٫٤٪. و<b>ConvNeXt</b> أثبتت أن شبكة التفافية خالصة تجاري المحوّلات إذا أخذت الوصفة والتفاصيل نفسها. و<b>RegNet</b> تستخرج قواعد التصميم من مجتمعات كاملة من الشبكات.</li>
+  </ol>
+</div>
+
+<!-- ============ 7.1 ============ -->
+<section class="sec" id="s7-1">
+  <header><div class="kicker">القسم ٧٫١ <a class="pg" href="https://d2l.ai/chapter_convolutional-modern/alexnet.html">d2l.ai ↗</a></div><h2>AlexNet: الشبكات الالتفافية العميقة</h2></header>
+  <div class="brief"><b>باختصار</b>قبل ٢٠١٢ كانت الرؤية الحاسوبية خصائص مصممة باليد (مثل SIFT) ومصنّفاً بسيطاً فوقها. AlexNet تعلّمت الخصائص نفسها من البيانات، بثماني طبقات و٤٧ مليون معامل. وأتاح ذلك اجتماع ثلاثة أشياء: بيانات ضخمة (ImageNet)، ومعالجات رسومية، وحيل تدريب (ReLU والإسقاط والزيادة).</div>
+  <div class="terms"><span>الخصائص المصممة يدوياً <i>hand-crafted features</i></span><span>تعلّم التمثيلات <i>representation learning</i></span><span>زيادة البيانات <i>data augmentation</i></span><span>عملية ضرب-جمع <i>multiply-add (MAC)</i></span><span>الإحماء <i>warmup</i></span><span>التخميد الجيبي <i>cosine decay</i></span></div>
+  <p>ظلت الرؤية الحاسوبية حتى ٢٠١٢ خطاً من مرحلتين: خبير يصمم مستخرج خصائص (حواف، اتجاهات، مدرّجات تكرارية للتدرّجات)، ثم مصنّف خطي أو آلة متجهات داعمة يتعلّم فوقها. والتعلّم كان في المرحلة الثانية فقط. أما فكرة الشبكات العميقة فهي أن تُتعلَّم <b>المراحل كلها معاً</b>: الطبقات الأولى تكتشف حوافاً وألواناً، والوسطى أنماطاً وملامس، والعليا أجزاء الأشياء.</p>
+  <p>ولماذا تأخر ذلك حتى ٢٠١٢؟ لنقص <b>مكوّنين</b>. الأول البيانات: ImageNet (٢٠٠٩) فيها ١٫٢ مليون صورة تدريب في ألف صنف، بعد أن كانت المجموعات بعشرات الآلاف. والثاني الحوسبة: بطاقة GTX 580 كانت تعطي نحو ١٫٦ تيرافلوب وعرض نطاق ذاكرة ١٩٢ غيغابايت/ثانية، مقابل ٠٫٢ و٢٠ لمعالج مركزي جيد. وقدّر الكتاب حساب التدريب كله بنحو ٦٫٥×١٠<sup>١٧</sup> عملية، أي خمسة إلى ستة أيام على بطاقتين، وكانت ستكون أشهراً على المعالج المركزي.</p>
+  <div class="scroll"><table class="tb">
+    <tr><th>ما الجديد في AlexNet</th><th>ولماذا يهم</th></tr>
+    <tr><td>ReLU بدل السيني</td><td>تدرّجه ١ في كل الجزء الموجب فلا يتلاشى، وحسابه أرخص (الفصل ٤).</td></tr>
+    <tr><td>الإسقاط بنسبة ٠٫٥ في الطبقات الكاملة</td><td>تنظيم لـ٤٣ مليون معامل في الرأس.</td></tr>
+    <tr><td>زيادة البيانات</td><td>قصّ عشوائي وانعكاس أفقي: ٢٬٠٤٨ «نسخة» من كل صورة، فيصعب حفظ الصور.</td></tr>
+    <tr><td>معالجان رسوميان</td><td>قُسّمت الشبكة نصفين لأن الذاكرة (٣ غيغابايت) لم تكفِ النموذج.</td></tr>
+    <tr><td>عمق أكبر</td><td>خمس طبقات التفافية وثلاث كاملة، بأحجام نوى 11 ثم 5 ثم 3.</td></tr>
+  </table></div>
+  <p>النتيجة: خطأ أفضل خمسة تخمينات (top-5) نزل من ٢٦٫٢٪ للفائز السابق إلى ١٥٫٣٪ لمجموعة من سبع شبكات (والشبكة الواحدة نحو ١٨٪). فجوة بهذا الحجم أقنعت المجال كله في سنة واحدة.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>nn.LazyConv2d(96, kernel_size=11, stride=4), nn.ReLU(),</code><span>نافذة 11×11 كبيرة وخطوة ٤: من 224 إلى 54. الصورة بالأصل كبيرة فيلزم نظر واسع وتصغير سريع.</span></div>
+    <div class="cl"><code>nn.MaxPool2d(kernel_size=3, stride=2),</code><span>تجميع متداخل (نافذة ٣ وخطوة ٢): ‏54 → 26.</span></div>
+    <div class="cl"><code>nn.LazyConv2d(256, kernel_size=5, padding=2), nn.ReLU(),</code><span>نافذة 5×5 وقنوات أكثر بكثير (٢٥٦).</span></div>
+    <div class="cl"><code>nn.MaxPool2d(kernel_size=3, stride=2),</code><span>‏26 → 12.</span></div>
+    <div class="cl"><code>nn.LazyConv2d(384, kernel_size=3, padding=1), nn.ReLU(),</code><span>ثلاث طبقات 3×3 متتالية بلا تجميع بينها…</span></div>
+    <div class="cl"><code>nn.LazyConv2d(384, kernel_size=3, padding=1), nn.ReLU(),</code><span></span></div>
+    <div class="cl"><code>nn.LazyConv2d(256, kernel_size=3, padding=1), nn.ReLU(),</code><span>…تحافظ على 12×12.</span></div>
+    <div class="cl"><code>nn.MaxPool2d(kernel_size=3, stride=2), nn.Flatten(),</code><span>‏12 → 5، ثم التسطيح: ‏256×5×5 = 6,400 عدد.</span></div>
+    <div class="cl"><code>nn.LazyLinear(4096), nn.ReLU(), nn.Dropout(p=0.5),</code><span>الرأس الضخم: طبقتان بـ٤٬٠٩٦ وحدة مع إسقاط.</span></div>
+    <div class="cl"><code>nn.LazyLinear(4096), nn.ReLU(), nn.Dropout(p=0.5),</code><span></span></div>
+    <div class="cl"><code>nn.LazyLinear(num_classes))</code><span>عشرة أصناف لـFashion-MNIST (والأصل ألف).</span></div>
+  </div>
+  <p>يجرّب الكتاب AlexNet على Fashion-MNIST بعد تكبير الصور إلى 224×224 (لتطابق الأبعاد الأصلية فقط؛ التكبير لا يضيف معلومة). وأين تذهب المعاملات وأين يذهب الحساب؟ الجواب مختلف جداً:</p>
+  <div class="w" id="alxBox"><div class="cap">AlexNet طبقة طبقة: المعاملات مقابل عمليات الضرب-الجمع لكل صورة (أرقام الكتاب لمدخل 1×224×224)</div>
+    <div class="row"><span class="seg" id="alxS"><button data-v="p" class="on">المعاملات</button><button data-v="m">عمليات الضرب-الجمع</button></span></div>
+    <div id="alxOut" style="margin-top:8px"></div><div class="calc" id="alxCalc"></div></div>
+  <p>الدرس: الطبقات الالتفافية تعيد استعمال أوزانها القليلة في كل موقع، فحسابها كبير ومعاملاتها قليلة. والطبقات الكاملة عكسها: كل وزن يُستعمل مرة واحدة لكل صورة. ولهذا كانت الطبقة الكاملة الأولى وحدها (‏6,400 × 4,096) أكبر من الشبكة الالتفافية كلها. وهذا ما ستعالجه الأقسام التالية.</p>
+  <h3>جدول معدّل التعلّم: إحماء ثم تخميد جيبي</h3>
+  <p>يستعمل الكتاب في هذا الفصل كله جدولاً واحداً: يبدأ معدّل التعلّم من صفر ويرتفع خطياً إلى ذروته η<sub>0</sub> في أول عُشر التدريب (<b>الإحماء</b>)، ثم ينخفض على نصف موجة جيب تمام حتى الصفر في الخطوة الأخيرة T. والإحماء يمنع الخطوات الكبيرة في البداية، حين تكون الأوزان عشوائية والتدرّجات غير مستقرة.</p>
+  <div class="math"><div class="mh"><span class="sym">η(t)</span>مفهوم رياضي · الإحماء والتخميد الجيبي</div><div class="mb">
+    <div class="eq">t &lt; t_w : &nbsp; η(t) = η₀ · t / t_w &nbsp;&nbsp;&nbsp;&nbsp; t ≥ t_w : &nbsp; η(t) = ½ η₀ (1 + cos(π (t − t_w)/(T − t_w)))</div>
+    <p>جيب التمام يبدأ من ١ وينتهي عند −١ على نصف دورة، فالقوس <span class="mono" dir="ltr">(1 + cos)/2</span> ينزل بنعومة من ١ إلى صفر، ويمر بالنصف في منتصف مرحلة التخميد. لا «قفزات» مفاجئة كما في الجدول الدرجي القديم (القسمة على ١٠ عند حقب محددة)، ولا مواعيد قفز إضافية تحتاج ضبطاً.</p>
+  </div></div>
+  <div class="w" id="wcBox"><div class="cap">ارسم الجدول: حرّك نسبة الإحماء، وقارن بالجدول الدرجي</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">الإحماء: <b id="wcWo"></b> <input type="range" id="wcW" min="0" max="40" value="10"></label><span class="seg" id="wcS"><button data-v="c" class="on">جيبي فقط</button><button data-v="s">مع الدرجي</button></span></div>
+    <div id="wcPlot"></div><div class="calc" id="wcCalc"></div></div>
+  <p>النتيجة في الكتاب بعد عشر حقب بدفعات ١٢٨ وذروة ٠٫٠٣: دقة تحقق نحو ٩١٪ (خسارة تدريب ٠٫٢٢ وتحقق ٠٫٢٥)، أي أفضل قليلاً من LeNet. وعرض الكتاب نوى الطبقة الأولى بعد التدريب: كواشف حواف بزوايا مختلفة، تشبه ما وجده هوبل وفيزل في القشرة البصرية. وبطاقة واحدة اليوم تدرّب ذلك في دقائق.</p>
+</section>
+
+<!-- ============ 7.2 ============ -->
+<section class="sec" id="s7-2">
+  <header><div class="kicker">القسم ٧٫٢ <a class="pg" href="https://d2l.ai/chapter_convolutional-modern/blocks.html">d2l.ai ↗</a></div><h2>الشبكات المبنية من كتل: VGG وNiN وGoogLeNet</h2></header>
+  <div class="brief"><b>باختصار</b>بدل تصميم كل طبقة على حدة نصمم <b>كتلة</b> ونكررها. VGG: طبقات 3×3 ثم تجميع، وتكبيرها بتغيير قائمة واحدة. NiN: طبقات 1×1 داخل الكتلة، وتجميع شامل بدل الرأس الضخم. GoogLeNet: مسارات متوازية بنوى مختلفة، رخيصة بفضل 1×1 قبل كل نافذة كبيرة.</div>
+  <div class="terms"><span>كتلة <i>block</i></span><span>VGG</span><span>شبكة داخل شبكة <i>Network in Network (NiN)</i></span><span>التجميع المتوسط الشامل <i>global average pooling</i></span><span>كتلة Inception</span><span>الجذع والجسم والرأس <i>stem · body · head</i></span></div>
+  <h3>VGG: كتلة واحدة مكررة</h3>
+  <p>كتلة VGG بسيطة: عدة طبقات 3×3 بحشو ١ (لا تغيّر الحجم) ثم تجميع أعظمي 2×2 بخطوة ٢ (ينصّف الحجم). لماذا 3×3 فقط؟ لأن طبقتين 3×3 ترى نافذة 5×5 مثل طبقة 5×5 واحدة، لكن بـ<span class="mono" dir="ltr">2 × 9c² = 18c²</span> وزناً بدل <span class="mono" dir="ltr">25c²</span>، ومع لاخطية إضافية بينهما. فالأعمق والأضيق أفضل.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>def vgg_block(num_convs, out_channels):</code><span>كتلة VGG:</span></div>
+    <div class="cl"><code>    layers = []</code><span></span></div>
+    <div class="cl"><code>    for _ in range(num_convs):</code><span>عدد من طبقات…</span></div>
+    <div class="cl"><code>        layers.append(nn.LazyConv2d(out_channels, kernel_size=3, padding=1))</code><span>…3×3 تحافظ على الحجم،</span></div>
+    <div class="cl"><code>        layers.append(nn.ReLU())</code><span></span></div>
+    <div class="cl"><code>    layers.append(nn.MaxPool2d(kernel_size=2, stride=2))</code><span>ثم تجميع ينصّف الطول والعرض.</span></div>
+    <div class="cl"><code>    return nn.Sequential(*layers)</code><span></span></div>
+    <div class="cl"><code>arch = ((1, 64), (1, 128), (2, 256), (2, 512), (2, 512))</code><span>VGG-11: خمس كتل (عدد الطبقات، القنوات). وVGG-16 وVGG-19 تغيير لهذه القائمة فقط.</span></div>
+  </div>
+  <p>خمس كتل تنصّف الحجم خمس مرات: ‏224 ← 7. وVGG-11 فيها ١٢٨٫٨ مليون معامل و٧٫٥ مليار عملية ضرب-جمع لكل صورة، و<b>٩٣٪ من المعاملات في الرأس</b> الموروث من AlexNet. ولأن ذلك ثقيل على Fashion-MNIST، درّب الكتاب نسخة بربع العرض: ٤٣٫١ مليون معامل منها ٤٢٫٥ في الرأس (٩٩٪)، و٥١٢ مليون عملية. وبلغت ٩٣٪ بذروة ٠٫١، و٩١–٩٢٪ بذروة ٠٫٠٣: تغيير معدّل التعلّم وحده حرّك الدقة نقطة ونصفاً. تذكّر ذلك حين نصل إلى وصفات التدريب.</p>
+  <h3>NiN: تخلّص من الرأس</h3>
+  <p>سؤال NiN: لماذا نسطّح الخريطة ونرميها في طبقات كاملة ضخمة؟ الطبقة الكاملة تخلط القنوات عند كل موقع ومعها المواقع نفسها. وNiN تفصل الأمرين: داخل كل كتلة طبقتا 1×1 بعد الطبقة المكانية، وهما «شبكة متعددة الطبقات صغيرة» تعمل على متجه القنوات عند كل بكسل (ومن هنا الاسم: شبكة داخل شبكة). وفي النهاية تُخرج الكتلة الأخيرة <b>عشر قنوات</b>، واحدة لكل صنف، ثم <b>نأخذ متوسط كل قناة على كل المواقع</b>. فدرجة الصنف متوسط «خريطة دليله»، بلا أي معامل في الرأس، ولا تعتمد على مكان الشيء في الصورة.</p>
+  <p>ملاحظة دقيقة من الكتاب: الطبقة 1×1 الأخيرة <b>بلا ReLU</b>. لأن ReLU على درجات الأصناف قد «يقتل» صنفاً: لو صارت قيم خريطته كلها سالبة لأصبحت كلها أصفاراً، فلا يصل إليه تدرّج أبداً ولا يتعافى.</p>
+  <p>النتيجة: NiN بـ٣٫٤ مليون معامل فقط و٧٩٨ مليون عملية تبلغ ٨٩٪. والأنظف: نأخذ VGG نفسها ونستبدل رأسها بتجميع شامل وطبقة خطية واحدة (PooledVGG): ‏٠٫٦ مليون معامل و٤٧٠ مليون عملية، و٨٩–٩٠٪. المعاملات نزلت ٧٠ مرة، والدقة تقريباً كما هي.</p>
+  <h3>GoogLeNet: مسارات متوازية</h3>
+  <p>أي حجم نواة نختار؟ GoogLeNet (٢٠١٤) لا تختار: كتلة <b>Inception</b> فيها أربعة مسارات متوازية على المدخل نفسه، ثم تُلصق مخرجاتها على محور القنوات:</p>
+  <div class="scroll"><table class="tb">
+    <tr><th>المسار</th><th>ما يفعله</th><th>القنوات في أول كتلة</th></tr>
+    <tr><td>١</td><td>1×1</td><td>٦٤</td></tr>
+    <tr><td>٢</td><td>1×1 (تقليل) ثم 3×3</td><td>٩٦ ← ١٢٨</td></tr>
+    <tr><td>٣</td><td>1×1 (تقليل) ثم 5×5</td><td>١٦ ← ٣٢</td></tr>
+    <tr><td>٤</td><td>تجميع أعظمي 3×3 ثم 1×1</td><td>٣٢</td></tr>
+    <tr><td colspan="2">المجموع بعد الإلصاق</td><td>٦٤ + ١٢٨ + ٣٢ + ٣٢ = ٢٥٦</td></tr>
+  </table></div>
+  <p>كل المسارات تحافظ على الطول والعرض (بالحشو المناسب) حتى يمكن لصقها. والسر في الطبقات 1×1 «المقللة» قبل النوافذ الكبيرة: هي <b>عنق الزجاجة</b> الذي رأيناه في الفصل السادس. احسب بنفسك:</p>
+  <div class="w" id="incBox"><div class="cap">حاسبة عنق الزجاجة: نافذة k×k مباشرة، أم 1×1 تقلل القنوات أولاً؟ (المثال الافتراضي مسار 5×5 في كتلة Inception الأولى، ومدخلها ١٩٢ قناة)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">قنوات المدخل: <b id="incCo"></b> <input type="range" id="incC" min="16" max="512" step="16" value="192"></label><label class="note">العنق b: <b id="incBo"></b> <input type="range" id="incB" min="4" max="128" step="4" value="16"></label><label class="note">المخرج: <b id="incOo"></b> <input type="range" id="incO" min="8" max="256" step="8" value="32"></label></div>
+    <div class="row"><span class="seg" id="incK"><button data-v="3">3×3</button><button data-v="5" class="on">5×5</button><button data-v="7">7×7</button></span></div>
+    <div id="incOut" style="margin-top:8px"></div><div class="calc" id="incCalc"></div></div>
+  <p>والشبكة كاملة اتخذت تقسيماً صار قاعدة لكل ما بعدها: <b>الجذع</b> (طبقات عادية في البداية تصغّر الصورة بسرعة)، ثم <b>الجسم</b> (تسع كتل Inception في ثلاث مراحل، بينها تجميع ينصّف الحجم)، ثم <b>الرأس</b> (تجميع شامل وطبقة خطية). اثنتان وعشرون طبقة. وعلى مدخل 96×96 فيها ٦٫٠ مليون معامل و٢٧٦ مليون عملية، وتبلغ ٩١٪.</p>
+  <div class="w" id="sbBox"><div class="cap">لوحة نتائج الكتاب على Fashion-MNIST (عشر حقب، الجدول الجيبي نفسه)</div>
+    <div class="row"><span class="seg" id="sbS"><button data-v="1" class="on">المعاملات</button><button data-v="2">العمليات</button><button data-v="3">الدقة</button></span></div>
+    <div id="sbOut" style="margin-top:8px"></div><div class="calc" id="sbCalc"></div></div>
+</section>
+
+<!-- ============ 7.3 ============ -->
+<section class="sec" id="s7-3">
+  <header><div class="kicker">القسم ٧٫٣ <a class="pg" href="https://d2l.ai/chapter_convolutional-modern/batch-norm.html">d2l.ai ↗</a></div><h2>التطبيع الدفعي</h2></header>
+  <div class="brief"><b>باختصار</b>نطرح من كل قناة متوسطها في الدفعة ونقسم على انحرافها المعياري، ثم نضرب في γ ونضيف β المتعلَّمين. فلا يعود مقياس الأوزان قبل الطبقة يغيّر المخرج، والتدريب يتحمّل معدّلات تعلّم أكبر بكثير. وفي الاستدلال نستعمل متوسطاً وتبايناً متحركين جمعناهما أثناء التدريب.</div>
+  <div class="terms"><span>التطبيع الدفعي <i>batch normalization (BN)</i></span><span>المقياس والإزاحة <i>scale γ · shift β</i></span><span>الإحصاءات المتحركة <i>running statistics</i></span><span>الثبات أمام المقياس <i>scale invariance</i></span><span>تطبيع الطبقة <i>layer norm</i></span><span>تطبيع المجموعة <i>group norm</i></span><span>تطبيع المثال <i>instance norm</i></span></div>
+  <p>في الفصل الثاني رأينا أن توحيد مقاييس الخصائص (طرح المتوسط والقسمة على الانحراف) يسهّل التحسين. لكن هذا يُفعل للمدخل فقط. أما في شبكة عميقة فمخرجات كل طبقة مدخل للتي بعدها، ومقاييسها تتغير مع كل خطوة تدريب، وقد تختلف بين الطبقات بمراتب عديدة. فكرة آيوفي وزيغيدي (٢٠١٥): وحّد المقاييس <b>داخل الشبكة</b> عند كل طبقة، بإحصاءات الدفعة الحالية.</p>
+  <div class="math"><div class="mh"><span class="sym">BN(x)</span>مفهوم رياضي · صيغة التطبيع الدفعي</div><div class="mb">
+    <p>لدفعة B من الأمثلة، نحسب لكل خاصية (أو كل قناة) متوسطاً وتبايناً:</p>
+    <div class="eq">μ̂ = (1/|B|) Σ x &nbsp;&nbsp;&nbsp; σ̂² = (1/|B|) Σ (x − μ̂)² &nbsp;&nbsp;&nbsp; BN(x) = γ ⊙ (x − μ̂) / √(σ̂² + ε) + β</div>
+    <p>الكسر يجعل القيم بمتوسط صفر وتباين واحد. والعدد الصغير ε (‏10⁻⁵) يمنع القسمة على صفر. ثم γ وβ معاملان متعلَّمان: إن احتاجت الطبقة مقياساً أو مركزاً آخر تعلّمته. ولو كان أفضل ألا نطبّع أصلاً لاستطاعت أن تتعلّم γ = σ̂ وβ = μ̂ فتلغي التطبيع.</p>
+    <p>مثال الكتاب: القيم (٢، ٤، ٦، ٨). المتوسط ٥، والتباين (٩ + ١ + ١ + ٩)/٤ = ٥، والانحراف ‏√٥ ≈ ٢٫٢٤. فالناتج (−١٫٣٤، −٠٫٤٥، ٠٫٤٥، ١٫٣٤). وجرّب في الأداة: (٢٠، ٤٠، ٦٠، ٨٠) و(١٠٢، ١٠٤، ١٠٦، ١٠٨) تعطيان الناتج نفسه تماماً.</p>
+  </div></div>
+  <div class="w" id="bnBox"><div class="cap">التطبيع الدفعي على دفعة من أربعة أمثلة (خاصية واحدة)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="note">الدفعة:</span><span class="seg" id="bnX" style="flex-wrap:wrap"><button data-v="0" class="on">(2, 4, 6, 8)</button><button data-v="1">×10</button><button data-v="2">+100</button><button data-v="3">(1, 1, 1, 9)</button></span></div>
+    <div class="row" style="flex-wrap:wrap;gap:12px;margin-top:6px"><label class="note">γ: <b id="bnGo"></b> <input type="range" id="bnG" min="0" max="30" value="10"></label><label class="note">β: <b id="bnBo"></b> <input type="range" id="bnB" min="-20" max="20" value="0"></label></div>
+    <div id="bnOut" style="margin-top:8px"></div><div class="calc" id="bnCalc"></div></div>
+  <h3>لماذا يساعد؟ الثبات أمام المقياس</h3>
+  <p>لو ضربنا أوزان الطبقة التي قبل التطبيع في عدد a &gt; 0، تُضرب كل القيم في a، فيُضرب المتوسط في a والانحراف في a، والكسر لا يتغير. هذا ما رأيته في زر «×10». والنتيجة المهمة على التدرّج:</p>
+  <div class="math"><div class="mh"><span class="sym">∇(aw)</span>مفهوم رياضي · ماذا يحدث للتدرّج والطول</div><div class="mb">
+    <p>إن كانت الخسارة لا تتغير بتغيير مقياس w، فتدرّجها عند aw يساوي <span class="mono" dir="ltr">(1/a)</span> من تدرّجها عند w. الأوزان الكبيرة تأخذ خطوات صغيرة نسبياً، فالتطبيع «يفرمل» نفسه. وأكثر: التدرّج عمودي على w (لأن تحريك w في اتجاهه لا يغيّر شيئاً)، فخطوة النزول تُطيل المتجه دائماً:</p>
+    <div class="eq">‖w − ηg‖² = ‖w‖² + η²‖g‖²</div>
+    <p>فمعدّل تعلّم كبير جداً يكبّر ‖w‖، وهذا يصغّر التدرّجات التالية تلقائياً. ولهذا لا تنفجر الشبكة المطبَّعة بسهولة. (وللتوضيح: آيوفي وزيغيدي فسّرا نجاحه أولاً بتقليل «انزياح المتغيرات الداخلي»، لكن الأدلة اللاحقة لم تؤيد ذلك، وتفسير الثبات أمام المقياس أقوى.)</p>
+  </div></div>
+  <p>وتشبه هذه الفكرة ما نراه في الأداة التالية من صنعنا: نمرر دفعة عشوائية عبر عشرين طبقة خطية مع ReLU، ونرسم الانحراف المعياري للتنشيطات في كل طبقة. بلا تطبيع، أي انحراف بسيط في مقياس التهيئة يتضاعف طبقة بعد طبقة (كما في الفصل الرابع). ومع التطبيع يعود المقياس إلى ١ عند كل طبقة، أياً كانت التهيئة.</p>
+  <div class="w" id="dsBox"><div class="cap">انحراف التنشيطات عبر ٢٠ طبقة (عرض ٦٤، دفعة ١٢٨)، حساب حقيقي في متصفحك</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">مقياس التهيئة (١ = هي): <b id="dsSo"></b> <input type="range" id="dsS" min="50" max="150" step="5" value="80"></label><button class="pill" id="dsGo">عيّنة جديدة</button></div>
+    <div id="dsPlot"></div><div class="calc" id="dsCalc"></div></div>
+  <h3>في الطبقات الالتفافية، وفي الاستدلال</h3>
+  <p>في الطبقة الكاملة نطبّع كل خاصية على الأمثلة. وفي الطبقة الالتفافية نطبّع كل <b>قناة</b> على الأمثلة وعلى كل المواقع معاً، لأن القناة الواحدة كاشف واحد يمر على كل المواقع. فلدفعة ١٢٨ صورة وخريطة 28×28 يُحسب متوسط كل قناة من ‏128×28×28 = 100,352 قيمة. ولكل قناة γ وβ فقط.</p>
+  <p>وماذا عند الاستدلال على صورة واحدة؟ لا دفعة نحسب منها متوسطاً، ولا نريد أن يعتمد تصنيف صورة على الصور التي جاءت معها. فأثناء التدريب نحتفظ بـ<b>متوسط متحرك</b>: <span class="mono" dir="ltr">μ ← ρ μ + (1 − ρ) μ̂</span>، والكتاب يستعمل ρ = ٠٫٩، أي ما يقارب آخر عشر دفعات (والصيغة نفسها سنراها في متوسط الأوزان في القسم ٧٫٦). وانتبه: PyTorch تسمي <span class="mono">momentum=0.1</span> ما نسميه هنا 1 − ρ. فالطبقة تتصرف بطريقتين، ولهذا يجب استدعاء <span class="mono" dir="ltr">model.eval()</span> قبل الاستدلال.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>def batch_norm(X, gamma, beta, moving_mean, moving_var, eps, momentum, training):</code><span>التطبيع الدفعي من الصفر:</span></div>
+    <div class="cl"><code>    if not training:</code><span>في الاستدلال:</span></div>
+    <div class="cl"><code>        X_hat = (X - moving_mean) / torch.sqrt(moving_var + eps)</code><span>طبّع بالإحصاءات المتحركة.</span></div>
+    <div class="cl"><code>    else:</code><span>في التدريب:</span></div>
+    <div class="cl"><code>        dims = 0 if len(X.shape) == 2 else (0, 2, 3)</code><span>طبقة كاملة: على الأمثلة. التفافية: على الأمثلة والطول والعرض، فمتوسط لكل قناة.</span></div>
+    <div class="cl"><code>        mean = X.mean(dim=dims, keepdim=True)</code><span>متوسط الدفعة.</span></div>
+    <div class="cl"><code>        var = ((X - mean) ** 2).mean(dim=dims, keepdim=True)</code><span>تباين الدفعة.</span></div>
+    <div class="cl"><code>        X_hat = (X - mean) / torch.sqrt(var + eps)</code><span>طبّع.</span></div>
+    <div class="cl"><code>        moving_mean = momentum * moving_mean + (1.0 - momentum) * mean</code><span>حدّث المتوسط المتحرك (هنا momentum هو ρ = 0.9).</span></div>
+    <div class="cl"><code>        moving_var = momentum * moving_var + (1.0 - momentum) * var</code><span>والتباين المتحرك.</span></div>
+    <div class="cl"><code>    Y = gamma * X_hat + beta</code><span>المقياس والإزاحة المتعلَّمان.</span></div>
+    <div class="cl"><code>    return Y, moving_mean.detach(), moving_var.detach()</code><span>الإحصاءات المتحركة «مخازن» لا معاملات: لا يمر فيها تدرّج، لكنها تُحفظ مع النموذج.</span></div>
+  </div>
+  <p>تجربة الكتاب: LeNet بالسيني مع تطبيع بعد كل طبقة (BNLeNet). أُزيلت الانحيازات قبل التطبيع لأنها تُطرح مع المتوسط على أي حال، وβ يقوم مقامها، فالزيادة ٢٢٦ معاملاً فقط. وبذروة ٠٫١ وجدول جيبي، LeNet العادية تتعثر (نحو ٦٠٪ بعد عشر حقب)، والمطبَّعة تتجاوز ٧٠٪ في الحقبة الأولى وتصل إلى نحو ٨٨٪. ومسح معدّلات التعلّم من ٠٫٠٣ إلى ١٠ يوضح السبب: LeNet العادية لا تعمل إلا في نطاق ضيق (نحو ١ إلى ٣، بدقة ٨٤–٨٧٪)، والمطبَّعة تعطي ٨٥٪ فأكثر في النطاق كله، ونحو ٩١٪ عند ١ فما فوق. التطبيع يوسّع نافذة معدّل التعلّم الصالح.</p>
+  <h3>تطبيع الطبقة والمجموعة والمثال</h3>
+  <p>عيب التطبيع الدفعي أنه يحتاج دفعات كبيرة لتكون الإحصاءات دقيقة، ويخلط الأمثلة ببعضها. والبدائل تختلف فقط في <b>المحاور التي يُحسب عليها المتوسط</b>. تخيّل المصفوفة: صفوف للأمثلة، وأعمدة للقنوات، وكل خانة تمثل كل المواقع المكانية لتلك القناة في ذلك المثال:</p>
+  <div class="w" id="ntBox"><div class="cap">أي الخانات تتشارك متوسطاً وتبايناً؟ (٤ أمثلة × ٨ قنوات؛ انقر أي خانة)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="seg" id="ntS" style="flex-wrap:wrap"><button data-v="bn" class="on">الدفعي</button><button data-v="ln">الطبقة</button><button data-v="gn">المجموعة (٤ قنوات)</button><button data-v="in">المثال</button></span></div>
+    <div class="tw" id="ntOut" style="margin-top:8px"></div><div class="calc" id="ntCalc"></div></div>
+  <p><b>تطبيع الطبقة</b> لا يعتمد على الدفعة، فيعمل مع مثال واحد، وهو المعيار في المحوّلات (ويأتي في كل كتلة من كتل المحوّل). و<b>تطبيع المجموعة</b> وسط بينهما. والأرقام التي ينقلها الكتاب عن وو وهي (٢٠١٨): بـ٣٢ صورة لكل معالج، خطأ ImageNet ‏٢٣٫٦٪ للدفعي و٢٤٫١٪ للمجموعة. أما بصورتين فقط لكل معالج فيقفز الدفعي إلى ٣٤٫٧٪، ويبقى تطبيع المجموعة ٢٤٫١٪ كما هو.</p>
+  <div class="xref"><b>في الكتاب الأول</b>تطبيع الطبقة داخل كل كتلة محوّل، مع الوصلات المتبقية: <a href="../slp/07-transformers.html">الفصل ٧: المحوّلات</a>.</div>
+</section>
+
+<!-- ============ 7.4 ============ -->
+<section class="sec" id="s7-4">
+  <header><div class="kicker">القسم ٧٫٤ <a class="pg" href="https://d2l.ai/chapter_convolutional-modern/resnet.html">d2l.ai ↗</a></div><h2>الشبكات المتبقية: ResNet وResNeXt وDenseNet</h2></header>
+  <div class="brief"><b>باختصار</b>شبكة عادية بـ٥٦ طبقة أسوأ من ٢٠ طبقة، حتى على بيانات التدريب: هذه ليست مشكلة إفراط في التطابق بل صعوبة تحسين. الحل: كل كتلة تحسب x + g(x)، فتعلّم الهوية سهل (g = 0)، والتدرّج يمر مباشرة. ResNeXt تقسّم الكتلة إلى مجموعات رخيصة، وDenseNet تلصق بدل أن تجمع.</div>
+  <div class="terms"><span>مشكلة التدهور <i>degradation problem</i></span><span>فئات الدوال المتداخلة <i>nested function classes</i></span><span>الكتلة المتبقية <i>residual block</i></span><span>الوصلة المختصرة <i>shortcut / skip connection</i></span><span>الالتفاف المجمّع <i>grouped convolution</i></span><span>معدّل النمو <i>growth rate</i></span></div>
+  <p>في ٢٠١٥ لاحظ هي وزملاؤه شيئاً غريباً على CIFAR-10: شبكة عادية بـ٥٦ طبقة خطؤها أعلى من شبكة بـ٢٠ طبقة، في التدريب نفسه لا في الاختبار فقط. وهذا مستحيل من حيث المبدأ: الشبكة الأعمق تستطيع أن تقلّد الأقصر بأن تجعل طبقاتها الإضافية «هوية» (تُخرج ما تأخذ). فالحل موجود، والتحسين لا يجده.</p>
+  <div class="math"><div class="mh"><span class="sym">ℱ ⊆ ℱ′</span>مفهوم رياضي · فئات الدوال المتداخلة</div><div class="mb">
+    <p>فكّر في كل بنية كـ«فئة دوال» ℱ: كل الدوال التي تستطيع تمثيلها بتغيير معاملاتها. توسيع البنية إلى ℱ′ يقرّبنا من الدالة المثالية <b>فقط</b> إن كانت ℱ′ تحتوي ℱ. وإلا فقد تكون الفئة الأكبر أبعد عن الهدف. فنريد بنية يكون فيها «إضافة كتلة» توسيعاً مضموناً: أي كتلة تستطيع أن تكون الهوية بسهولة.</p>
+    <p>والكتلة المتبقية تفعل ذلك: <span class="mono" dir="ltr">f(x) = x + g(x)</span>. الهوية تعني g = 0، وهذا قريب من التهيئة أصلاً. ومشتقة كتلتين متتاليتين:</p>
+    <div class="eq">∂f₂(f₁(x))/∂x = (I + ∂g₂)(I + ∂g₁) = I + ∂g₁ + ∂g₂ + ∂g₂∂g₁</div>
+    <p>فيها حد I يمر من المخرج إلى المدخل مباشرة، مهما صغرت مشتقات الفروع. وفي شبكة عادية المشتقة حاصل ضرب ∂g₂∂g₁ فقط، فيتلاشى أو ينفجر مع العمق.</p>
+  </div></div>
+  <div class="w" id="grBox"><div class="cap">طول التدرّج الواصل إلى كل طبقة من المخرج (من صنعنا: عرض ٣٢ وReLU، حساب حقيقي للمشتقات)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">مقياس التهيئة: <b id="grSo"></b> <input type="range" id="grS" min="60" max="140" step="5" value="85"></label><label class="note">عدد الطبقات: <b id="grLo"></b> <input type="range" id="grL" min="10" max="100" step="10" value="50"></label><button class="pill" id="grGo">عيّنة جديدة</button></div>
+    <div id="grPlot"></div><div class="calc" id="grCalc"></div></div>
+  <p>وتفسير آخر جميل: كل كتلة متبقية تقدّم خيارين للإشارة (الوصلة أو الفرع)، فـL كتلة تعطي ٢<sup>L</sup> مساراً بأطوال مختلفة. وعدد المسارات بطول k هو «ك من L»، فمعظمها متوسط الطول. فالشبكة المتبقية تتصرف كمجموعة من شبكات أقصر، وقد وجد فيت وآخرون أن حذف كتلة واحدة منها بعد التدريب لا يضرها كثيراً، بخلاف الشبكة العادية.</p>
+  <div class="w" id="paBox"><div class="cap">توزيع أطوال المسارات في شبكة متبقية من L كتلة</div>
+    <div class="row"><label class="note">L: <b id="paLo"></b> <input type="range" id="paL" min="2" max="54" step="1" value="18"></label></div>
+    <div id="paPlot"></div><div class="calc" id="paCalc"></div></div>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>class Residual(nn.Module):</code><span>كتلة ResNet:</span></div>
+    <div class="cl"><code>    def __init__(self, num_channels, use_1x1conv=False, strides=1):</code><span></span></div>
+    <div class="cl"><code>        self.conv1 = nn.LazyConv2d(num_channels, 3, padding=1, stride=strides, bias=False)</code><span>طبقتا 3×3 بلا انحياز (التطبيع بعدهما يلغيه).</span></div>
+    <div class="cl"><code>        self.conv2 = nn.LazyConv2d(num_channels, 3, padding=1, bias=False)</code><span></span></div>
+    <div class="cl"><code>        if use_1x1conv or strides != 1:</code><span>إن تغيّر الحجم أو القنوات…</span></div>
+    <div class="cl"><code>            self.conv3 = nn.LazyConv2d(num_channels, 1, stride=strides, bias=False)</code><span>…فالوصلة تحتاج 1×1 لتطابق الشكل، وإلا فهي هوية صافية.</span></div>
+    <div class="cl"><code>    def forward(self, X):</code><span></span></div>
+    <div class="cl"><code>        Y = F.relu(self.bn1(self.conv1(X)))</code><span>الفرع g: التفاف، تطبيع، ReLU…</span></div>
+    <div class="cl"><code>        Y = self.bn2(self.conv2(Y))</code><span>…التفاف، تطبيع.</span></div>
+    <div class="cl"><code>        if self.conv3: X = self.bn3(self.conv3(X))</code><span></span></div>
+    <div class="cl"><code>        return F.relu(Y + X)</code><span>اجمع الفرع والوصلة، ثم ReLU.</span></div>
+  </div>
+  <p>حيلة صغيرة مهمة: تهيئة γ لآخر تطبيع في كل فرع بـ<b>صفر</b>. فكل كتلة تبدأ هويةً تماماً، والشبكة العميقة تبدأ كأنها قصيرة، ثم «تفتح» فروعها تدريجياً.</p>
+  <p>تجربة الكتاب على Fashion-MNIST، بشبكات بعمق 6n + 2 لخمس حقب: الشبكة العادية بـ٢٠ طبقة تنهي بخسارة تدريب نحو ٠٫٢٠، والعادية بـ٥٦ أسوأ (٠٫٢٥–٠٫٣٠)، وهذا هو التدهور. أما المتبقية بـ٥٦ فأفضل من الكل (٠٫١٥–٠٫١٧)، والشبكات بعشرين طبقة كلها نحو ٠٫١٩. ودقة التحقق: العادية العميقة ٨٨–٩٠٪، والبقية ٩٠٫٥–٩١٫٥٪.</p>
+  <h3>ResNet-18</h3>
+  <p>البنية الكاملة: جذع (7×7 بخطوة ٢ ثم تجميع أعظمي)، ثم أربع مراحل في كل منها كتلتان، تتضاعف القنوات (٦٤، ١٢٨، ٢٥٦، ٥١٢) وينتصف الحجم عند بداية كل مرحلة، ثم تجميع شامل وطبقة خطية. ثماني عشرة طبقة بأوزان، و١١٫٢ مليون معامل. على مدخل 96×96 بلغت ٩٣٪، لكن خسارة التدريب نزلت تحت ٠٫٠١ وخسارة التحقق ٠٫٢٧: النموذج حفظ بيانات التدريب. مشكلة التحسين حُلّت، وصار الإفراط في التطابق هو القيد. وعلى ImageNet تفوقت ResNet-34 على ResNet-18 بنحو ثلاث نقاط، وفازت ResNet-152 بمسابقة ٢٠١٥.</p>
+  <h3>ResNeXt: الالتفاف المجمّع</h3>
+  <p>كتلة «عنق الزجاجة» في ResNet-50: ‏1×1 تقلل القنوات من c إلى b، ثم 3×3 على b، ثم 1×1 تعيدها إلى c. وResNeXt تقسّم الطبقة الوسطى إلى <b>g مجموعة</b> مستقلة: كل مجموعة ترى b/g قناة فقط. فكلفة الطبقة الوسطى تقل g مرة، ونستطيع إنفاق الوفر على عنق أعرض:</p>
+  <div class="w" id="rxBox"><div class="cap">كلفة كتلة عنق الزجاجة (عدد الأوزان) مع الالتفاف المجمّع</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">العرض c: <b id="rxCo"></b> <input type="range" id="rxC" min="64" max="512" step="64" value="256"></label><label class="note">العنق b: <b id="rxBo"></b> <input type="range" id="rxB" min="32" max="256" step="32" value="128"></label></div>
+    <div class="row"><span class="note">المجموعات g:</span><span class="seg" id="rxG" style="flex-wrap:wrap"><button data-v="1">1</button><button data-v="2">2</button><button data-v="4">4</button><button data-v="8">8</button><button data-v="16">16</button><button data-v="32" class="on">32</button></span></div>
+    <div id="rxOut" style="margin-top:8px"></div><div class="calc" id="rxCalc"></div></div>
+  <p>مقارنة الكتاب: كتلة ResNet-50 (‏c = ٢٥٦، b = ٦٤، g = ١) فيها ٦٩٬٦٣٢ وزناً. وكتلة ResNeXt (‏b = ١٢٨، g = ٣٢) فيها ٧٠٬١٤٤، أي الكلفة نفسها تقريباً بعنق ضعف العرض. ونزل خطأ ImageNet (top-1) من ٢٣٫٩٪ إلى ٢٢٫٢٪.</p>
+  <h3>DenseNet: الإلصاق بدل الجمع</h3>
+  <p>ResNet تجمع: <span class="mono" dir="ltr">x + g(x)</span>. وDenseNet تلصق على محور القنوات: <span class="mono" dir="ltr">[x, g(x)]</span>، فكل طبقة ترى مخرجات <b>كل</b> الطبقات قبلها في الكتلة. وكل طبقة تضيف عدداً ثابتاً من القنوات اسمه «معدّل النمو» (مثلاً ٣٢: ‏٦٤ ← ٩٦ ← ١٢٨ …). ولأن القنوات تكبر بلا توقف، تأتي بين الكتل «طبقات انتقال» (1×1 تقلل القنوات وتجميع متوسط ينصّف الحجم). وهي اقتصادية بالمعاملات، لكن الإلصاق يكلّف ذاكرة تنشيطات كبيرة.</p>
+  <div class="xref"><b>في الكتاب الأول</b>الوصلة المتبقية نفسها هي «مجرى البقايا» في المحوّل، وكل طبقة تضيف إليه ولا تستبدله: <a href="../slp/07-transformers.html">الفصل ٧: المحوّلات</a>.</div>
+</section>
+
+<!-- ============ 7.5 ============ -->
+<section class="sec" id="s7-5">
+  <header><div class="kicker">القسم ٧٫٥ <a class="pg" href="https://d2l.ai/chapter_convolutional-modern/efficient-convnets.html">d2l.ai ↗</a></div><h2>الشبكات الالتفافية الفعّالة</h2></header>
+  <div class="brief"><b>باختصار</b>على الهاتف، الزمن والذاكرة والبطارية قيود صارمة. الالتفاف العمقي المنفصل يقسم الطبقة إلى ترشيح مكاني لكل قناة وحدها ثم خلط قنوات بـ1×1، فتصير الكلفة <span class="mono" dir="ltr">1/cₒ + 1/k²</span> من الأصل. وMobileNet بُنيت عليه. ثم: التحجيم المركّب، والبحث الآلي عن البنى، وبوابات الضغط والإثارة، ودمج الفروع (RepVGG). والدرس الكبير: عدد العمليات ليس الزمن.</div>
+  <div class="terms"><span>الالتفاف العمقي <i>depthwise convolution</i></span><span>الالتفاف النقطي <i>pointwise convolution</i></span><span>الالتفاف العمقي المنفصل <i>depthwise-separable</i></span><span>عنق الزجاجة المقلوب <i>inverted bottleneck</i></span><span>التحجيم المركّب <i>compound scaling</i></span><span>البحث عن البنى <i>NAS</i></span><span>الضغط والإثارة <i>squeeze-and-excitation</i></span><span>إعادة المعلمة البنيوية <i>structural re-parameterization</i></span><span>التكميم <i>quantization</i></span></div>
+  <p>هاتف يصنّف صور الكاميرا لحظياً: VGG-16 تحتاج ١٥٫٣ مليار عملية ضرب-جمع للإطار الواحد، أي ٤٦٠ ملياراً في الثانية بثلاثين إطاراً، ومعاملاتها الـ١٣٨ مليوناً تأخذ ٥٥٠ ميغابايت من الذاكرة. نحتاج تخفيضاً بمرتبة كاملة على الأقل.</p>
+  <h3>الالتفاف العمقي المنفصل</h3>
+  <p>في ResNeXt قسمنا القنوات إلى g مجموعة. فلنذهب إلى أقصى ذلك: كل قناة مجموعة وحدها (g = cᵢ). هذا <b>الالتفاف العمقي</b>: نافذة k×k لكل قناة وحدها، بلا أي خلط بين القنوات. وهو عكس الالتفاف 1×1 تماماً، الذي يخلط كل القنوات عند كل بكسل بلا أي نظر مكاني. فإن ربطناهما (عمقي ثم 1×1 «نقطي») حصلنا على الأمرين بخطوتين رخيصتين.</p>
+  <div class="math"><div class="mh"><span class="sym">1/cₒ + 1/k²</span>مفهوم رياضي · كم نوفر؟</div><div class="mb">
+    <p>لخريطة مخرج h×w: الالتفاف الكثيف يكلّف <span class="mono" dir="ltr">hw·cᵢcₒk²</span>. والزوج المنفصل يكلّف <span class="mono" dir="ltr">hw·cᵢk²</span> (عمقي) + <span class="mono" dir="ltr">hw·cᵢcₒ</span> (نقطي). والنسبة بينهما:</p>
+    <div class="eq">(cᵢk² + cᵢcₒ) / (cᵢcₒk²) = 1/cₒ + 1/k²</div>
+    <p>مع k = 3 وقنوات كثيرة تقترب النسبة من ١/٩: نحو تسعة أضعاف أقل في الحساب والأوزان معاً. والثمن قيد على شكل النواة: كل نوى المخرج تستعمل المرشح المكاني نفسه على القناة c (مضروباً في عدد): <span class="mono" dir="ltr">K<sub>o,c</sub> = P<sub>o,c</sub> D<sub>c</sub></span>. والالتفاف الكثيف حر في أن يتعلّم مرشحاً مستقلاً لكل زوج.</p>
+  </div></div>
+  <div class="w" id="dwBox"><div class="cap">حاسبة الالتفاف الكثيف مقابل المنفصل (عدد الأوزان؛ ونسبة العمليات هي نفسها)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">cᵢ: <b id="dwIo"></b> <input type="range" id="dwI" min="1" max="512" value="128"></label><label class="note">cₒ: <b id="dwOo"></b> <input type="range" id="dwO" min="1" max="512" value="128"></label></div>
+    <div class="row"><span class="note">k:</span><span class="seg" id="dwK"><button data-v="3" class="on">3</button><button data-v="5">5</button><button data-v="7">7</button></span><button class="pill" id="dwEx">مثال الكتاب 3، 3، 3</button></div>
+    <div id="dwOut" style="margin-top:8px"></div><div class="calc" id="dwCalc"></div></div>
+  <p><b>MobileNet</b> (٢٠١٧) بنت شبكة كاملة من هذه الكتل (عمقي 3×3 ثم نقطي 1×1، مع تطبيع وReLU بعد كل منهما)، والتصغير بخطوة ٢ في الطبقة العمقية بدل التجميع، ورأس NiN. وعلى ImageNet اقتربت من VGG-16 بنقطة واحدة (٧٠٫٦٪ مقابل ٧١٫٥٪) بـ٠٫٥٧ مليار عملية و٤٫٢ مليون معامل: حساب أقل ٢٧ مرة ومعاملات أقل ٣٣ مرة.</p>
+  <h3>عنق الزجاجة المقلوب</h3>
+  <p>عنق زجاجة ResNet <b>يضيّق</b> القنوات قبل 3×3 لأن 3×3 الكثيف غالٍ. لكن الطبقة العمقية رخيصة حتى على قنوات كثيرة، وتستفيد من العرض لأنها تتعلّم مرشحاً واحداً لكل قناة. فقلبت MobileNetV2 الفكرة: المجرى المتبقي ضيق (٢٤ قناة)، وداخل الكتلة نوسّعه ست مرات إلى ١٤٤ بـ1×1، ثم عمقي 3×3، ثم إسقاط 1×1 <b>خطي</b> إلى ٢٤. ولماذا بلا ReLU في الأخير؟ لأن ReLU على ٢٤ بعداً فقط يصفّر الإحداثيات السالبة ويضيّع معلومات لا تعود. وفائدة المجرى الضيق: التنشيطات التي يجب حفظها بين الكتل صغيرة، وهذا ما يحدد ذروة الذاكرة على الجهاز.</p>
+  <h3>العمليات والدقة والزمن</h3>
+  <p>بنى الكتاب MiniMobileNet صغيرة، وقارنها بشبكة كثيفة بأسلوب VGG <b>بعدد المعاملات نفسه</b>، وبأخرى مضيَّقة <b>بعدد العمليات نفسه</b>، على Fashion-MNIST بحجم 96×96 لعشر حقب. وقاس زمن التمرير الأمامي فعلياً على معالج رسومي:</p>
+  <div class="scroll"><table class="tb">
+    <tr><th>النموذج</th><th>المعاملات</th><th>العمليات</th><th>دقة التحقق</th><th>الزمن (نسبةً إلى MiniMobileNet)</th></tr>
+    <tr><td>MiniMobileNet</td><td>٥٤٢٬٤٧٤</td><td>٥٠٫٣ مليون</td><td>٩١–٩٢٪</td><td>١</td></tr>
+    <tr><td>كثيفة بأسلوب VGG</td><td>٥٨٣٬٥٩٤</td><td>٣٨٤٫٩ مليون</td><td>٩٣٫٥–٩٤٪</td><td>٢–٣٫٥</td></tr>
+    <tr><td>كثيفة مضيَّقة (قنوات 11، 23، 46، 46)</td><td>٧٥٬٨٥٤</td><td>٤٩٫١ مليون</td><td>٩٣٪</td><td>٠٫٥–٠٫٨</td></tr>
+  </table></div>
+  <p>ثلاثة دروس. <b>أولاً</b>: تساوي المعاملات ليس تساوي الحساب؛ الكثيفة أدق بنقطتين لكنها تعمل ٧٫٧ مرة أكثر. <b>ثانياً</b>: بالحساب نفسه وعلى مهمة صغيرة، التضييق غلب التفكيك (دقة أعلى وزمن أقل)، لأن التوفير العمقي يكون كبيراً حين تكثر القنوات (٥ مرات عند ١١ قناة، ونحو ٩ عند ٥١٢)، وعشرة أصناف لا تحتاج قنوات كثيرة، بخلاف ألف صنف في ImageNet. <b>ثالثاً</b>: عمليات أقل ٧٫٧ مرة أعطت تسريعاً ٢–٣٫٥ مرة فقط. فالطبقة 3×3 الكثيفة تؤدي 9cₒ عملية لكل قيمة تقرؤها من الذاكرة، والعمقية ٩ عمليات فقط. فالمعالج ينتظر الذاكرة لا الحساب. تذكّر الفصل الخامس: عرض نطاق الذاكرة قيد مستقل.</p>
+  <h3>التحجيم والبحث</h3>
+  <p>إن كان لدينا حساب أكثر، فكيف نكبّر الشبكة؟ الحساب يتناسب خطياً مع العمق، وتربيعياً مع العرض (cᵢcₒ)، وتربيعياً مع دقة الصورة (hw). وتكبير بُعد واحد وحده يصل إلى عائد متناقص سريعاً. <b>التحجيم المركّب</b> في EfficientNet يكبّر الثلاثة معاً بقانون واحد:</p>
+  <div class="w" id="cmBox"><div class="cap">التحجيم المركّب: كل خطوة تضرب العمق في ١٫٢ والعرض في ١٫١ والدقة في ١٫١٥</div>
+    <div class="row"><label class="note">عدد الخطوات φ: <b id="cmPo"></b> <input type="range" id="cmP" min="0" max="7" value="3"></label></div>
+    <div id="cmOut" style="margin-top:8px"></div><div class="calc" id="cmCalc"></div></div>
+  <p>والشبكة الأساس نفسها صُممت بـ<b>البحث الآلي عن البنى</b>: خوارزمية تجرّب توزيعات للعمق والعرض والدقة على مراحل، وتحسّن هدفاً يوازن الدقة والعمليات. وفي EfficientNetV2 وُضع زمن التدريب الفعلي في الهدف بدل عدد العمليات، فاختار البحث وحده طبقات 3×3 <b>كثيفة</b> في المراحل الأولى عالية الدقة، لأنها أسرع على المعالجات رغم عملياتها الأكثر. التجربة نفسها التي رأيناها في الجدول.</p>
+  <h3>بوابات الضغط والإثارة</h3>
+  <p>الالتفاف ينظر إلى نافذة محلية فقط. وبوابة الضغط والإثارة (SE) تعطيه نظرة شاملة رخيصة: <b>تضغط</b> كل قناة إلى رقم واحد (متوسطها على الصورة كلها)، ثم تمرر المتجه (c رقماً) في شبكة صغيرة من طبقتين (عرض c/r مع ReLU، ثم c مع السيني)، فتخرج «بوابة» بين ٠ و١ لكل قناة، ثم تضرب كل قناة في بوابتها. فالشبكة تقرر، بحسب محتوى الصورة كلها، أي القنوات تُبرز وأيها تُخفت. وكلفتها نحو 2c²/r وزن فقط (مع c = ٣٢ وr = ٤: ‏٥١٢ وزناً و٤٠ انحيازاً)، وتعمل على متجه واحد لكل صورة لا على كل بكسل. وهي شكل بدائي من «الانتباه» الذي سنراه لاحقاً.</p>
+  <h3>إعادة المعلمة البنيوية: RepVGG</h3>
+  <p>الفروع المتوازية (كما في ResNet) تسهّل التدريب، لكنها تبطئ الاستدلال: كل فرع يُطلق وحده، وكل مخرجاته تبقى في الذاكرة حتى الجمع. وكومة 3×3 متتالية عكسها: نواة واحدة سريعة لكل طبقة. RepVGG تأخذ الأمرين: في التدريب، كل طبقة مجموع ثلاثة فروع (3×3، و1×1، وهوية)، لكل منها تطبيع دفعي. وبعد التدريب، كلها خطية في المدخل، فتُدمج جبرياً في <b>طبقة 3×3 واحدة</b> تحسب الدالة نفسها تماماً.</p>
+  <div class="math"><div class="mh"><span class="sym">Ŵ, b̂</span>مفهوم رياضي · ثلاث خطوات للدمج</div><div class="mb">
+    <p><b>١. ادمج التطبيع في الالتفاف.</b> في الاستدلال، التطبيع دالة تآلفية ثابتة لكل قناة مخرج o، فتمتصها النواة:</p>
+    <div class="eq">Ŵ<sub>o</sub> = γ<sub>o</sub> / √(σ<sub>o</sub>² + ε) · W<sub>o</sub> &nbsp;&nbsp;&nbsp; b̂<sub>o</sub> = β<sub>o</sub> + γ<sub>o</sub> (b<sub>o</sub> − μ<sub>o</sub>) / √(σ<sub>o</sub>² + ε)</div>
+    <p>مثال الكتاب: γ = ٢، σ² + ε = ١٦، μ = ١، β = ١، b = ٠، فتصير النواة W/٢ والانحياز ١ − ٠٫٥ = ٠٫٥. (وهذا الدمج يفعله كل مترجم استدلال لأي التفاف يليه تطبيع.)</p>
+    <p><b>٢. اجعل كل الفروع 3×3.</b> نواة 1×1 هي نواة 3×3 أصفار حول مركزها. والهوية نواة 3×3 فيها ١ في المركز حين تكون قناة المدخل هي قناة المخرج، وأصفار في كل مكان آخر.</p>
+    <p><b>٣. اجمع.</b> الالتفاف خطي، فمجموع ثلاثة التفافات على المدخل نفسه = التفاف واحد بمجموع النوى ومجموع الانحيازات.</p>
+  </div></div>
+  <div class="w" id="rpBox"><div class="cap">ادمج الفروع الثلاثة وتحقق (قناة واحدة، مدخل 6×6 عشوائي، حساب حقيقي)</div>
+    <div class="row"><button class="pill" id="rpGo">قيم عشوائية جديدة</button></div>
+    <div class="tw" id="rpOut" style="margin-top:8px"></div><div class="calc" id="rpCalc"></div></div>
+  <p>في الكتاب، الفرق بين الكتلة متعددة الفروع والطبقة المدمجة نحو ١٠⁻⁶ (تقريب الأعداد العشرية فقط). والأوزان تنقص عُشراً فقط (من 10c² إلى 9c²)، لكن التنفيذ يتبسط كثيراً: التفاف واحد ومخزن تنشيطات واحد بدل التفافين وثلاثة تطبيعات وجمعين وثلاثة مخازن.</p>
+  <p>وتنبيه مهم من الواقع: الأجهزة الطرفية تحوّل الأوزان والتنشيطات إلى أعداد صحيحة بثمانية بتات (٢٥٦ مستوى فقط). والنواة المدمجة تجمع ثلاثة فروع قد تختلف مقاييسها بمراتب، فيصير مداها طويل الذيل، وتمثّله المستويات الـ٢٥٦ تمثيلاً سيئاً. فالتكميم الساذج أسقط RepVGG-B0 من ٧٥٫١٪ إلى ٤٠٫٢٪، بينما تخسر ResNet أقل من نقطة. التكافؤ الدقيق بأعداد ٣٢ بتاً لا يضمن التكافؤ بدقة منخفضة.</p>
+</section>
+
+<!-- ============ 7.6 ============ -->
+<section class="sec" id="s7-6">
+  <header><div class="kicker">القسم ٧٫٦ <a class="pg" href="https://d2l.ai/chapter_convolutional-modern/training-recipes.html">d2l.ai ↗</a></div><h2>وصفات التدريب الحديثة</h2></header>
+  <div class="brief"><b>باختصار</b>«الوصفة» هي كل ما حول البنية: المحسِّن، وجدول معدّل التعلّم، وزيادة البيانات، والتنظيم، ومدة التدريب. وصفة حديثة رفعت ResNet-50 من ٧٦٫١٪ إلى ٨٠٫٤٪ دون تغيير طبقة واحدة. فكل مقارنة بين بنيتين بوصفتين مختلفتين مقارنة غير عادلة. والمكونات: AdamW، والإحماء الجيبي، وتنعيم الوسوم، وMixup وCutMix، والعمق العشوائي، ومتوسط الأوزان.</div>
+  <div class="terms"><span>وصفة التدريب <i>training recipe</i></span><span>AdamW</span><span>تنعيم الوسوم <i>label smoothing</i></span><span>Mixup</span><span>CutMix</span><span>العمق العشوائي <i>stochastic depth</i></span><span>المتوسط الأسي للأوزان <i>EMA</i></span><span>الاستئصال <i>ablation</i></span></div>
+  <p>ثبّتنا الوصفة في كل قسم سابق حتى ننسب الفروق إلى البنية. لكن الأوراق المنشورة كثيراً ما تفعل العكس: بنية جديدة بأحدث الحيل، تُقارن بأرقام بنية قديمة منسوخة من ورقة عمرها سنوات. ويتمان وزملاؤه (٢٠٢١) أعادوا تدريب ResNet-50 كما هي، بوصفة حديثة، فارتفعت من ٧٦٫١٪ إلى ٨٠٫٤٪: ‏٤٫٣ نقطة من الوصفة وحدها، وهذا يفوق ما ادعته بنى «جديدة» كثيرة في تلك السنوات.</p>
+  <div class="scroll"><table class="tb">
+    <tr><th>المكوّن</th><th>وصفة ٢٠١٥</th><th>وصفة نموذجية ٢٠٢٢</th></tr>
+    <tr><td>المحسِّن</td><td>SGD مع زخم</td><td>AdamW أو LAMB (وSGD المضبوط يبقى منافساً)</td></tr>
+    <tr><td>الجدول</td><td>درجي (القسمة على ١٠ مرتين)</td><td>جيبي مع إحماء خطي</td></tr>
+    <tr><td>زيادة البيانات</td><td>قصّ عشوائي وانعكاس</td><td>RandAugment وMixup وCutMix والمسح العشوائي</td></tr>
+    <tr><td>التنظيم</td><td>تخميد الأوزان</td><td>+ تنعيم الوسوم والعمق العشوائي</td></tr>
+    <tr><td>المدة</td><td>٩٠ حقبة</td><td>٣٠٠ إلى ٦٠٠ حقبة</td></tr>
+    <tr><td>الأوزان المقيَّمة</td><td>الأخيرة</td><td>متوسط أسي متحرك للأوزان</td></tr>
+  </table></div>
+  <p>والصفوف مترابطة: الزيادة والتنظيم الأقوى يجعلان هدف التدريب أصعب، فيحتاجان حقباً أكثر. وزيادة ثقيلة على تدريب قصير كثيراً ما <b>تضر</b>. و<b>AdamW</b>: ‏Adam (الفصل التاسع) يقسم تدرّج كل معامل على تقدير لحجمه. والتطبيقات القديمة كانت تضيف تخميد الأوزان إلى التدرّج قبل هذه القسمة، فيتشوه. وAdamW تفصله: تقلّص كل وزن مباشرة بنسبة (معدّل التعلّم × التخميد).</p>
+  <h3>تنعيم الوسوم</h3>
+  <p>مع الهدف الواحد-الساخن، خسارة المثال المصنّف صحيحاً تستمر في النزول ما دام لوجت الصنف الصحيح يكبر، بلا حد. فلا يوجد لوجت محدود يحقق أصغر خسارة، والشبكة تُدفع دائماً إلى ثقة مفرطة. تنعيم الوسوم يجعل الهدف 1 − ε على الصنف الصحيح، ويوزع ε بالتساوي على كل الأصناف K:</p>
+  <div class="eq">l<sub>ε</sub> = −(1 − ε) log p<sub>y</sub> − (ε/K) Σ<sub>k</sub> log p<sub>k</sub></div>
+  <p>الحد الثاني يعاقب دفع أي احتمال إلى الصفر. فأصغر خسارة عند <span class="mono" dir="ltr">p<sub>y</sub> = 1 − ε + ε/K</span>، أي عند فارق محدود بين اللوجتات. جرّب:</p>
+  <div class="w" id="lsBox"><div class="cap">الخسارة مقابل فارق لوجت الصنف الصحيح عن الآخرين (ثلاثة أصناف)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">الفارق m: <b id="lsMo"></b> <input type="range" id="lsM" min="0" max="120" value="100"></label><label class="note">ε: <b id="lsEo"></b> <input type="range" id="lsE" min="0" max="30" value="10"></label></div>
+    <div id="lsPlot"></div><div class="calc" id="lsCalc"></div></div>
+  <h3>الإحماء الجيبي، مرة أخرى</h3>
+  <p>هو الجدول نفسه من القسم ٧٫١ (ارجع إلى الأداة هناك واختر «مع الدرجي» للمقارنة). وفائدة إضافية للإحماء: يعطي الإحصاءات المتحركة للتطبيع، وتقديرات Adam لحجم التدرّجات، وقتاً لتستقر قبل الخطوات الكاملة.</p>
+  <h3>Mixup وCutMix</h3>
+  <p><b>Mixup</b> يدرّب على خلطات من أزواج الأمثلة: نسحب λ من توزيع بيتا <span class="mono" dir="ltr">Beta(α, α)</span>، ونخلط الصورتين والوسمين بالنسبة نفسها:</p>
+  <div class="eq">x̃ = λ xᵢ + (1 − λ) xⱼ &nbsp;&nbsp;&nbsp;&nbsp; ỹ = λ yᵢ + (1 − λ) yⱼ</div>
+  <p>فالوسم صار توزيعاً ناعماً. ولأن الإنتروبيا التقاطعية خطية في الهدف، فخسارتها على ỹ تساوي λ × خسارة yᵢ + ‏(1 − λ) × خسارة yⱼ. وهذا يشجّع النموذج على أن يتنبأ «خطياً بين» أمثلة التدريب، بدل أن يحفظ كل نقطة بحدود حادة. و<b>CutMix</b> يخلط مكانياً: يقص مستطيلاً من صورة ويلصقه على أخرى، والوسم بنسبة المساحة، فتبقى كل بكسلات الصورة واقعية محلياً.</p>
+  <div class="w" id="mxBox"><div class="cap">قطعتان من صنعنا، وخلطهما (والمدرّج: توزيع λ لـ٢٠٠٠ سحبة)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">α: <b id="mxAo"></b> <input type="range" id="mxA" min="1" max="40" value="20"></label><button class="pill" id="mxGo">اسحب λ جديدة</button></div>
+    <div class="tw" id="mxOut" style="margin-top:8px"></div><div id="mxPlot"></div><div class="calc" id="mxCalc"></div></div>
+  <p>جرّب α صغيرة (٠٫٢، القيمة المعتادة في التدريب): معظم السحبات قرب ٠ أو ١، فمعظم الدفعات بالكاد تتغير وقليل منها يُخلط بقوة. وα = ٢ (التي استعملها الكتاب للعرض) تجمع λ حول النصف.</p>
+  <h3>العمق العشوائي</h3>
+  <p>الإسقاط يصفّر تنشيطات مفردة؛ و<b>العمق العشوائي</b> يسقط <b>فرعاً متبقياً كاملاً</b>: باحتمال p تمرر الكتلة مدخلها كما هو. والوصلة المتبقية تضمن أن الإشارة تمر دائماً. وكما في الإسقاط المقلوب نقسم على 1 − p حتى يبقى المتوقَّع كما هو:</p>
+  <div class="eq">x + (b / (1 − p)) f(x), &nbsp;&nbsp; b ∼ Bernoulli(1 − p)</div>
+  <p>فالشبكة تتدرب كمجموعة من شبكات أقصر (تذكّر توزيع المسارات في القسم ٧٫٤). وعادة يزيد p خطياً من صفر في أول كتلة إلى ٠٫١–٠٫٥ في آخرها.</p>
+  <h3>متوسط الأوزان</h3>
+  <p>قرب نهاية التدريب تتذبذب الأوزان حول قاع الوادي بسبب ضجيج الدفعات الصغيرة، ومتوسط الأوزان الأخيرة أقرب إلى المركز من أي نقطة منفردة. فنحتفظ بنسخة ظل تُحدَّث بعد كل خطوة بالصيغة نفسها التي رأيناها في التطبيع الدفعي: <span class="mono" dir="ltr">θ̄ ← ρ θ̄ + (1 − ρ) θ</span>. والوزن الذي عمره k خطوة يأخذ <span class="mono" dir="ltr">(1 − ρ)ρᵏ</span>، فالأفق نحو <span class="mono" dir="ltr">1/(1 − ρ)</span> خطوة. والتدريب يحدّث θ كالمعتاد، والتقييم يستعمل θ̄.</p>
+  <div class="w" id="emBox"><div class="cap">وزن واحد يصعد من ٠ إلى ١ في ٥٠ خطوة ثم يتذبذب حول ١ (تجربة الكتاب تجري في متصفحك)</div>
+    <div class="row"><span class="note">ρ:</span><span class="seg" id="emS"><button data-v="0.5">0.5</button><button data-v="0.9" class="on">0.9</button><button data-v="0.97">0.97</button><button data-v="0.99">0.99</button></span></div>
+    <div id="emPlot"></div><div class="calc" id="emCalc"></div></div>
+  <p>المأزق واضح: ρ كبيرة تنعّم أكثر لكنها تتأخر. فعند ٠٫٩٩ تبقى النسخة الظل نحو ٢٠٪ تحت ١ بعد ٢٠٠ خطوة. والقيم الكبيرة جداً (٠٫٩٩٩ و٠٫٩٩٩٩) للتدريبات الطويلة فقط.</p>
+  <h3>وصفتان على شبكة واحدة</h3>
+  <p>التجربة: ResNet-18 نفسها، على ١٠٬٠٠٠ صورة من Fashion-MNIST فقط (القلة تكبّر دور التنظيم)، بحجم 96×96. <b>الوصفة أ</b> (٢٠١٥): ‏SGD بزخم ٠٫٩ وتخميد ‏5×10⁻⁴، وذروة ٠٫٠٥ بإحماء حقبتين، ثم قسمة على ١٠ عند ٦٠٪ و٨٥٪ من التدريب، و٣٠ حقبة. (وبلا الإحماء القصير انفجر التدريب في الحقبة الأولى في نحو ثلث المحاولات.) و<b>الوصفة الحديثة المختصرة</b>: ‏AdamW بتخميد ٠٫٠٥، وذروة ٠٫٠٠٢ بإحماء ثلاث حقب وتخميد جيبي، وتنعيم ε = ٠٫١، وMixup ‏α = ٠٫٢، و٤٥ حقبة (بلا RandAugment ولا CutMix ولا العمق العشوائي ولا المتوسط).</p>
+  <p>ولا يخدعك فرق المئة مرة بين رقمي التخميد: التقلص الفعلي لكل خطوة هو معدّل التعلّم × التخميد: ‏٠٫٠٠٢ × ٠٫٠٥ = ‏10⁻⁴ لـAdamW، و٠٫٠٥ × ‏5×10⁻⁴ = ‏2.5×10⁻⁵ لـSGD، والزخم يضخّم ذلك حتى عشر مرات.</p>
+  <div class="scroll"><table class="tb">
+    <tr><th>الوصفة</th><th>الحقب</th><th>دقة التحقق</th></tr>
+    <tr><td>أ (٢٠١٥): ‏SGD وإحماء وتخميد درجي</td><td>٣٠</td><td>٨٩–٩٠٫٥٪</td></tr>
+    <tr><td>حديثة مختصرة: ‏AdamW وجيبي وتنعيم وMixup</td><td>٤٥</td><td>٩٠٫٥–٩١٪</td></tr>
+  </table></div>
+  <p>في كل زوج تجارب على العينة نفسها تفوقت الحديثة بنصف نقطة إلى نقطة ونصف. وثلاثة دروس عملية: (١) المقارنة «المجمّعة» لا تقول أي مكوّن أفاد؛ لذلك يلزم <b>استئصال</b> مكوّن واحد كل مرة، ومع تغيير المحسِّن يجب إعادة ضبط معدّل التعلّم (الفرق هنا ٢٥ مرة). (٢) لا تقارن خسائر التدريب بين وصفتين: مع الوصفة أ تنزل خسارة التدريب قرب الصفر وترتد خسارة التحقق إلى ٠٫٤–٠٫٥ (ثقة مفرطة)، ومع الحديثة تبقى خسارة التدريب <b>أعلى</b> من التحقق لأن Mixup والتنعيم يجعلان هدف التدريب أصعب. (٣) حين تقرأ لوحات النتائج المنشورة: فرق نقطة واحدة على خط أساس منسوخ من ورقة قديمة يخلط الوصفة بالبنية.</p>
+  <div class="xref"><b>في الكتاب الأول</b>الإنتروبيا التقاطعية والتنظيم في تدريب الشبكات العصبية للغة: <a href="../slp/06-neural-networks.html">الفصل ٦: الشبكات العصبية</a>.</div>
+</section>
+
+<!-- ============ 7.7 ============ -->
+<section class="sec" id="s7-7">
+  <header><div class="kicker">القسم ٧٫٧ <a class="pg" href="https://d2l.ai/chapter_convolutional-modern/convnext.html">d2l.ai ↗</a></div><h2>ConvNeXt: تحديث ResNet خطوة خطوة</h2></header>
+  <div class="brief"><b>باختصار</b>في ٢٠٢١ تفوقت محوّلات الرؤية (Swin) على ResNet-50 بخمس نقاط. فهل السبب «الانتباه»؟ ليو وزملاؤه أخذوا ResNet-50 وأدخلوا عليها تفاصيل Swin واحدة واحدة، بلا انتباه، فوصلوا إلى ٨٢٫٠٪ وتجاوزوا Swin. ونصف الفرق تقريباً جاء من وصفة التدريب وحدها.</div>
+  <div class="terms"><span>محوّل الرؤية <i>vision transformer (ViT)</i></span><span>خارطة التحديث <i>modernization roadmap</i></span><span>جذع التقطيع <i>patchify stem</i></span><span>GELU</span><span>مقياس الطبقة <i>layer scale</i></span><span>طبقة تصغير منفصلة <i>separate downsampling</i></span></div>
+  <p><b>محوّل الرؤية</b> باختصار (يأتي بتفصيل في فصل المحوّلات): يقطّع الصورة رقعاً، ويحوّل كل رقعة إلى متجه، ويمرر التسلسل في كتل متماثلة. وكل كتلة طبقتان: «انتباه» يجعل كل رقعة تأخذ متوسطاً موزوناً من الرقع الأخرى بأوزان تعتمد على المحتوى، ثم شبكة صغيرة تعمل على كل رقعة وحدها. وSwin أعادت البنية الهرمية للشبكات الالتفافية: انتباه داخل نوافذ محلية 7×7، وتصغير بين المراحل. وبعد القسم السابق يجب أن نشك: Swin تختلف عن ResNet ٢٠١٥ في عشرات الأشياء غير الانتباه.</p>
+  <div class="w" id="cnBox"><div class="cap">خارطة ConvNeXt على ImageNet (كل خطوة تتراكم فوق ما قبلها، والكلفة ثابتة تقريباً، ‏≈ ٤٫٥ مليار عملية)</div>
+    <div class="row"><label class="note">الخطوة: <b id="cnSo"></b> <input type="range" id="cnS" min="0" max="11" value="11"></label></div>
+    <div id="cnOut" style="margin-top:8px"></div><div class="calc" id="cnCalc"></div></div>
+  <p>أول خطوة أكبرها: الوصفة الحديثة وحدها تضيف ٢٫٧ نقطة دون لمس طبقة واحدة. فمن الفرق الكلي (٥٫٩ نقطة) جاء ٢٫٧ من التدريب و٣٫٢ من البنية بهذا الترتيب. والمقارنة الأصلية بين محوّل حديث وResNet بوصفة ٢٠١٥ كانت تخلط الأمرين.</p>
+  <h3>البنية الكبرى</h3>
+  <p>Swin توزع كتلها على المراحل الأربع بنسبة 1:1:3:1، أي أعمق مرحلة هي الثالثة حيث الخرائط صغيرة والحساب رخيص؛ فصار (٣، ٤، ٦، ٣) في ResNet-50 (٣، ٣، ٩، ٣). والجذع: محوّل الرؤية يقطّع الصورة رقعاً منفصلة ويضرب كل رقعة في المصفوفة نفسها، وهذا جبرياً <b>التفاف 4×4 بخطوة ٤</b> (التقطيع إلى رقع من الفصل السادس). فاستُبدل به جذع ResNet (7×7 بخطوة ٢ ثم تجميع).</p>
+  <h3>الالتفاف العمقي وعنق الزجاجة المقلوب</h3>
+  <p>كتلة المحوّل تفصل العمل إلى مرحلتين: الانتباه يخلط <b>عبر المواقع</b>، والشبكة الصغيرة تخلط <b>عبر القنوات</b> عند كل موقع. والشبكة الالتفافية تستطيع الفصل نفسه: العمقي يخلط مكانياً داخل كل قناة، و1×1 يخلط القنوات. فصار 3×3 في ResNet عمقياً، ومن الوفر وُسّعت المرحلة الأولى من ٦٤ إلى ٩٦ قناة. ثم عنق زجاجة مقلوب بتوسيع أربع مرات (1× ← 4× ← 1×، شكل شبكة المحوّل نفسه).</p>
+  <p>ثم كبُرت النواة: نُقلت الطبقة العمقية إلى بداية الكتلة (فتعمل على c قناة لا 4c)، وهذا أنقص ٠٫٧ نقطة (الهبوط الوحيد في الخارطة)، ثم كُبّرت من 3×3 إلى 7×7 فعادت الدقة. لكن ثلاث طبقات 3×3 ترى 7×7 أيضاً، فلماذا تفيد النواة الكبيرة؟ تذكّر عدّ المسارات في الفصل السادس: في الكومة، البكسل المركزي يصل بمسارات أكثر بكثير من بكسل الطرف، فـ«المجال الفعّال» جرسي وأضيق من النظري. أما نواة 7×7 واحدة فتعطي كل موقع في النافذة الوزن الذي تتعلّمه. وكانت 7×7 الكثيفة غالية في VGG (‏k²cᵢcₒ)، أما العمقية (‏k²c) فتكبيرها يضرب جزءاً صغيراً من الكلفة في ‏49/9 ≈ ٥. وتشبع الدقة عند 7×7، وهي حجم نافذة الانتباه في Swin.</p>
+  <h3>التفاصيل الصغرى</h3>
+  <p>استبدال ReLU بـGELU لم يغيّر شيئاً وحده. الذي أفاد: <b>تقليل عدد</b> اللاخطيات والتطبيعات. كتلة ResNet فيها تطبيع ولاخطية بعد كل التفاف (ثلاثة من كل)، وكتلة المحوّل فيها لاخطية واحدة. فإبقاء GELU واحد بين طبقتي 1×1 أضاف ٠٫٧ نقطة، وهو أكبر مكسب في هذه المجموعة (ولا يوجد تفسير نظري واضح لذلك؛ هو نتيجة تجريبية). ثم تطبيع واحد بدل ثلاثة، ثم تطبيع الطبقة بدل الدفعي. وأخيراً طبقات تصغير منفصلة بين المراحل (تطبيع طبقة ثم التفاف 2×2 بخطوة ٢) بدل التصغير داخل أول كتلة.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>class ConvNeXtBlock(nn.Module):</code><span>كتلة ConvNeXt:</span></div>
+    <div class="cl"><code>    def __init__(self, dim, drop_prob=0.0, layer_scale=1e-6, norm=LayerNorm2d):</code><span></span></div>
+    <div class="cl"><code>        self.dwconv = nn.Conv2d(dim, dim, kernel_size=7, padding=3, groups=dim)</code><span>عمقي 7×7: ‏groups = عدد القنوات.</span></div>
+    <div class="cl"><code>        self.norm = norm(dim)</code><span>تطبيع واحد فقط (تطبيع الطبقة على القنوات عند كل موقع).</span></div>
+    <div class="cl"><code>        self.pwconv1 = nn.Linear(dim, 4 * dim)</code><span>1×1 توسيع إلى 4c (طبقة خطية على محور القنوات).</span></div>
+    <div class="cl"><code>        self.pwconv2 = nn.Linear(4 * dim, dim)</code><span>1×1 إعادة إلى c.</span></div>
+    <div class="cl"><code>        self.gamma = nn.Parameter(layer_scale * torch.ones(dim))</code><span>مقياس الطبقة: يبدأ ‏10⁻⁶، فكل كتلة تبدأ قريبة من الهوية.</span></div>
+    <div class="cl"><code>    def forward(self, X):</code><span></span></div>
+    <div class="cl"><code>        Y = self.norm(self.dwconv(X)).permute(0, 2, 3, 1)</code><span>نقل القنوات إلى المحور الأخير…</span></div>
+    <div class="cl"><code>        Y = self.pwconv2(F.gelu(self.pwconv1(Y)))</code><span>…GELU واحد فقط بين الطبقتين.</span></div>
+    <div class="cl"><code>        Y = (self.gamma * Y).permute(0, 3, 1, 2)</code><span>اضرب في γ وأعد الترتيب.</span></div>
+    <div class="cl"><code>        return X + d2l.drop_path(Y, self.drop_prob, self.training)</code><span>الوصلة المتبقية، مع العمق العشوائي.</span></div>
+  </div>
+  <p>مقياس الطبقة يؤدي للكتلة المطبَّعة بالطبقة ما تؤديه تهيئة γ بصفر في ResNet. وConvNeXt-T كلها: جذع تقطيع، ومراحل بعمق (٣، ٣، ٩، ٣) وعرض (٩٦، ١٩٢، ٣٨٤، ٧٦٨)، وطبقات تصغير بينها، ولا تجميع في أي مكان من الجسم. والخلاصة ليست أن الالتفاف أفضل من الانتباه، بل أن فجوة ٢٠٢١ جاءت من الوصفات ومن «نظافة» التصميم. وبضبط متكافئ، يتقارب النوعان.</p>
+  <h3>خارطة صغيرة على Fashion-MNIST</h3>
+  <p>هل تنتقل قرارات ImageNet (‏224×224، مليون صورة ملونة) إلى ملابس رمادية بحجم 64×64؟ بنى الكتاب ConvNeXt مصغّرة (atto: عرض ٤٠، ٨٠، ١٦٠، ٣٢٠ وعمق ٢، ٢، ٦، ٢؛ ‏٣٬٣٧٦٬٤٥٠ معاملاً)، وقارنها بـResNet-18 مضيّقة إلى المعاملات نفسها، بالوصفة الحديثة لعشرين حقبة، في ثلاث خطوات متراكمة:</p>
+  <div class="scroll"><table class="tb">
+    <tr><th>الخطوة</th><th>المكسب على ImageNet</th><th>المعاملات</th><th>دقة التحقق</th></tr>
+    <tr><td>ResNet-18 مضيّقة</td><td></td><td>٣٫٣٥ مليون</td><td>≈ ٩٤٪</td></tr>
+    <tr><td>كتل ConvNeXt ومراحلها، مع BN وجذع ResNet</td><td>+٣٫٠</td><td>٣٫٣٨ مليون</td><td>≈ ٩٤٪</td></tr>
+    <tr><td>BN ← LN</td><td>+٠٫١</td><td>٣٫٣٨ مليون</td><td>≈ ٩٤٪</td></tr>
+    <tr><td>جذع التقطيع (ConvNeXt كاملة)</td><td>+٠٫١</td><td>٣٫٣٨ مليون</td><td>≈ ٩٢٪</td></tr>
+  </table></div>
+  <p>كل الهبوط (نقطتان) جاء من الخطوة التي كانت محايدة على ImageNet: جذع التقطيع، الذي يقفز إلى شبكة 16×16 خشنة بإسقاط خطي واحد. على صور صغيرة، هذه الخسارة في التفاصيل مكلفة. القرارات المضبوطة على دقة ImageNet لا تنتقل عمياء إلى مجالات أخرى، والاستئصال التراكمي يدلّك على المكوّن الذي يحتاج تعديلاً.</p>
+  <p>ويبقى سؤالان مفتوحان: التدريب الذاتي بإخفاء رقع عشوائية طبيعي لتسلسل رقع، لكن الالتفاف المنزلق «يسيل» عبر الثقوب (وConvNeXt V2 تعالج ذلك بالتفافات متفرقة). والسياق الشامل: حتى 7×7 محلية، فكيف تقارن النوى الضخمة جداً والبنى الهجينة على أكبر المقاييس؟</p>
+  <div class="xref"><b>في الكتاب الأول</b>الانتباه وكتلة المحوّل اللذان تقلّدهما ConvNeXt: <a href="../slp/07-transformers.html">الفصل ٧: المحوّلات</a>.</div>
+</section>
+
+<!-- ============ 7.8 ============ -->
+<section class="sec" id="s7-8">
+  <header><div class="kicker">القسم ٧٫٨ <a class="pg" href="https://d2l.ai/chapter_convolutional-modern/cnn-design.html">d2l.ai ↗</a></div><h2>فضاءات تصميم الشبكات الالتفافية: RegNet</h2></header>
+  <div class="brief"><b>باختصار</b>من أين تأتي أرقام مثل (٢، ٢، ٢، ٢) و(٣، ٤، ٦، ٣)؟ بدل البحث عن «أفضل شبكة»، قارن راداسافوفيتش وزملاؤه <b>فضاءات</b> كاملة: عيّنة من ٥٠٠ شبكة عشوائية من كل فضاء، وقارن توزيع أخطائها. فاستخرجوا قواعد بسيطة: عنق وعرض مجموعة مشتركان، وعرض يزيد خطياً مع العمق. والنتيجة عائلة RegNet.</div>
+  <div class="terms"><span>فضاء التصميم <i>design space</i></span><span>AnyNet</span><span>دالة التوزيع التجميعي التجريبية <i>empirical CDF</i></span><span>عرض المجموعة <i>group width</i></span><span>نسبة العنق <i>bottleneck ratio</i></span><span>RegNet</span></div>
+  <p>المشكلة: لو كان لكل مرحلة أربعة أرقام (العمق، والعرض، ونسبة العنق، وعرض المجموعة) ولدينا أربع مراحل، فحتى خياران لكل رقم يعطيان ‏2¹⁶ = 65,536 شبكة، كل واحدة تحتاج تدريباً. والبحث الآلي (مثل الذي صنع EfficientNet) يعطي شبكة واحدة فائزة، لا قواعد نفهمها ونطبقها على ميزانية أو كتلة أخرى.</p>
+  <p>والقالب <b>AnyNet</b> يثبّت ما اتفقت عليه كل الشبكات الحديثة: جذع (التفاف 3×3 بخطوة ٢ و٣٢ قناة)، ثم جسم من أربع مراحل (كل مرحلة تكرر كتلة ResNeXt dᵢ مرة، وأول كتلة تنصّف الحجم)، ثم رأس (تجميع شامل وطبقة خطية). والأرقام الستة عشر حرة: العمق حتى ١٦، والعرض حتى ١٠٢٤ بخطوات ٨، والعنق من {١، ٢، ٤}، وعرض المجموعة قوى ٢ حتى ٣٢. أي نحو ‏(16·128·3·6)⁴ ≈ 2×10¹⁸ بنية: يستحيل عدّها، ويسهل السحب منها.</p>
+  <div class="math"><div class="mh"><span class="sym">F̂(e)</span>مفهوم رياضي · مقارنة مجتمع لا فرد</div><div class="mb">
+    <p>نسحب n شبكة عشوائية من الفضاء، وندرب كل واحدة قليلاً، ونسجل أخطاءها e₁ … eₙ. ثم نرسم <b>دالة التوزيع التجميعي التجريبية</b>: عند كل عتبة e، ما نسبة الشبكات التي خطؤها لا يتجاوزها؟</p>
+    <div class="eq">F̂(e) = (1/n) Σⱼ 𝟏(eⱼ ≤ e)</div>
+    <p>المنحنى الذي يرتفع أبكر (إلى اليسار) يمثل فضاءً غنياً بالشبكات الجيدة: شبكة عشوائية منه تتجاوز أي عتبة باحتمال أكبر، حتى لو كانت أفضل شبكة في الفضاءين واحدة. مثال صغير: أخطاء (١٢، ١٠، ١٥، ١١) تعطي F̂(١١) = ٢/٤ = ٠٫٥.</p>
+  </div></div>
+  <p>ويقوم المنهج على أربع فرضيات عملية، ليست مضمونة مسبقاً: الشبكات الجيدة كثيرة في الفضاء الجيد؛ وترتيب الشبكات بعد تدريب قصير يشبه ترتيبها النهائي؛ وما يصح بميزانية صغيرة يصح بالكبيرة؛ والعوامل يمكن تقييمها واحداً بعد آخر.</p>
+  <p>بـ٥٠٠ شبكة لكل فضاء (نحو ٤٠٠ مليون عملية لكل منها، وعشر حقب على ImageNet)، وتضييق الفضاء قاعدة بعد قاعدة: توحيد نسبة العنق لكل المراحل، ثم توحيد عرض المجموعة، لم يغيّرا متوسط الخطأ (نحو ٤٩٪)، وهذا مكسب بحد ذاته: ستة أرقام حرة أقل بلا خسارة. والكسب الكبير: اشتراط <b>عرض غير متناقص</b> (cᵢ₊₁ ≥ cᵢ) أنزل متوسط الخطأ ست نقاط إلى نحو ٤٣٪، بينما العرض الثابت أو المتناقص رفعه إلى ٥٦٪ و٦٣٪. واشتراط <b>عمق غير متناقص</b> أضاف نصف نقطة.</p>
+  <p>وكرر الكتاب أقوى قاعدة على Fashion-MNIST: فضاءان بمرحلتين (عرض متزايد مقابل متناقص)، وميزانية ١١٢ مليون عملية، و١٢ شبكة من كل فضاء لحقبة واحدة. فتداخل المنحنيان: متوسط الخطأ نحو ١٢٪ في الحالتين، بفرق أقل من نقطة. قاعدة تساوي عشرين نقطة على ImageNet تتقلص إلى أقل من نقطة على مهمة سهلة تبلغ فيها أي شبكة معقولة ٨٨٪ في حقبة واحدة. قواعد التصميم ليست قوانين طبيعة، وحجمها يعتمد على صعوبة المهمة.</p>
+  <h3>RegNet: العرض يزيد خطياً</h3>
+  <p>وفي أفضل الشبكات داخل الفضاء المضيَّق ظهر نمط آخر: إن رقّمنا الكتل j = ٠، ١، ٢، … من الأسفل، فالعرض الأمثل يقارب خطاً مستقيماً <span class="mono" dir="ltr">uⱼ = u₀ + a·j</span>. ولأن كتل المرحلة الواحدة تتشارك العرض، يُقرَّب كل uⱼ إلى أقرب مستوى من شبكة هندسية <span class="mono" dir="ltr">u₀, u₀m, u₀m², …</span>، والكتل المتتالية التي تقع على المستوى نفسه تصير مرحلة: «درج».</p>
+  <div class="w" id="rgBox"><div class="cap">درج RegNet: الخط uⱼ = u₀ + a·j مقرّباً إلى مستويات هندسية (المثال الافتراضي RegNetX-200MF من الكتاب)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">u₀: <b id="rgUo"></b> <input type="range" id="rgU" min="8" max="96" step="8" value="24"></label><label class="note">a: <b id="rgAo"></b> <input type="range" id="rgA" min="400" max="8000" step="4" value="3644"></label><label class="note">m: <b id="rgMo"></b> <input type="range" id="rgM" min="150" max="300" value="249"></label><label class="note">الكتل: <b id="rgDo"></b> <input type="range" id="rgD" min="4" max="25" value="13"></label></div>
+    <div id="rgPlot"></div><div class="calc" id="rgCalc"></div></div>
+  <p>ووجد الباحثون أيضاً أن نسبة العنق ١ (بلا تضييق داخلي) أفضل من ٤ في ResNet-50. وهذا يعرّف <b>RegNetX</b>: ستة عشر رقماً اعتباطياً صارت بضعة معاملات مفهومة لكل ميزانية.</p>
+  <p>وجرّب الكتاب RegNetX32 صغيرة: جذع ٣٢ قناة، ومرحلتان فقط (لأن الصور الأصلية 28×28 فالمراحل الأربع تصغّرها كثيراً): الأولى بعمق ٤ وعرض ٦٤، والثانية بعمق ٦ وعرض ١٦٠، ونسبة عنق ١، وعرض مجموعة ١٦. اثنتان وثلاثون طبقة. والنتيجة بعد عشر حقب: نحو ٩٤٪ مثل ResNet-18 (‏٩٣٫٧–٩٤٫٢٪)، لكن بـ٥١٩٬٦٥٨ معاملاً مقابل ١١٬١٧٥٬٣٧٠ (أقل من ٥٪)، و١١٢ مليون عملية مقابل ٣١٩ (الثلث).</p>
+  <p>وثلاثة تحفظات: (١) البنية والمحسِّن مقترنان: بـSGD عادي بلا زخم ولا تخميد، تنزل RegNetX32 إلى نحو ٩١٪ وتبقى ResNet-18 نحو ٩٣٪. (٢) سقف البيانات: RegNet أكبر بأربع مراحل (‏٤٫٨–٨٫٣ مليون معامل) تقف عند ٩٣–٩٤٪ نفسها. (٣) الحقبة تأخذ ١٫٥ مرة زمن ResNet-18 رغم ثلث العمليات: هي أعمق مرتين، وطبقاتها الضيقة المجمّعة تكتب تنشيطات أكثر ٢٫٥ مرة، فحركة الذاكرة هي التي تحدد السرعة. ووجد مؤلفو RegNet الشيء نفسه: زمن المعالج يتبع عدد التنشيطات أكثر من عدد العمليات.</p>
+</section>
+
+<section class="sec" id="ex">
+  <header><div class="kicker">الخلاصة والتمارين</div><h2>ما تأخذه من الفصل</h2></header>
+  <ul class="clean">
+    <li>AlexNet: البيانات الضخمة والمعالجات الرسومية وReLU والإسقاط والزيادة. الالتفاف يحمل الحساب، والطبقات الكاملة تحمل المعاملات.</li>
+    <li>الكتل المتكررة (VGG)، والتجميع الشامل بدل الرأس (NiN)، والمسارات المتوازية مع عنق 1×1 (GoogLeNet)، وتقسيم الجذع والجسم والرأس.</li>
+    <li>التطبيع الدفعي: ‏γ(x − μ̂)/√(σ̂² + ε) + β. ثابت أمام مقياس الأوزان قبله، فيوسّع نطاق معدّل التعلّم. وبدائله (الطبقة، المجموعة، المثال) تختلف في محاور المتوسط.</li>
+    <li>الكتلة المتبقية x + g(x) تجعل الهوية سهلة والتدرّج مباشراً. والالتفاف المجمّع يقسم الكلفة على g، والإلصاق (DenseNet) بديل للجمع.</li>
+    <li>الالتفاف العمقي المنفصل يكلّف ‏1/cₒ + 1/k² من الكثيف، لكن عدد العمليات لا يساوي الزمن: عرض نطاق الذاكرة وعدد التنشيطات يحددان السرعة غالباً.</li>
+    <li>الوصفة (AdamW، إحماء جيبي، تنعيم، Mixup، عمق عشوائي، متوسط أوزان، مدة أطول) قد تساوي سنوات من البنى «الجديدة». قارن دائماً بوصفة واحدة.</li>
+    <li>ConvNeXt: شبكة التفافية خالصة بتفاصيل المحوّل تجاريه. وRegNet: قواعد التصميم تُستخرج من مجتمعات الشبكات، وحجمها يعتمد على المهمة.</li>
+  </ul>
+  <h3>تمارين (مختارة ومبسطة من تمارين الكتاب)</h3>
+  <ol class="clean">
+    <li>كم معاملاً في الطبقة الكاملة الأولى من AlexNet (من ٦٬٤٠٠ إلى ٤٬٠٩٦، مع الانحياز)؟ وكم عملية ضرب-جمع؟ <details><summary>الحل</summary>‏6,400 × 4,096 + 4,096 = 26,218,496 معاملاً، ونحو ٢٦٫٢ مليون عملية: كل وزن يُستعمل مرة واحدة لكل صورة، فالرقمان متقاربان.</details></li>
+    <li>في نهاية الإحماء الجيبي، ما معدّل التعلّم في منتصف مرحلة التخميد؟ <details><summary>الحل</summary>‏cos(π/2) = 0، فالمعدّل ‏½η₀(1 + 0) = η₀/2.</details></li>
+    <li>قارن أوزان ثلاث طبقات 3×3 بطبقة 7×7، بـc قناة دخولاً وخروجاً. <details><summary>الحل</summary>‏3 × 9c² = 27c² مقابل 49c². المجال نفسه، وأوزان أقل بنحو النصف، ولاخطيتان إضافيتان.</details></li>
+    <li>طبّع الدفعة (١، ١، ١، ٩) بلا ε. <details><summary>الحل</summary>المتوسط ٣، والتباين (٤ + ٤ + ٤ + ٣٦)/٤ = ١٢، والانحراف ≈ ٣٫٤٦. فالناتج (−٠٫٥٨، −٠٫٥٨، −٠٫٥٨، ١٫٧٣). جرّبها في الأداة.</details></li>
+    <li>لماذا يجب استدعاء <span class="mono">model.eval()</span> قبل الاستدلال في شبكة فيها تطبيع دفعي؟ <details><summary>الحل</summary>لأن الطبقة في وضع التدريب تطبّع بإحصاءات الدفعة الحالية، فيعتمد مخرج كل صورة على الصور التي معها (ويفشل مع صورة واحدة). وفي وضع التقييم تستعمل المتوسط والتباين المتحركين الثابتين.</details></li>
+    <li>احسب أوزان كتلة عنق الزجاجة مع c = ٢٥٦ وb = ١٢٨ وg = ٣٢. <details><summary>الحل</summary>‏256×128 + 9×128×128/32 + 128×256 = 32,768 + 4,608 + 32,768 = 70,144.</details></li>
+    <li>ما نسبة توفير الالتفاف العمقي المنفصل مع k = 3 وcₒ = ٦٤؟ <details><summary>الحل</summary>‏1/64 + 1/9 ≈ 0.127، أي نحو ٧٫٩ مرة أقل.</details></li>
+    <li>بتنعيم ε = ٠٫١ وثلاثة أصناف، ما الاحتمال الأمثل للصنف الصحيح؟ <details><summary>الحل</summary>‏1 − 0.1 + 0.1/3 ≈ 0.933، والآخران ٠٫٠٣٣ لكل منهما. وفارق اللوجتات الذي يحقق ذلك ‏ln(0.933/0.033) ≈ 3.3.</details></li>
+    <li>ما أفق المتوسط الأسي مع ρ = ٠٫٩٩٩؟ ولماذا لا يناسب تدريباً من ٥٠٠ خطوة؟ <details><summary>الحل</summary>نحو ١٬٠٠٠ خطوة، أي أطول من التدريب كله، فالنسخة الظل ستبقى عالقة قرب الأوزان الأولى السيئة.</details></li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="06-cnn.html">→ الفصل السابق: الشبكات الالتفافية</a><a href="index.html">فهرس الكتاب ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/d2l-common.js"></script>
+<script src="../assets/js/d2l07.js"></script>
+</body>
+</html>
