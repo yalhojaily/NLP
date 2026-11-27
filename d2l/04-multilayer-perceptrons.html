@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٤ · الشبكات متعددة الطبقات | الغوص في التعلّم العميق</title>
+<meta name="description" content="شرح عربي للفصل الرابع من كتاب Dive into Deep Learning: الطبقات المخفية ودوال التنشيط وحل XOR، والتنفيذ، والانتشار العكسي بالمصفوفات، والاستقرار العددي والتهيئة، والتعميم في التعلّم العميق والهبوط المزدوج، والإسقاط، ومسابقة أسعار البيوت.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">الغوص في التعلّم العميق</a></nav>
+    <div class="chnav"><a class="pill" href="03-linear-classification.html" style="text-decoration:none">→ الفصل ٣</a><b>الفصل ٤ من ٤٢</b></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الأساسيات · الفصل الرابع</div>
+  <h1>الشبكات متعددة الطبقات</h1>
+  <div class="sub en" style="font-size:16px">Chapter 4 · Multilayer Perceptrons · <a href="https://d2l.ai/chapter_multilayer-perceptrons/index.html">d2l.ai</a></div>
+  <p class="epi">هنا يبدأ «التعلّم العميق» فعلاً. النموذج الخطي يعطي كل نقطة في الصورة وزناً ثابتاً لا يتغير بحسب جيرانها، لكن نقطة مضيئة قد تكون طرف ياقة أو كمّاً أو حزام حقيبة بحسب ما حولها. فنضع بين المدخل والمخرج طبقات مخفية تبني خصائصها بنفسها، ونفصل بينها بدالة غير خطية، وندرّب الكل معاً بالانتشار العكسي.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم في سطرين</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--tint);border-color:var(--rule)"></i>كود مشروح: كل سطر وبجانبه معناه</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية: جرّب بيدك</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>النموذج الخطي لا يحل XOR ولا يفهم أن «الأفضل في المنتصف». الحل: طبقة مخفية مع دالة تنشيط غير خطية مثل ReLU؛ وبدونها تنهار الطبقات إلى طبقة خطية واحدة.</li>
+    <li>طبقة مخفية واحدة عريضة تكفي نظرياً لتقريب أي دالة، لكن العمق أكفأ بكثير: كل طبقة «تطوي» الفضاء فتضاعف القطع الخطية.</li>
+    <li>على Fashion-MNIST ترفع طبقة مخفية من ٢٥٦ وحدة الدقة من نحو ٨٤٪ إلى نحو ٨٧٪.</li>
+    <li>الانتشار العكسي ثلاث قواعد محلية تتكرر من المخرج إلى المدخل، وكلفته نحو ضعف المرور الأمامي، وثمنه ذاكرة لحفظ القيم الوسيطة.</li>
+    <li>عبر طبقات كثيرة يتضاعف التدرّج أو يتلاشى أسياً. التهيئة الصحيحة (Xavier أو He) تبقي التباين ثابتاً من طبقة إلى طبقة.</li>
+    <li>الشبكات الكبيرة تستطيع حفظ وسوم عشوائية ومع ذلك تعمّم على البيانات الحقيقية؛ ويساعدها الإيقاف المبكر والإسقاط (إطفاء وحدات عشوائياً أثناء التدريب).</li>
+  </ol>
+</div>
+
+<!-- ============ 4.1 ============ -->
+<section class="sec" id="s4-1">
+  <header><div class="kicker">القسم ٤٫١ <a class="pg" href="https://d2l.ai/chapter_multilayer-perceptrons/mlp.html">d2l.ai ↗</a></div><h2>الشبكات متعددة الطبقات</h2></header>
+  <div class="brief"><b>باختصار</b>للنموذج الخطي قيدان: أثر كل خاصية في اتجاه واحد دائماً (رتيب)، ولا يتغير بحسب الخصائص الأخرى (لا تفاعل). نضيف طبقة مخفية <span class="mono" dir="ltr">H = φ(XW⁽¹⁾ + b⁽¹⁾)</span> ثم مخرجاً <span class="mono" dir="ltr">O = HW⁽²⁾ + b⁽²⁾</span>. والدالة غير الخطية φ هي المفتاح: بدونها تنهار الطبقتان إلى طبقة واحدة.</div>
+  <div class="terms"><span>الطبقة المخفية <i>hidden layer</i></span><span>دالة التنشيط <i>activation function</i></span><span>ReLU</span><span>XOR</span><span>التقريب الشامل <i>universal approximation</i></span><span>الشبكة متعددة الطبقات <i>MLP</i></span></div>
+
+  <h3>حدود النموذج الخطي</h3>
+  <p><b>الرتابة</b>: مثال الكتاب درجة حرارة الجسم. الخطر أقل ما يكون قرب ٣٧ درجة، ويرتفع إن زادت أو نقصت. والنموذج الخطي لا يستطيع إلا أن يجعل الخطر يرتفع مع الحرارة أو ينخفض معها، فإن تعلّم أن الحرارة العالية خطرة صنّف مريض انخفاض الحرارة الشديد أكثر الناس أماناً. <b>غياب التفاعل</b>: أثر النقطة (١٣، ١٧) في الصورة واحد دائماً، أياً كان ما حولها.</p>
+  <p>وأبسط مثال على الاثنين <b>XOR</b>: أربع زوايا المربع، والوسم ١ حين يختلف الإحداثيان. يبرهن الكتاب أنه لا يوجد خط يفصلها: اجمع شرطي النقطتين الموجبتين وشرطي السالبتين تجد تناقضاً. وهندسياً: القطران يتقاطعان في (½، ½)، فلا يمكن وضع خط بينهما. وقد رأيت هذا في أداة «هل يفصلها خط؟» في الفصل الثالث.</p>
+
+  <h3>الطبقة المخفية ودور اللاخطية</h3>
+  <div class="math"><div class="mh"><span class="sym">φ(XW+b)</span>مفهوم رياضي · لماذا تنهار الطبقات الخطية؟</div><div class="mb">
+    <p>لو لم تكن هناك φ: <span class="mono" dir="ltr">O = (XW⁽¹⁾ + b⁽¹⁾)W⁽²⁾ + b⁽²⁾ = X(W⁽¹⁾W⁽²⁾) + (b⁽¹⁾W⁽²⁾ + b⁽²⁾)</span>. حاصل ضرب مصفوفتين مصفوفة واحدة، فالنتيجة نموذج خطي عادي بلا أي مكسب. بل قد تخسر: إن كانت الطبقة المخفية أضيق من المدخل والمخرج قيّدت المصفوفة المركّبة.</p>
+    <p>ودالة التنشيط تكسر هذا. أبسطها <b>ReLU</b>: <span class="mono" dir="ltr">ReLU(z) = max(z, 0)</span>، أي اترك الموجب كما هو واجعل السالب صفراً. بسيطة جداً، لكنها «مفصل»: الخط ينكسر عند الصفر، وتركيب مفاصل كثيرة يصنع أي شكل.</p>
+    <p>عدد المعاملات: <span class="mono" dir="ltr">(d + 1)h + (h + 1)q</span>. لـFashion-MNIST مع ٢٥٦ وحدة مخفية: ٧٨٥×٢٥٦ + ٢٥٧×١٠ = ٢٠٣٬٥٣٠، أي نحو ٢٦ ضعف السوفتماكس (٧٬٨٥٠).</p>
+  </div></div>
+  <div class="w" id="xoBox"><div class="cap">حل XOR بوحدتي ReLU (أوزان الكتاب): الطبقة المخفية تنقل النقاط إلى فضاء جديد يفصلها خط</div>
+    <div class="row"><span class="seg" id="xoS"><button data-v="0">المدخلات x</button><button data-v="1">z = xW⁽¹⁾ + b⁽¹⁾</button><button data-v="2" class="on">h = ReLU(z)</button></span></div>
+    <div id="xoPlot"></div><div class="scroll"><table class="tb" id="xoTab" dir="ltr" style="margin-top:6px"></table></div></div>
+  <p>الحيلة كلها في السطر الأخير: النقطتان الموجبتان (١، ٠) و(٠، ١) تنتقلان إلى النقطة نفسها في الفضاء المخفي، والسالبتان إلى طرفين بعيدين، فيكفي خط واحد. الطبقة المخفية لا تحل المسألة، بل <b>تعيد تمثيلها</b> بحيث تصير خطية. وهذه هي فكرة التعلّم العميق كلها: تعلّم التمثيل.</p>
+
+  <h3>القوة التعبيرية: العرض والعمق</h3>
+  <p><b>التقريب الشامل</b>: في بعد واحد، كل وحدة ReLU تضيف «مفصلاً» يغيّر الميل عند نقطة. فبعدد كافٍ من المفاصل تقرّب أي دالة متصلة على مجال مغلق بخط مكسور. والنظرية تمتد إلى أي عدد من الأبعاد ولأي دالة تنشيط متصلة غير كثيرة حدود، بطبقة مخفية واحدة عريضة بما يكفي. لكنها لا تقول كم وحدة تلزم، ولا أن التدريب سيجدها.</p>
+  <div class="w" id="haBox"><div class="cap">تقريب دالة بمجموع مفاصل ReLU (المفاصل على مسافات متساوية)</div>
+    <div class="row"><label class="note">عدد الوحدات: <b id="haKo"></b></label><input type="range" id="haK" min="1" max="24" value="4" style="flex:1"><span class="seg" id="haF"><button data-v="0" class="on">موجة</button><button data-v="1">قفزة ناعمة</button></span></div>
+    <div id="haPlot"></div><div class="calc" id="haCalc"></div></div>
+  <p><b>العمق والطيّ</b>: دالة «الخيمة» <span class="mono" dir="ltr">g(z) = 2ReLU(z) − 4ReLU(z − ½)</span> تصعد من ٠ إلى ١ ثم تنزل إلى ٠ على المجال [٠، ١]؛ أي إنها «تطوي» المجال على نفسه. ركّبها m مرة (طبقة فوق طبقة) فتحصل على <span class="mono" dir="ltr">2^m</span> قطعة خطية بـ2m وحدة فقط، أما طبقة واحدة فتحتاج <span class="mono" dir="ltr">2^m − 1</span> وحدة على الأقل للدالة نفسها.</p>
+  <div class="w" id="tfBox"><div class="cap">طيّ الخيمة: g∘g∘⋯∘g</div>
+    <div class="row"><label class="note">عدد الطبقات m: <b id="tfMo"></b></label><input type="range" id="tfM" min="1" max="7" value="3" style="flex:1"></div>
+    <div id="tfPlot"></div><div class="calc" id="tfCalc"></div></div>
+
+  <h3>دوال التنشيط</h3>
+  <p>تدرّج وزن في طبقة مخفية يُضرب في ميل دالة التنشيط <span class="mono" dir="ltr">φ′(z)</span>، فشكل المشتقة مهم للتدريب بقدر شكل الدالة. جرّب الدوال الست التي يذكرها الكتاب:</p>
+  <div class="w" id="acBox"><div class="cap">الدالة (أخضر) ومشتقتها (برتقالي)</div>
+    <div class="row"><span class="seg" id="acS" dir="ltr" style="flex-wrap:wrap"><button data-v="relu" class="on">ReLU</button><button data-v="leaky">Leaky ReLU</button><button data-v="gelu">GELU</button><button data-v="silu">SiLU</button><button data-v="sigmoid">sigmoid</button><button data-v="tanh">tanh</button></span></div>
+    <div id="acPlot"></div><div class="calc" id="acCalc"></div></div>
+  <ul class="clean">
+    <li><b>ReLU</b>: ميلها ١ للموجب و٠ للسالب، فلا تضعف التدرّج في الوحدات النشطة. وعيبها «الوحدة الميتة»: إن صار مدخلها سالباً دائماً توقفت عن التعلّم إلى الأبد.</li>
+    <li><b>Leaky ReLU</b>: <span class="mono" dir="ltr">max(z, αz)</span> بـα نحو ٠٫٠١، تترك ميلاً صغيراً للسالب فتستطيع الوحدة الميتة أن تعود.</li>
+    <li><b>GELU</b>: <span class="mono" dir="ltr">z·Φ(z)</span> (Φ دالة التوزيع الطبيعي التراكمية): ناعمة، تمر بالأصل بميل ½، ولها انخفاض سالب صغير قرب −٠٫٧٥. وهي الافتراضية في المحوّلات الحديثة. و<b>SiLU</b> <span class="mono" dir="ltr">z·σ(z)</span> قريبة منها.</li>
+    <li><b>السيغمويد</b> و<b>tanh</b>: أقدم، وتتشبّعان (يصير الميل صفراً تقريباً) حين يتجاوز |z| نحو ٣. وأكبر ميل للسيغمويد ¼، فعبر K طبقات يُضرب التدرّج في <span class="mono" dir="ltr">4⁻ᴷ</span> على الأقل. ولهذا صارت السيغمويد اليوم «بوابة» في الشبكات التكرارية (الفصل ٨) لا دالة تنشيط مخفية.</li>
+  </ul>
+  <div class="xref"><b>في الكتاب الأول</b>الوحدة العصبية ودوال التنشيط وحل XOR بالمثال نفسه تقريباً: <a href="../slp/06-neural-networks.html">الفصل ٦: الشبكات العصبية</a>.</div>
+</section>
+
+<!-- ============ 4.2 ============ -->
+<section class="sec" id="s4-2">
+  <header><div class="kicker">القسم ٤٫٢ <a class="pg" href="https://d2l.ai/chapter_multilayer-perceptrons/mlp-implementation.html">d2l.ai ↗</a></div><h2>التنفيذ</h2></header>
+  <div class="brief"><b>باختصار</b>نضيف إلى مصنّف الفصل الثالث طبقة مخفية من ٢٥٦ وحدة ReLU. نتحقق قبل التدريب من الأشكال ومن أن الخسارة الأولى قريبة من log 10 ≈ ٢٫٣٠، ثم ندرّب ٣٠ دورة. النتيجة نحو ٨٧٪ مقابل ٨٤٪ للسوفتماكس: الخطأ ينخفض نحو الخُمس.</div>
+  <div class="terms"><span>العرض <i>width</i></span><span>فحوص ما قبل التدريب <i>sanity checks</i></span><span>nn.Sequential</span></div>
+  <div class="code"><div class="hd">PyTorch · من الصفر</div>
+    <div class="cl"><code>num_inputs, num_hiddens, num_outputs = 784, 256, 10</code><span>٧٨٤ نقطة، و٢٥٦ وحدة مخفية، وعشرة أصناف.</span></div>
+    <div class="cl"><code>W1 = nn.Parameter(torch.randn(784, 256) * 0.01)</code><span>أوزان الطبقة الأولى صغيرة عشوائية (انحراف ٠٫٠١).</span></div>
+    <div class="cl"><code>b1 = nn.Parameter(torch.zeros(256))</code><span>انحيازاتها أصفار.</span></div>
+    <div class="cl"><code>W2 = nn.Parameter(torch.randn(256, 10) * 0.01)</code><span>أوزان الطبقة الثانية.</span></div>
+    <div class="cl"><code>def relu(X): return X * (X &gt; 0)</code><span>ReLU بسطر: المقارنة تعطي ٠/١، والضرب يُطفئ السالب.</span></div>
+    <div class="cl"><code>H = relu(X.reshape(-1, 784) @ W1 + b1)</code><span>الطبقة المخفية: شكلها (n, 256).</span></div>
+    <div class="cl"><code>return H @ W2 + b2</code><span>الدرجات الخام (n, 10)، والخسارة تطبّق السوفتماكس.</span></div>
+  </div>
+  <div class="code"><div class="hd">PyTorch · مختصر</div>
+    <div class="cl"><code>nn.Sequential(nn.Flatten(), nn.LazyLinear(256),</code><span>تسطيح، ثم طبقة خطية إلى ٢٥٦…</span></div>
+    <div class="cl"><code>              nn.ReLU(), nn.LazyLinear(10))</code><span>…فتنشيط، فطبقة إلى عشرة.</span></div>
+  </div>
+  <p><b>فحوص قبل التدريب</b> ينصح بها الكتاب، لأنها تكشف الأخطاء في ثوانٍ لا بعد ساعة تدريب: على دفعة من ٨ صور، شكل H يجب أن يكون (8, 256) وO (8, 10). والخسارة الأولى قرب <span class="mono" dir="ltr">log 10 ≈ 2.30</span> (لأن الأوزان الصغيرة تعطي احتمالات متساوية تقريباً: −log(1/10)). ونحو نصف وحدات ReLU نشط (٠٫٥٢ في تجربة الكتاب). ثم التدريب: معدّل تعلّم ٠٫١، ودفعة ٢٥٦، و٣٠ دورة.</p>
+  <div class="scroll"><table class="tb">
+    <tr><th>النموذج</th><th>دقة التحقق</th><th>المعاملات</th><th>زمن الدورة</th></tr>
+    <tr><td>انحدار السوفتماكس</td><td class="num">٠٫٨٤٠</td><td class="num">٧٬٨٥٠</td><td class="num">≈ ١٫٣ ث</td></tr>
+    <tr><td>شبكة بطبقة مخفية (من الصفر)</td><td class="num">٠٫٨٧٦</td><td class="num">٢٠٣٬٥٣٠</td><td class="num">≈ ١٫٣ ث</td></tr>
+    <tr><td>شبكة بطبقة مخفية (مختصرة)</td><td class="num">٠٫٨٦٧</td><td class="num">٢٠٣٬٥٣٠</td><td class="num">≈ ١٫٣ ث</td></tr>
+  </table></div>
+  <p>ملاحظات الكتاب: الزمن متساوٍ تقريباً رغم ٢٦ ضعف الحساب، لأن تحميل البيانات والعمليات الإضافية تهيمن في هذا الحجم الصغير. وأكثر من نصف أخطاء النموذجين خلط بين ملابس الجزء العلوي (تيشيرت، كنزة، معطف، قميص). والوحدات المخفية تتعلّم «كاشفات تباين» (حواف وفروق إضاءة) لا قوالب ملابس كاملة.</p>
+  <div class="w" id="mlBox"><div class="cap">خطي أم بطبقة مخفية؟ درّب على حلقتين متداخلتين لا يفصلهما خط (٤٠٠ نقطة من صنعنا)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="note">الوحدات المخفية:</span><span class="seg" id="mlH" dir="ltr"><button data-v="0">0 (linear)</button><button data-v="2">2</button><button data-v="4">4</button><button data-v="16" class="on">16</button><button data-v="64">64</button></span><button class="pill" id="mlGo">▶ درّب</button></div>
+    <div id="mlPlot"></div><div class="calc" id="mlCalc"></div></div>
+</section>
+
+<!-- ============ 4.3 ============ -->
+<section class="sec" id="s4-3">
+  <header><div class="kicker">القسم ٤٫٣ <a class="pg" href="https://d2l.ai/chapter_multilayer-perceptrons/backprop.html">d2l.ai ↗</a></div><h2>الانتشار العكسي</h2></header>
+  <div class="brief"><b>باختصار</b>نمشي على الرسم الحسابي من الخسارة إلى المدخلات، ونطبّق في كل عقدة واحدة من ثلاث قواعد محلية: ضرب المصفوفات، وإضافة الانحياز، ودالة التنشيط. نحتاج القيم التي حُسبت في المرور الأمامي، فنحفظها: وهذا ثمن الذاكرة. والمرور الخلفي يكلف نحو ضعف الأمامي، فخطوة التدريب الكاملة نحو ثلاثة أضعاف التنبؤ.</div>
+  <div class="terms"><span>الانتشار العكسي <i>backpropagation</i></span><span>الترتيب الطوبولوجي العكسي <i>reverse topological order</i></span><span>القيم الوسيطة المحفوظة <i>cached activations</i></span><span>فحص التدرّج <i>gradient checking</i></span></div>
+  <p>يبدأ الكتاب برسم صغير: <span class="mono" dir="ltr">e = (a + b)c</span> عند a = ٢، b = ١، c = −٣. أمامياً: u = a + b = ٣، ثم e = uc = −٩. وخلفياً: نبدأ بـ<span class="mono" dir="ltr">∂e/∂e = 1</span>. عقدة الضرب تضرب التدرّج القادم في <b>العامل الآخر</b>: <span class="mono" dir="ltr">∂e/∂u = c = −3</span> و<span class="mono" dir="ltr">∂e/∂c = u = 3</span>. وعقدة الجمع تمرّر التدرّج كما هو لكل مدخل: <span class="mono" dir="ltr">∂e/∂a = ∂e/∂b = −3</span>. ولهذا نحفظ القيم الأمامية: عقدة الضرب تحتاجها.</p>
+  <div class="math"><div class="mh"><span class="sym">XᵀG</span>مفهوم رياضي · القواعد الثلاث بالمصفوفات</div><div class="mb">
+    <p>نرمز بـG للتدرّج القادم من الأعلى (بالشكل نفسه لمخرج العقدة).</p>
+    <p><b>١. ضرب المصفوفات</b> <span class="mono" dir="ltr">A = XW</span>: ‏<span class="mono" dir="ltr">∂J/∂W = XᵀG</span> و<span class="mono" dir="ltr">∂J/∂X = GWᵀ</span>. تحقق من الأشكال: X بحجم n×d وG بحجم n×h، فـXᵀG بحجم d×h مثل W. وهذه أسهل طريقة لتذكّر القاعدة: رتّب المنقولات حتى يطابق الشكل.</p>
+    <p><b>٢. إضافة الانحياز بالبث</b> <span class="mono" dir="ltr">Z = A + b</span>: G تمر إلى A كما هي، و<span class="mono" dir="ltr">∂J/∂b</span> مجموع G على الأمثلة (لأن b أُضيف لكل صف).</p>
+    <p><b>٣. التنشيط عنصراً بعنصر</b> <span class="mono" dir="ltr">H = φ(Z)</span>: ‏<span class="mono" dir="ltr">∂J/∂Z = ∂J/∂H ⊙ φ′(Z)</span>. ومع ReLU: φ′ = ١ حيث Z موجبة و٠ حيث سالبة، أي «قناع» يمرر التدرّج أو يحجبه.</p>
+  </div></div>
+  <p>وللشبكة بطبقة مخفية مع تناقص الأوزان (<span class="mono" dir="ltr">J = L + (λ/2)(‖W⁽¹⁾‖² + ‖W⁽²⁾‖²)</span>) تتسلسل القواعد هكذا: <span class="mono" dir="ltr">∂J/∂O = (Ŷ − Y)/n</span> ← <span class="mono" dir="ltr">∂J/∂W⁽²⁾ = Hᵀ ∂J/∂O + λW⁽²⁾</span> ← <span class="mono" dir="ltr">∂J/∂H = ∂J/∂O · W⁽²⁾ᵀ</span> ← <span class="mono" dir="ltr">∂J/∂Z = ∂J/∂H ⊙ φ′(Z)</span> ← <span class="mono" dir="ltr">∂J/∂W⁽¹⁾ = Xᵀ ∂J/∂Z + λW⁽¹⁾</span>. لاحظ أن كل وزن يأخذ تدرّجه من مسارين: من الخسارة ومن العقوبة.</p>
+  <div class="w" id="bpBox"><div class="cap">مثال الكتاب المحلول: شبكة صغيرة بـReLU وخسارة تربيعية، خطوة خطوة</div>
+    <div class="row"><button class="pill" id="bpPrev">→ السابق</button><button class="pill" id="bpNext">التالي ←</button><span class="note" id="bpStep"></span></div>
+    <div class="scroll"><table class="tb" id="bpTab" dir="ltr" style="margin-top:8px"></table></div><div class="calc" id="bpCalc"></div></div>
+  <p>العمود الأول من <span class="mono" dir="ltr">∂L/∂W⁽¹⁾</span> كله أصفار: الوحدة الأولى مدخلها −١، فقناع ReLU حجب كل تدرّج عن الأوزان الداخلة إليها. هذه هي «الوحدة الميتة» في لحظة واحدة. ويتحقق الكتاب من تنفيذه اليدوي <code>mlp_backward</code> مقابل الاشتقاق التلقائي على دفعة عشوائية 256×784 بدقة ٦٤ بت: الفرق النسبي نحو ١٠<sup>−١٦</sup>.</p>
+  <h3>فحص التدرّج بالفروق المركزية</h3>
+  <p>طريقة مستقلة للتحقق من أي تدرّج: حرّك المعامل قليلاً للأمام وللخلف واقسم الفرق: <span class="mono" dir="ltr">(f(w + h) − f(w − h)) / 2h</span>. لكن ما قيمة h؟ كبيرة فيخطئ التقريب (خطأ القطع ∝ h²)، وصغيرة فيأكل التقريبُ العشري الفرقَ (خطأ التقريب ∝ ε/h). وهذا التمرين الثالث في الكتاب:</p>
+  <div class="w" id="gcBox"><div class="cap">خطأ الفروق المركزية بحسب h لـf(w) = sin(w)·eʷ عند w = 1</div>
+    <div id="gcPlot"></div><div class="calc" id="gcCalc"></div></div>
+  <h3>الذاكرة والحساب</h3>
+  <p>المرور الخلفي يحتاج X وH وŶ من المرور الأمامي. للشبكة السابقة بدفعة ٢٥٦: نحو ٢٦٨٬٨٠٠ عدد محفوظ (١٫١ ميغابايت)، أكثر من المعاملات نفسها (٢٠٣٬٥٣٠، أي ٠٫٨ ميغابايت). وتكبر الذاكرة المحفوظة مع حجم الدفعة والعمق معاً، ولهذا تنفد ذاكرة المعالج الرسومي أثناء التدريب لا أثناء التنبؤ؛ ففي التنبؤ تُرمى قيم كل طبقة بعد استعمالها. وحسابياً: المرور الأمامي نحو <span class="mono" dir="ltr">dh + hq</span> عملية ضرب-جمع لكل مثال، والخلفي <span class="mono" dir="ltr">dh + 2hq</span> (الطبقة الأولى لا تحتاج تدرّج المدخلات). وفي الشبكات العميقة كل الطبقات تقريباً داخلية، فالخلفي ≈ ضعف الأمامي، والخطوة كاملة ≈ ثلاثة أضعاف.</p>
+  <div class="xref"><b>في الكتاب الأول</b>الانتشار العكسي على رسم حسابي صغير بأعداد: <a href="../slp/06-neural-networks.html">الفصل ٦: الشبكات العصبية</a>. وفي الفصل الأول من هذا الكتاب: <a href="01-preliminaries.html#s1-5">الاشتقاق التلقائي</a>.</div>
+</section>
+
+<!-- ============ 4.4 ============ -->
+<section class="sec" id="s4-4">
+  <header><div class="kicker">القسم ٤٫٤ <a class="pg" href="https://d2l.ai/chapter_multilayer-perceptrons/numerical-stability-and-init.html">d2l.ai ↗</a></div><h2>الاستقرار العددي والتهيئة</h2></header>
+  <div class="brief"><b>باختصار</b>التدرّج يمر عبر الطبقات حاصل ضرب: في كل طبقة يُضرب «حجمه» تقريباً في <span class="mono" dir="ltr">h·τ²·E[φ′²]</span> (العرض × تباين الأوزان × متوسط مربع الميل). إن كان هذا العامل أكبر من ١ انفجر التدرّج أسياً، وإن كان أصغر تلاشى. التهيئة تختار τ² ليكون العامل ١: ‏Xavier ‏<span class="mono" dir="ltr">2/(n_in + n_out)</span> للخطي وtanh، وHe ‏<span class="mono" dir="ltr">2/n_in</span> لـReLU. وكل الأوزان يجب أن تبدأ مختلفة.</div>
+  <div class="terms"><span>تلاشي التدرّج <i>vanishing gradients</i></span><span>انفجار التدرّج <i>exploding gradients</i></span><span>تهيئة Xavier</span><span>تهيئة He (Kaiming)</span><span>كسر التناظر <i>symmetry breaking</i></span></div>
+  <div class="math"><div class="mh"><span class="sym">h·τ²</span>مفهوم رياضي · من أين يأتي العامل؟</div><div class="mb">
+    <p>وحدة في طبقة عرضها h تجمع h حداً: <span class="mono" dir="ltr">z = Σⱼ wⱼ xⱼ</span>. إن كانت الأوزان مستقلة بتباين τ² والمدخلات بمتوسط مربع v، فمتوسط مربع z هو <span class="mono" dir="ltr">h·τ²·v</span> (تباينات المستقلين تُجمع، من الفصل الأول). فكل طبقة تضرب الإشارة في <span class="mono" dir="ltr">h·τ²</span>، ودالة التنشيط تضيف عاملها: ReLU تصفّر النصف السالب فتقسم متوسط المربع على ٢.</p>
+    <p>أمثلة الكتاب بعرض ٢٥٦ مع ReLU: τ = ٠٫٠١ يعطي عاملاً ٠٫٠١٢٨ في كل طبقة، فبعد ٩ طبقات يتقلص التدرّج نحو ١٠<sup>−١٧</sup>. وτ = ١ يعطي ١٢٨، فيتضخم نحو ١٠<sup>١٩</sup>. ومع السيغمويد: أكبر ميل ¼، فـ<span class="mono" dir="ltr">E[σ′²] ≤ 1/16</span>، فحتى لو كان hτ² = ١ يتقلص التدرّج ١٦ مرة على الأقل في كل طبقة.</p>
+    <p><b>الحل</b>: اجعل العامل ١. للحفاظ على الإشارة الأمامية <span class="mono" dir="ltr">n_in τ² = 1</span>، وللخلفية <span class="mono" dir="ltr">n_out τ² = 1</span>، ولا يمكن الاثنان معاً إن اختلف العرضان، فيأخذ <b>Xavier</b> المتوسط: <span class="mono" dir="ltr">τ² = 2/(n_in + n_out)</span> (أو توزيع منتظم بحدود <span class="mono" dir="ltr">±√(6/(n_in + n_out))</span> بالتباين نفسه). ولـReLU التي تقسم على ٢ يضاعف <b>He</b> التباين: <span class="mono" dir="ltr">τ² = 2/n_in</span>.</p>
+  </div></div>
+  <div class="w" id="viBox"><div class="cap">عشر طبقات بعرض ١٢٨: حجم الإشارة الأمامية والتدرّج في كل طبقة (المحاكاة تجري في متصفحك)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="note">التهيئة:</span><span class="seg" id="viI" dir="ltr" style="flex-wrap:wrap"><button data-v="small">𝒩(0, 0.01²)</button><button data-v="one">𝒩(0, 1)</button><button data-v="xavier">Xavier</button><button data-v="he" class="on">He</button></span><span class="note">التنشيط:</span><span class="seg" id="viA" dir="ltr"><button data-v="relu" class="on">ReLU</button><button data-v="sigmoid">sigmoid</button><button data-v="tanh">tanh</button></span></div>
+    <div id="viPlot"></div><div class="calc" id="viCalc"></div></div>
+  <p>نتائج الكتاب الحقيقية على شبكة بعشر طبقات ReLU مدرّبة على Fashion-MNIST عشر دورات: بتهيئة <span class="mono" dir="ltr">𝒩(0, 0.01²)</span> بقيت الدقة ١٠٪ (صدفة) والخسارة عند log 10، وبـXavier ٨٤٪ بعد بداية بطيئة، وبـHe ٨٧٪ والخسارة تنزل من الدورة الأولى. ويذكّر الكتاب بأن التهيئة تضبط الخطوة صفر فقط؛ ما يحفظ الأحجام أثناء التدريب أدوات أخرى ستأتي: التطبيع (القسم ٧٫٣)، والوصلات المتبقية (٧٫٤)، وقص التدرّج (٨٫٤).</p>
+  <h3>كسر التناظر</h3>
+  <p>لماذا لا نبدأ بكل الأوزان متساوية (أصفاراً مثلاً، أو ثابتاً بحجم He)؟ لأن كل الوحدات المخفية ستحسب الشيء نفسه، وتأخذ التدرّج نفسه، وتتحدّث بالطريقة نفسها، إلى الأبد: الطبقة كلها تتصرف كوحدة واحدة. جرّبها الكتاب على ١٦ وحدة: بأوزان ثابتة كان أكبر فرق بين الوحدات بعد التدريب ٠٫٠٠، وبأوزان عشوائية نحو ٠٫١–٠٫٢. فالعشوائية في التهيئة ليست تفصيلاً بل ضرورة.</p>
+</section>
+
+<!-- ============ 4.5 ============ -->
+<section class="sec" id="s4-5">
+  <header><div class="kicker">القسم ٤٫٥ <a class="pg" href="https://d2l.ai/chapter_multilayer-perceptrons/generalization-deep.html">d2l.ai ↗</a></div><h2>التعميم في التعلّم العميق</h2></header>
+  <div class="brief"><b>باختصار</b>الحدس الكلاسيكي يقول إن نموذجاً بمعاملات تفوق البيانات سيفرط في الملاءمة. لكن شبكة الفصل (٢٠٣٬٥٣٠ معاملاً) تعمّم جيداً، وتستطيع في الوقت نفسه حفظ وسوم عشوائية تماماً. فالتفسير ليس في «سعة» النموذج بل في <b>تحيّزه الاستقرائي</b>: أي الحلول يفضّل من بين الحلول الكثيرة التي تطابق التدريب. ويعرض الكتاب ثلاثة أدلة: الهبوط المزدوج، والتحيز الضمني للنزول التدرّجي، والإيقاف المبكر.</div>
+  <div class="terms"><span>الحفظ <i>memorization</i></span><span>التحيز الاستقرائي <i>inductive bias</i></span><span>الهبوط المزدوج <i>double descent</i></span><span>عتبة الاستيفاء <i>interpolation threshold</i></span><span>التحيز الضمني <i>implicit bias</i></span><span>الإيقاف المبكر <i>early stopping</i></span><span>الصبر <i>patience</i></span></div>
+  <p>كثيرة حدود من الدرجة ١٩ على ٢٠ نقطة (٢٠ معاملاً) تمر بكل النقاط وتفشل في الاختبار، كما رأيت في الفصل الثاني. أما الشبكة فـ٣٫٤ معاملات لكل صورة، وتصل إلى ٨٧٪. بل حين تُدرَّب على ١٬٠٠٠ صورة فقط حتى ١٠٠٪ تدريب، تبقى ٨٠٪ في الاختبار. ويسمي الكتاب فهم هذا «من المسائل المفتوحة المركزية» في المجال.</p>
+  <h3>الوسوم العشوائية</h3>
+  <p>التجربة: الشبكة نفسها (٢٥٦ وحدة ReLU) على ١٬٠٠٠ صورة. مع الوسوم الحقيقية تصل إلى ١٠٠٪ تدريب خلال ٦٠–٩٠ دورة، والاختبار فوق ٨٠٪. ومع وسوم <b>عشوائية</b> تصل أيضاً إلى ١٠٠٪ تدريب (أبطأ: ١٢٠–١٥٠ دورة)، والاختبار ١٠٪ (صدفة). النتيجة: الشبكة قادرة على حفظ أي شيء، فأي حد للتعميم يعتمد على فئة النماذج وحدها (مثل بعد VC من الفصل الثالث) يجب أن يكون ٠٫٩٠ على الأقل، أي بلا فائدة. ونظرية «لا غداء مجاني» تقول إنه لا يوجد متعلّم يعمّم على كل التوزيعات؛ فالتعميم يأتي من تطابق تحيّز المتعلّم مع بنية البيانات الحقيقية. مثال بسيط: مصنّف «أقرب جار» يحفظ كل التدريب، ومع ذلك يعمّم جيداً حين تتشارك المدخلات المتقاربة الوسم نفسه.</p>
+  <h3>الهبوط المزدوج</h3>
+  <p>تجربة الكتاب: طبقة أولى مجمّدة من وحدات ReLU عشوائية، ونحل للطبقة الأخيرة فقط بالمربعات الصغرى ذات <b>أصغر معيار</b>، بعروض مختلفة h وعدد ثابت من الأمثلة n. قبل n يظهر المنحنى الكلاسيكي U، ثم عند <span class="mono" dir="ltr">h = n</span> بالضبط يقفز الخطأ (عتبة الاستيفاء)، ثم <b>ينخفض مرة ثانية</b> بعدها، إلى أقل من أفضل نموذج صغير. السبب: عند h = n يوجد حل واحد يمر بكل النقاط، ومصفوفة الخصائص شبه منفردة، فتنفجر الأوزان (معيارها ١٬٥٧٨ في تجربة الكتاب). ومع h أكبر بكثير توجد حلول كثيرة، وأصغرها معياراً هادئ (معياره ٢٫٢).</p>
+  <div class="w" id="ddBox"><div class="cap">الهبوط المزدوج في المتصفح: ٤٠ نقطة تدريب، وخصائص ReLU عشوائية مجمّدة، وحل أصغر معيار (من صنعنا بفكرة الكتاب)</div>
+    <div class="row"><label class="note">عدد الخصائص h: <b id="ddHo"></b></label><input type="range" id="ddH" min="0" max="13" value="5" style="flex:1"></div>
+    <div id="ddPlot"></div><div class="calc" id="ddCalc"></div></div>
+  <h3>التحيز الضمني للنزول التدرّجي</h3>
+  <p>حين توجد حلول كثيرة تطابق التدريب تماماً، أيها يجد النزول التدرّجي؟ في المربعات الصغرى، إن بدأ من الصفر يصل إلى حل <b>أصغر معيار</b> تحديداً، لأن كل تدرّج يقع في فضاء صفوف مصفوفة الخصائص، فلا يضيف شيئاً في الاتجاهات التي لا تراها البيانات. تحقق الكتاب بـ٢٠ معادلة و١٠٠ مجهول: من الصفر انتهت المعايير عند ٠٫٥–٠٫٨، ومن بداية عشوائية عند ٨٫٤–٩٫٤. وفي التصنيف اللوجستي على بيانات قابلة للفصل يكبر معيار الأوزان بلا حد، لكن <b>اتجاهها</b> يقترب ببطء شديد من الفاصل ذي الهامش الأعظم (مثل آلة المتجهات الداعمة). فالنزول التدرّجي نفسه «منظِّم» خفي.</p>
+  <h3>الإيقاف المبكر</h3>
+  <p>تجربة الكتاب: ٢٠٪ من وسوم ١٬٠٠٠ صورة مفسدة. الشبكة تتعلّم الأنماط النظيفة <b>أولاً</b>: بحلول الدورة ٢٠ تصنّف أكثر من ٨٠٪ من الأمثلة النظيفة صحيحاً، وتحفظ أقل من ٢٠٪ من الوسوم الفاسدة. ثم تبدأ بحفظ الفاسدة وتسوء على الاختبار. أفضل نقطة بين الدورتين ١٠ و٢٠: دقة اختبار نحو ٠٫٧٧ مقابل ٠٫٧٢ بعد ٢٠٠ دورة. فالقاعدة: راقب خطأ التحقق، وتوقف إن لم يتحسن خلال عدد من الدورات (<b>الصبر</b>)، وارجع إلى أفضل نقطة محفوظة. وفي النماذج الخطية يكافئ الإيقاف المبكر تناقص الأوزان تقريباً.</p>
+  <p>واستثناء غريب يذكره الكتاب: <b>الاستيعاب المتأخر</b> <span class="en">(grokking)</span>. في مهام خوارزمية صغيرة كالجمع بالباقي، ومع تناقص الأوزان، تصل دقة التدريب إلى ١٠٠٪ بعد نحو ألف خطوة، وتبقى دقة التحقق عند الصدفة، ثم تقفز فجأة إلى نحو ١٠٠٪ بعد نحو مئة ألف خطوة. فهنا الإيقاف المبكر كان سيضيّع التعميم.</p>
+</section>
+
+<!-- ============ 4.6 ============ -->
+<section class="sec" id="s4-6">
+  <header><div class="kicker">القسم ٤٫٦ <a class="pg" href="https://d2l.ai/chapter_multilayer-perceptrons/dropout.html">d2l.ai ↗</a></div><h2>الإسقاط</h2></header>
+  <div class="brief"><b>باختصار</b>في كل مرور تدريب نُطفئ كل وحدة مخفية باحتمال p، ونضاعف الباقية بـ<span class="mono" dir="ltr">1/(1 − p)</span> فيبقى المتوقع كما هو. فلا تستطيع وحدة أن تعتمد على شريكة بعينها، وتتعلّم كل منها خصائص مفيدة وحدها. وفي الاختبار نطفئ الإسقاط ونستعمل الشبكة كاملة.</div>
+  <div class="terms"><span>الإسقاط <i>dropout</i></span><span>الإسقاط المعكوس <i>inverted dropout</i></span><span>التكيّف المشترك <i>co-adaptation</i></span><span>حقن الضجيج <i>noise injection</i></span></div>
+  <p>الفكرة من بيشوب (١٩٩٥): إضافة ضجيج إلى المدخلات تشجع الدوال الناعمة، بل في النموذج الخطي مع الخسارة التربيعية يكافئ ضجيجٌ تباينه s² إضافةَ <span class="mono" dir="ltr">s²‖w‖²</span> إلى الخسارة، أي تناقص الأوزان نفسه. والإسقاط يطبّق الفكرة على الطبقات المخفية بأقنعة ثنائية عشوائية.</p>
+  <div class="math"><div class="mh"><span class="sym">h/(1−p)</span>مفهوم رياضي · لماذا نقسم على 1 − p؟</div><div class="mb">
+    <div class="eq">h′ = 0 with probability p, &nbsp; h/(1 − p) otherwise</div>
+    <p>المتوقع: <span class="mono" dir="ltr">E[h′] = p·0 + (1 − p)·h/(1 − p) = h</span>. فالطبقة التالية ترى في المتوسط القيم نفسها التي ستراها في الاختبار بلا إسقاط، ولا نحتاج أي تعديل عند التنبؤ. والثمن ضجيج: <span class="mono" dir="ltr">Var[h′] = p/(1 − p)·h²</span>. مع p = ٠٫٢ وقيم كلها ١: المتوسط ١ والتباين ٠٫٢٥، وهذا ما يتحقق منه الكتاب على مليون عنصر.</p>
+  </div></div>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>def dropout_layer(X, dropout):</code><span>طبقة إسقاط من الصفر:</span></div>
+    <div class="cl"><code>    if dropout == 1: return torch.zeros_like(X)</code><span>p = ١: كل شيء يُطفأ (وتجنّب القسمة على صفر).</span></div>
+    <div class="cl"><code>    mask = torch.rand_like(X) &gt;= dropout</code><span>عدد عشوائي منتظم لكل عنصر؛ نُبقي ما كان ≥ p، أي باحتمال 1 − p.</span></div>
+    <div class="cl"><code>    return mask.to(X.dtype) * X / (1.0 - dropout)</code><span>نُطفئ ونضاعف الباقي.</span></div>
+    <div class="cl"><code>if self.training: H1 = dropout_layer(H1, 0.2)</code><span>بعد ReLU الطبقة الأولى، أثناء التدريب فقط.</span></div>
+    <div class="cl"><code>if self.training: H2 = dropout_layer(H2, 0.5)</code><span>والثانية بنسبة أعلى. الشبكة: 784 → 256 → 256 → 10.</span></div>
+    <div class="cl"><code>nn.Dropout(0.2)</code><span>النسخة الجاهزة، وتُطفأ تلقائياً بـ<code>model.eval()</code>.</span></div>
+  </div>
+  <div class="w" id="doBox"><div class="cap">طبّق الإسقاط على الأعداد ٠–١٥ (كما في الكتاب)</div>
+    <div class="row"><label class="note">p = <b id="doPo"></b></label><input type="range" id="doP" min="0" max="1" step="0.1" value="0.5" style="flex:1"><button class="pill" id="doGo">قناع جديد</button></div>
+    <div class="tw" id="doOut"></div><div class="calc" id="doCalc"></div></div>
+  <p>تجربة الكتاب تحت ضجيج الوسوم: ١٬٠٠٠ صورة، نحو ٣٦٪ من وسومها خاطئة فعلاً، و٢٠٠ دورة. بلا إسقاط حفظت الشبكة كل الوسوم الخاطئة، ودقة التحقق ٠٫٥٩٥. ومع إسقاط ٠٫٥ «حفظت» نحو ٨٠٪ منها، ودقة التحقق ٠٫٦٥٤. التحسن بين ٣ و٦ نقاط عبر الأطر الأربعة، لكن الإسقاط <b>يؤخر</b> الحفظ ولا يمنعه، فيوصي الكتاب بجمعه مع الإيقاف المبكر. ويلاحظ أيضاً أن خسارة التدريب في الدورات الأولى أعلى من خسارة التحقق، وهذا غير مقلق: التدريب يجري على شبكة «مثقوبة» والتحقق على الكاملة.</p>
+</section>
+
+<!-- ============ 4.7 ============ -->
+<section class="sec" id="s4-7">
+  <header><div class="kicker">القسم ٤٫٧ <a class="pg" href="https://d2l.ai/chapter_multilayer-perceptrons/kaggle-house-price.html">d2l.ai ↗</a></div><h2>التنبؤ بأسعار البيوت على Kaggle</h2></header>
+  <div class="brief"><b>باختصار</b>تطبيق كامل على بيانات حقيقية: ١٬٤٦٠ بيتاً من مدينة إيمز بولاية آيوا (٢٠٠٦–٢٠١٠) بـ٧٩ خاصية رقمية ونصية. نهيّئ البيانات دون تسريب، ونقيس بخطأ لوغاريتم السعر (لأن الخطأ النسبي هو المهم)، ونختار قوة تناقص الأوزان بالتحقق المتقاطع بخمس طيات. والنتيجة نحو ٠٫١٣–٠٫١٤، أي خطأ نموذجي نحو ١٣٪.</div>
+  <div class="terms"><span>Kaggle</span><span>خطأ اللوغاريتم <i>log-RMSE</i></span><span>التوحيد القياسي <i>standardization</i></span><span>التسريب <i>leakage</i></span><span>المرجع الأساسي <i>baseline</i></span></div>
+  <p>البيانات: ١٬٤٦٠ بيتاً موسوماً للتدريب و١٬٤٥٩ للاختبار، ولكل بيت ٧٩ خاصية (٣٦ رقمية و٤٣ نصية)، وفي ١٩ عموداً قيم مفقودة. جمعها دي كوك عام ٢٠١١.</p>
+  <h3>مقياس الخطأ</h3>
+  <div class="math"><div class="mh"><span class="sym">log-RMSE</span>مفهوم رياضي · لماذا لوغاريتم السعر؟</div><div class="mb">
+    <div class="eq">√( (1/n) Σ (log yᵢ − log ŷᵢ)² )</div>
+    <p>خطأ ٥٠٬٠٠٠ دولار كارثة في بيت ثمنه ١٢٥ ألفاً، وتفصيل صغير في قصر بأربعة ملايين. والفرق بين لوغاريتمين هو لوغاريتم النسبة: <span class="mono" dir="ltr">log y − log ŷ = log(y/ŷ)</span>، ولفروق صغيرة يساوي تقريباً الخطأ النسبي. فـ٠٫١٣٥ تعني خطأ نموذجياً نحو ١٣٫٥٪. والتدريب على لوغاريتم السعر بالخسارة التربيعية يقلل مربع هذا المقياس مباشرة (وهذا ما اقترحه تمرين الفصل الثاني).</p>
+  </div></div>
+  <div class="w" id="lrBox"><div class="cap">الخطأ نفسه بالدولار في بيتين مختلفين</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">خطأ التنبؤ: <b id="lrEo"></b> $</label><input type="range" id="lrE" min="5000" max="200000" step="5000" value="50000" style="flex:1"></div>
+    <div class="calc" id="lrCalc"></div></div>
+  <h3>تهيئة بلا تسريب</h3>
+  <ol class="clean">
+    <li><code>MSSubClass</code> رمز فئة لا كمية، فيُحوَّل نصاً.</li>
+    <li>الخصائص الرقمية تُوحَّد قياسياً: <span class="mono" dir="ltr">(x − μ)/σ</span>، فيصير متوسطها ٠ وانحرافها ١، <b>بإحصاءات التدريب وحده</b>. فلو حسبت μ وσ على كل البيانات لتسربت معلومات التحقق إلى التدريب.</li>
+    <li>القيم الرقمية المفقودة تُملأ بصفر، وهو المتوسط بعد التوحيد.</li>
+    <li>الفئوية تُرمَّز أحادياً مع عمود لـ«مفقود» (كما في الفصل الأول)، وتُحاذى أعمدة التحقق والاختبار مع أعمدة التدريب. النتيجة ٣٤٥ خاصية لكل بيت.</li>
+    <li>ونطرح من لوغاريتم السعر متوسطه (نحو ١٢٫٠٢، أي نحو ١٦٦ ألف دولار) كي يبدأ التدريب من مرجع صحيح.</li>
+  </ol>
+  <h3>اختيار النموذج</h3>
+  <p>خمس طيات ثابتة لكل النماذج (كي تكون المقارنة عادلة)، وفي كل طية تهيئة مستقلة. ١٠٠ دورة، ودفعة ٦٤، ومعدّل تعلّم ٠٫٠٢. المرجع الخطي يعطي ٠٫١٤٥–٠٫١٥٤. ثم شبكة بطبقة مخفية من ٦٤ وحدة ReLU (نحو ٢٢ ألف معامل) بتهيئة He، مع تناقص أوزان على المصفوفات فقط:</p>
+  <div class="scroll"><table class="tb">
+    <tr><th>قوة تناقص الأوزان</th><th>log-RMSE على التحقق</th><th>الحكم</th></tr>
+    <tr><td class="num">٠٫٠٠١</td><td class="num">≈ ٠٫١٥–٠٫١٨</td><td>فرط ملاءمة (أسوأ من الخطي)</td></tr>
+    <tr><td class="num">٠٫٠٣</td><td class="num">≈ ٠٫١٣–٠٫١٤</td><td>الأفضل، والمختار</td></tr>
+    <tr><td class="num">٠٫٣</td><td class="num">أعلى</td><td>نقص ملاءمة</td></tr>
+  </table></div>
+  <p>ثم يُعاد تدريب الشبكة بالقيمة المختارة على كل البيوت الموسومة، وتُعاد التنبؤات إلى الدولار (نضيف المتوسط ونأخذ الأس)، وتُحفظ في <code>submission.csv</code>. ويختم الكتاب بملاحظة واقعية: على البيانات الجدولية المختلطة كهذه، كثيراً ما تتفوق <b>الأشجار المعززة بالتدرّج</b> على الشبكات العصبية.</p>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">الخلاصة والتمارين</div><h2>ما تأخذه من الفصل</h2></header>
+  <ul class="clean">
+    <li>الطبقة المخفية مع تنشيط غير خطي تتعلّم تمثيلاً جديداً؛ وبدون اللاخطية لا فائدة من الطبقات.</li>
+    <li>العرض يكفي نظرياً، والعمق أكفأ عملياً. وReLU وGELU لا تضعفان التدرّج كما تفعل السيغمويد.</li>
+    <li>الانتشار العكسي: ثلاث قواعد محلية من المخرج إلى المدخل، والذاكرة ثمن حفظ القيم الوسيطة.</li>
+    <li>اختر تهيئة تبقي التباين ثابتاً عبر الطبقات (He لـReLU)، وابدأ بأوزان عشوائية لكسر التناظر.</li>
+    <li>الشبكات الكبيرة تعمّم بفضل تحيّزها الاستقرائي؛ واستعمل الإيقاف المبكر والإسقاط وتناقص الأوزان.</li>
+  </ul>
+  <h3>تمارين (مختارة ومبسطة من تمارين الكتاب)</h3>
+  <ol class="clean">
+    <li>أثبت أن تكديس طبقات خطية بلا تنشيط يعطي دالة خطية رتبة مصفوفتها لا تتجاوز أضيق طبقة. <details><summary>الحل</summary>‏<span class="mono" dir="ltr">W⁽¹⁾W⁽²⁾⋯W⁽ᴷ⁾</span> مصفوفة واحدة، والانحيازات تتجمع في انحياز واحد. ورتبة حاصل الضرب لا تتجاوز رتبة أي عامل، ورتبة مصفوفة عرضها h لا تتجاوز h. مثال: مدخل ومخرج ببعد ١٠ وطبقة مخفية بعرض ٢ تقيّد النموذج بمصفوفات رتبتها ٢ فقط، أي أضيق من الانحدار الخطي المباشر.</details></li>
+    <li>جد شبكة بوحدتي ReLU تحل XOR لكن ترسل النقطتين الموجبتين إلى نقطتين مخفيتين مختلفتين. <details><summary>حل ممكن</summary>‏<span class="mono" dir="ltr">h₁ = ReLU(x₁ − x₂)</span> و<span class="mono" dir="ltr">h₂ = ReLU(x₂ − x₁)</span>، والمخرج <span class="mono" dir="ltr">h₁ + h₂ = |x₁ − x₂|</span>. النقاط: (٠،٠) و(١،١) ← (٠،٠)، و(١،٠) ← (١،٠)، و(٠،١) ← (٠،١). المخرج ٠، ١، ١، ٠.</details></li>
+    <li>أثبت أن <span class="mono" dir="ltr">tanh(z) = 2σ(2z) − 1</span>. <details><summary>الحل</summary>‏<span class="mono" dir="ltr">2/(1 + e⁻²ᶻ) − 1 = (1 − e⁻²ᶻ)/(1 + e⁻²ᶻ)</span>، واضرب البسط والمقام في eᶻ: ‏<span class="mono" dir="ltr">(eᶻ − e⁻ᶻ)/(eᶻ + e⁻ᶻ) = tanh z</span>. فالشبكتان متكافئتان بتعديل الأوزان والانحيازات.</details></li>
+    <li>في المثال المحلول للانتشار العكسي: لماذا العمود الأول من <span class="mono" dir="ltr">∂L/∂W⁽¹⁾</span> أصفار؟ وما الذي يحدث لو كانت التنشيطات سيغمويد؟ <details><summary>الحل</summary>لأن z₁ = −١ < ٠، فمشتقة ReLU صفر وتحجب التدرّج عن كل الأوزان الداخلة إلى الوحدة الأولى. ومع السيغمويد لا يوجد حجب تام: σ′(−1) ≈ ٠٫٢٠، فيصل تدرّج صغير.</details></li>
+    <li>لماذا يصعب فحص التدرّج بالفروق قرب «زاوية» ReLU؟ <details><summary>الحل</summary>لأن الفرق المركزي يأخذ نقطتين على جانبي الزاوية إن كان z أقرب إلى الصفر من h، فيعطي متوسط الميلين (½) لا ميل أي منهما.</details></li>
+    <li>أثبت أن مضاعفة الأوزان الداخلة إلى وحدة ReLU وانحيازها α مرة، وقسمة أوزانها الخارجة على α، لا تغيّر الدالة. <details><summary>الحل</summary>‏<span class="mono" dir="ltr">ReLU(αz) = α·ReLU(z)</span> لكل α > 0، فالوحدة تُخرج α ضعفاً، والوزن الخارج مقسوم على α يلغيه. ولهذا لا تكون «معايير المعاملات» خاصية للدالة وحدها، وهي نقطة يستعملها الكتاب في القسم ٤٫٥.</details></li>
+    <li>مع إسقاط p في طبقة، ما متوسط المخرج وتباينه إن كانت القيمة h؟ وماذا لو أبقيت الإسقاط في الاختبار وأخذت متوسط ٢٠ مروراً؟ <details><summary>الحل</summary>المتوسط h والتباين <span class="mono" dir="ltr">p h²/(1 − p)</span>. وأخذ متوسط مرورات كثيرة بالإسقاط («إسقاط مونت كارلو») يقترب من الشبكة الكاملة، ويعطي أيضاً تقديراً لعدم اليقين من تشتت النتائج.</details></li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="03-linear-classification.html">→ الفصل السابق: التصنيف الخطي</a><a href="index.html">فهرس الكتاب ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/d2l-common.js"></script>
+<script src="../assets/js/d2l04.js"></script>
+</body>
+</html>

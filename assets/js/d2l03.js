@@ -112,7 +112,7 @@ function drawTC(){
   const ep=+$('#tcE').value;$('#tcEo').textContent=ep;const S=TCH[ep],G=34,xr=[-4,4],yr=[-3.5,4.5];
   const raw=(x,y)=>{let s='';for(let i=0;i<G;i++)for(let k=0;k<G;k++){const a=xr[0]+(i+0.5)*(xr[1]-xr[0])/G,c=yr[0]+(k+0.5)*(yr[1]-yr[0])/G,p=smx([0,1,2].map(j=>a*S.W[0][j]+c*S.W[1][j]+S.b[j])),m=Math.max(...p),j=p.indexOf(m);
     const x0=x(xr[0]+i*(xr[1]-xr[0])/G),x1=x(xr[0]+(i+1)*(xr[1]-xr[0])/G),y0=y(yr[0]+(k+1)*(yr[1]-yr[0])/G),y1=y(yr[0]+k*(yr[1]-yr[0])/G);
-    s+=`<rect x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" width="${(x1-x0+1).toFixed(1)}" height="${(y1-y0+1).toFixed(1)}" fill="${CL[j]}" opacity="${(0.08+0.4*(m-1/3)*1.5).toFixed(2)}"/>`}return s};
+    s+=`<rect shape-rendering="crispEdges" x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" width="${(x1-x0+1).toFixed(1)}" height="${(y1-y0+1).toFixed(1)}" fill="${CL[j]}" opacity="${(0.08+0.4*(m-1/3)*1.5).toFixed(2)}"/>`}return s};
   plot($('#tcPlot'),{xmin:xr[0],xmax:xr[1],ymin:yr[0],ymax:yr[1],W:420,H:360,maxw:'460px',xt:[-3,0,3],yt:[-3,0,3],xl:'x₁',yl:'x₂',raw,
     pts:TC.tr.X.map((x,i)=>({x:x[0],y:x[1],c:CL[TC.tr.y[i]],r:2.6}))});
   $('#tcCalc').textContent=`epoch ${ep}   (η = ${segVal('#tcL','v')}, batch 32, 10 updates per epoch)\ntrain: loss ${S.tl.toFixed(3)}  accuracy ${(S.ta*100).toFixed(1)}%\nvalid: loss ${S.vl.toFixed(3)}  accuracy ${(S.va*100).toFixed(1)}%\nW = [[${S.W[0].map(v=>v.toFixed(2)).join(', ')}], [${S.W[1].map(v=>v.toFixed(2)).join(', ')}]]   b = [${S.b.map(v=>v.toFixed(2)).join(', ')}]\ncolour = argmax class, shade = its probability (confidence)`;
