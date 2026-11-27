@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٥ · البناء والحساب | الغوص في التعلّم العميق</title>
+<meta name="description" content="شرح عربي للفصل الخامس من كتاب Dive into Deep Learning: شجرة الوحدات، والمعاملات والمخازن والذاكرة، والتهيئة في الشبكات المتبقية، والطبقات المخصصة والتدرّج المستقيم، وصيغ الأعداد والدقة المختلطة، والحفظ والتحميل الآمن، والمعالجات الرسومية، وقابلية التكرار والخطافات.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">الغوص في التعلّم العميق</a></nav>
+    <div class="chnav"><a class="pill" href="04-multilayer-perceptrons.html" style="text-decoration:none">→ الفصل ٤</a><b>الفصل ٥ من ٤٢</b></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">الأساسيات · الفصل الخامس</div>
+  <h1>البناء والحساب</h1>
+  <div class="sub en" style="font-size:16px">Chapter 5 · Computation · <a href="https://d2l.ai/chapter_builders-guide/index.html">d2l.ai</a></div>
+  <p class="epi">حتى الآن أخفت المكتبة عنا تفاصيل كثيرة: كيف يُبنى النموذج، وأين تعيش معاملاته، وكيف تُحسب على العتاد. وهذا الإخفاء مريح حتى يكبر النموذج. ضبط نموذج لغوي بثمانية مليارات معامل يحتاج ١٢٨ غيغابايت لمعاملاته وتدرّجاتها وحالة المحسِّن فقط، قبل أي حساب. وعلى آلاف المعالجات الرسومية يتعطل شيء كل بضع ساعات. هذا الفصل «دليل البنّاء»: ما يجب أن تعرفه عمّا تحت الغطاء.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم في سطرين</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--tint);border-color:var(--rule)"></i>كود مشروح: كل سطر وبجانبه معناه</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية: جرّب بيدك</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>الشبكة <b>شجرة وحدات</b>: كل معامل ورقة لها مسار من الجذر (مثل <code>1.body.0.weight</code>). والمحسِّن والحفظ والنقل إلى المعالج الرسومي كلها تمشي على هذه الشجرة؛ فما لم يُسجَّل فيها يضيع بصمت.</li>
+    <li>التدريب بـAdam بدقة ٣٢ بت يكلف <b>١٦ بايت لكل معامل</b> على الأقل: الوزن والتدرّج وعزمان. فنموذج ٨ مليارات يحتاج ١٢٨ غيغابايت قبل أي تنشيط.</li>
+    <li>قاعدة He لا تكفي في الشبكات المتبقية: كل كتلة تضاعف التباين. والحل تصغير إسقاط المخرج بـ<span class="mono" dir="ltr">1/√N</span> أو تصفيره.</li>
+    <li>الطبقة المخصصة صنف فرعي يسجّل موتراته. وحين لا تفيد المشتقة الحقيقية (كالتقريب إلى عدد صحيح) نكتب قاعدة خلفية بديلة: «المقدِّر المستقيم».</li>
+    <li>صيغ ١٦ بت تبادل المدى بالدقة: fp16 تطفح بعد ٦٥٥٠٤، وbf16 تبتلع التحديثات الصغيرة. والحل <b>الدقة المختلطة</b>: أوزان رئيسية بـ٣٢ بت وحساب بـ١٦.</li>
+    <li>احفظ الحالة لا الكود، وبصيغة لا تنفّذ شيئاً عند التحميل (safetensors). ونقطة الاستئناف تحتاج خمسة أشياء، أخطرها حالة المحسِّن.</li>
+    <li>النقل بين الذاكرة والمعالج الرسومي أبطأ من الحساب، والمعالج يعمل بطابور غير متزامن. وتقسيم التنشيطات وإعادة حسابها يخفض الذاكرة من K إلى √K.</li>
+    <li>البذرة تثبّت الأعداد العشوائية لا ترتيب الجمع؛ والجمع العشري ليس تجميعياً. والخطافات تفحص النموذج من الخارج دون تعديل كوده.</li>
+  </ol>
+</div>
+
+<!-- ============ 5.1 ============ -->
+<section class="sec" id="s5-1">
+  <header><div class="kicker">القسم ٥٫١ <a class="pg" href="https://d2l.ai/chapter_builders-guide/model-construction.html">d2l.ai ↗</a></div><h2>الوحدات وبناء النماذج</h2></header>
+  <div class="brief"><b>باختصار</b>«الوحدة» <span class="en">(module)</span> لبنة تكرارية: قد تكون طبقة واحدة، أو مجموعة طبقات، أو نموذجاً كاملاً. تملك معاملات ووحدات أبناء، وتعرّف حساباً أمامياً. ولأنها تتداخل، فكل بنية <b>شجرة</b>. والمكتبة تجد كل المعاملات بالمشي على الشجرة، بشرط أن يكون كل ابن <b>مسجَّلاً</b> عند أبيه.</div>
+  <div class="terms"><span>الوحدة <i>module</i></span><span>التسجيل <i>registration</i></span><span>الحاوية التسلسلية <i>Sequential</i></span><span>الوصلة المتبقية <i>residual connection</i></span><span>التهيئة الكسولة <i>lazy initialization</i></span><span>الإعداد <i>config</i></span></div>
+  <p>مثال الكتاب الجاري: Llama 3 8B فيه ٨ مليارات معامل موزعة على ٣٢ كتلة محوّل متطابقة، في ٢٩١ مصفوفة معاملات منفصلة. لا أحد يتتبعها بيده؛ الشجرة تفعل ذلك.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>class MLP(nn.Module):</code><span>صنف فرعي من الوحدة الأساسية.</span></div>
+    <div class="cl"><code>    def __init__(self):</code><span>في المُنشئ نصنع الأبناء…</span></div>
+    <div class="cl"><code>        super().__init__()</code><span>…بعد تهيئة الأب (ضروري ليعمل التسجيل).</span></div>
+    <div class="cl"><code>        self.hidden = nn.Linear(20, 256)</code><span>مجرد الإسناد إلى <code>self</code> يسجّل الابن تلقائياً.</span></div>
+    <div class="cl"><code>        self.out = nn.Linear(256, 10)</code><span>ابن ثانٍ.</span></div>
+    <div class="cl"><code>    def forward(self, X):</code><span>المرور الأمامي فقط؛ الخلفي يأتي من الاشتقاق التلقائي.</span></div>
+    <div class="cl"><code>        return self.out(F.relu(self.hidden(X)))</code><span>ونستدعي النموذج دائماً بـ<code>net(X)</code> لا بـ<code>net.forward(X)</code>، لأن الاستدعاء يشغّل «الخطافات» (القسم ٥٫٨).</span></div>
+  </div>
+  <p><b>الفخ الصامت</b>: لو وضعت الطبقات في قائمة بايثون عادية <code>self.layers = [nn.Linear(...), ...]</code> لعمل المرور الأمامي بلا خطأ، لكن القائمة العادية غير مسجّلة: عدد المعاملات الذي تراه المكتبة <b>صفر</b>. وفي تجربة الكتاب بنموذج مسجّل جزئياً، حدّثت خطوة SGD الطبقتين الخارجيتين فقط، دون أي تحذير. والعلاج <code>nn.ModuleList</code>، فيعود العدد ٧٬٩٤٦ = ٢٠×٢٥٦ + ٢٥٦ + ٢٥٦×١٠ + ١٠.</p>
+  <div class="w" id="mtBox"><div class="cap">شجرة الوحدات لشبكة متبقية مبنية من إعداد (انقر عقدة لترى مسارها وعدد معاملاتها)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">العرض: <b id="mtHo"></b> <input type="range" id="mtH" min="0" max="5" value="2"></label><label class="note">عدد الكتل: <b id="mtBo"></b> <input type="range" id="mtB" min="1" max="8" value="4"></label><label class="note"><input type="checkbox" id="mtList"> ضع الكتل في قائمة بايثون عادية</label></div>
+    <div id="mtTree" dir="ltr" style="margin-top:8px;font-family:var(--f-mono);font-size:13.5px;line-height:1.9"></div><div class="calc" id="mtCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">x + f(x)</span>مفهوم رياضي · الوصلة المتبقية</div><div class="mb">
+    <p>الكتلة المتبقية تحسب <span class="mono" dir="ltr">y = x + f(x)</span>: تضيف مخرج «جسمها» f إلى مدخلها. فإن كان f صفراً صارت الكتلة دالة الهوية، أي إن الكتلة الجديدة لا تستطيع في أسوأ الأحوال إلا أن «تمرر» الإشارة. ولأن الجمع يحتاج شكلين متطابقين، يأخذ جسم الكتلة عرضاً واحداً في المدخل والمخرج. وستعود الفكرة بقوة في الشبكات الالتفافية الحديثة (ResNet، الفصل ٧) والمحوّلات.</p>
+    <p>عدّ المعاملات باليد للإعداد الافتراضي (٧٨٤ مدخلاً، عرض ٢٥٦، أربع كتل، عشرة مخارج): الإسقاط الأول ٧٨٤×٢٥٦ + ٢٥٦ = ٢٠٠٬٩٦٠، وكل كتلة ٢×(٢٥٦×٢٥٦ + ٢٥٦) = ١٣١٬٥٨٤، والمخرج ٢٥٦×١٠ + ١٠ = ٢٬٥٧٠، والمجموع ٧٢٩٬٨٦٦. ضاعف العرض والكتل معاً فيصير ٤٬٦٠٩٬٥٤٦: مضاعفة العرض تضرب معاملات الكتلة في أربعة، ومضاعفة الكتل تضرب مجموعها في اثنين.</p>
+  </div></div>
+  <p><b>التنفيذ الفوري والمُترجَم</b>: PyTorch ينفّذ كل سطر فور كتابته، فتعمل شروط بايثون التي تعتمد على البيانات. أما الأطر التي «تتتبع» الحساب مرة ثم تترجمه (مثل <code>tf.function</code> و<code>jax.jit</code>) فتفشل مع حلقة <code>while</code> تعتمد على قيمة موتر. و<b>التهيئة الكسولة</b> (<code>LazyLinear</code>) تؤجل معرفة عرض المدخل إلى أول تمرير، فلا يمكن عدّ المعاملات قبل «تشغيل تجريبي» على مدخل وهمي. ولهذا يفضّل الكتاب في الإنتاج <b>إعداداً</b> صريحاً (<code>@dataclass</code> بالعرض وعدد الكتل) ودالة <code>build(cfg)</code> تبني الشجرة منه؛ فالإعداد يُحفظ مع الأوزان، ويُعاد البناء منه.</p>
+</section>
+
+<!-- ============ 5.2 ============ -->
+<section class="sec" id="s5-2">
+  <header><div class="kicker">القسم ٥٫٢ <a class="pg" href="https://d2l.ai/chapter_builders-guide/parameters-state-memory.html">d2l.ai ↗</a></div><h2>المعاملات والحالة والذاكرة</h2></header>
+  <div class="brief"><b>باختصار</b>حالة النموذج شجرة موترات مسمّاة. منها <b>معاملات</b> يحدّثها المحسِّن، و<b>مخازن</b> <span class="en">(buffers)</span> تُحفظ وتُنقل معه لكنها لا تتدرّب (كإحصاءات التطبيع). والتدريب بـAdam يكلف ١٦ بايت لكل معامل. ويمكن عدّ المعاملات دون حجز ذاكرتها. والمعامل الواحد قد يُستعمل في موضعين (الربط)، وقد يُجمَّد.</div>
+  <div class="terms"><span>المعامل <i>parameter</i></span><span>المخزن <i>buffer</i></span><span>قاموس الحالة <i>state dict</i></span><span>ربط الأوزان <i>weight tying</i></span><span>التجميد <i>freezing</i></span><span>الجهاز الوهمي <i>meta device</i></span></div>
+  <p>المسار <code>1.body.0.weight</code> يُقرأ: الابن ١ من الشبكة (أول كتلة متبقية) ← جسمها ← طبقته الأولى ← الوزن، أي <code>net[1].body[0].weight</code>. و<code>named_parameters()</code> تعطي كل الأوراق مع مساراتها، ويحتاجها المحسِّن وكاتب نقاط الحفظ.</p>
+  <h3>أربعة أنواع من القيم داخل الطبقة</h3>
+  <div class="scroll"><table class="tb">
+    <tr><th>النوع</th><th>مثال</th><th>يحدّثه المحسِّن؟</th><th>يُحفظ؟</th><th>يُنقل مع النموذج؟</th></tr>
+    <tr><td>معامل</td><td>الأوزان والانحيازات</td><td>نعم</td><td>نعم</td><td>نعم</td></tr>
+    <tr><td>مخزن</td><td>متوسط المدخلات وانحرافها؛ متوسطات التطبيع الجارية</td><td>لا</td><td>نعم</td><td>نعم</td></tr>
+    <tr><td>خاصية عادية</td><td>عرض الطبقة</td><td>لا</td><td>لا</td><td>لا</td></tr>
+    <tr><td>متغير محلي</td><td>التنشيطات الوسيطة</td><td>لا</td><td>لا</td><td>لا</td></tr>
+  </table></div>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>self.register_buffer('mean', mean)</code><span>مخزن: يُحفظ ويُنقل إلى المعالج الرسومي، ولا يراه المحسِّن.</span></div>
+    <div class="cl"><code>self.gain = nn.Parameter(torch.ones(d))</code><span>معامل: يتعلّم.</span></div>
+    <div class="cl"><code>with torch.device('meta'): head = nn.Linear(4096, 128256)</code><span>بناء على «الجهاز الوهمي»: أشكال وأنواع بلا ذاكرة.</span></div>
+    <div class="cl"><code>sum(p.numel() for p in head.parameters())</code><span>٥٢٥٬٣٣٦٬٥٧٦: إسقاط مخرج Llama 3 8B وحده (٢٫١ غيغابايت بـ٣٢ بت)، وعددناه دون حجز بايت واحد.</span></div>
+  </div>
+  <h3>ذاكرة التدريب</h3>
+  <div class="math"><div class="mh"><span class="sym">16N</span>مفهوم رياضي · ١٦ بايت لكل معامل</div><div class="mb">
+    <p>كل عدد بدقة ٣٢ بت (fp32) يأخذ ٤ بايت. ولكل معامل في التدريب: الوزن نفسه (٤)، وتدرّجه (٤). وSGD لا يحفظ شيئاً آخر: ٨ بايت. أما Adam فيحفظ متوسطين جاريين لكل معامل، للتدرّج ولمربعه (٤ + ٤)، فيصير المجموع <b>١٦ بايت</b>. وهذا حد أدنى: لا يشمل التنشيطات المحفوظة للمرور الخلفي، ولا مساحات العمل المؤقتة.</p>
+    <p>والمفاجأة: التدريب بالدقة المختلطة (القسم ٥٫٥) <b>لا</b> ينصّف هذا الرقم، لأنه يحتفظ بنسخة رئيسية للأوزان وبعزمي Adam بـ٣٢ بت كي لا تضيع التحديثات الصغيرة. ما يوفره هو ذاكرة التنشيطات ووقت الحساب.</p>
+  </div></div>
+  <div class="w" id="mmBox"><div class="cap">حاسبة ذاكرة النموذج (الحالة الثابتة فقط، بلا تنشيطات)</div>
+    <div class="row" style="flex-wrap:wrap"><span class="seg" id="mmN" style="flex-wrap:wrap"><button data-v="18634">MLP الكتاب ١٨٬٦٣٤</button><button data-v="25557032">ResNet-50</button><button data-v="124000000">GPT-2 small</button><button data-v="8000000000" class="on">Llama 3 8B</button><button data-v="70000000000">٧٠ ملياراً</button></span></div>
+    <div id="mmOut" style="margin-top:8px"></div><div class="calc" id="mmCalc"></div></div>
+  <h3>المعاملات المربوطة والمجمّدة</h3>
+  <p><b>الربط</b>: في النموذج اللغوي جدولان بالشكل نفسه |V|×d: تضمين المدخل (صف لكل رمز)، ورأس المخرج الذي يحوّل الحالة المخفية إلى درجة لكل رمز. ربطهما بمصفوفة واحدة يوفر |V|×d معامل، وكثيراً ما يحسّن التعميم: الرموز المتشابهة كمدخلات تستحق درجات متشابهة كمخرجات. في GPT-2 الصغير الجدول المربوط 50257×768 نحو ٣٨٫٦ مليون من ١٢٤ مليوناً، قرابة الثلث. وفي المرور الخلفي يُجمع التدرّج من الموضعين في المعامل الواحد: <span class="mono" dir="ltr">∂L/∂W = ∂L/∂W_emb + ∂L/∂W_head</span> (قاعدة السلسلة متعددة المتغيرات). وفي مثال الكتاب الصغير (١٠٠ رمز وd = ١٦): ١٬٨٧٢ معاملاً مربوطاً مقابل ٣٬٤٧٢ غير مربوط.</p>
+  <p><b>التجميد</b>: في الضبط الدقيق نثبّت العمود الفقري المدرَّب مسبقاً وندرّب رأساً جديداً فقط (<code>p.requires_grad = False</code>)؛ في مثال الكتاب يبقى ٦٥٠ معاملاً قابلاً للتدريب من ١٨٬٦٣٤. وفخّان صامتان: التجميد لا يحرر حالة محسِّن حُجزت قبله، وطبقة تطبيع الدفعات <b>تبقى تحدّث متوسطاتها الجارية</b> في المرور الأمامي ما دامت في وضع التدريب؛ فتجميدها الحقيقي يحتاج أيضاً <code>bn.eval()</code>.</p>
+</section>
+
+<!-- ============ 5.3 ============ -->
+<section class="sec" id="s5-3">
+  <header><div class="kicker">القسم ٥٫٣ <a class="pg" href="https://d2l.ai/chapter_builders-guide/init.html">d2l.ai ↗</a></div><h2>التهيئة</h2></header>
+  <div class="brief"><b>باختصار</b>المُهيِّئ الافتراضي لطبقات PyTorch الخطية ليس He بل منتظم بتباين سدس He، فالشبكات العميقة بلا تطبيع تحتاج تهيئة صريحة (<code>net.apply(init)</code>). والتوزيع الطبيعي المقطوع يمنع القيم المتطرفة النادرة. والأهم: في الشبكات المتبقية لا تكفي قاعدة الطبقة الواحدة؛ كل كتلة تضرب التباين في <span class="mono" dir="ltr">1 + g²</span>، والحل تصغير إسقاط المخرج بـ<span class="mono" dir="ltr">1/√N</span> أو تصفيره.</div>
+  <div class="terms"><span>الكسب <i>gain</i></span><span>الطبيعي المقطوع <i>truncated normal</i></span><span>إسقاط المخرج <i>output projection</i></span><span>التعديل المباشر <i>direct edit</i></span></div>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>def init_he(m):</code><span>دالة تُطبَّق على كل وحدة في الشجرة:</span></div>
+    <div class="cl"><code>    if isinstance(m, nn.Linear):</code><span>نختار الطبقات الخطية فقط…</span></div>
+    <div class="cl"><code>        nn.init.kaiming_normal_(m.weight)</code><span>…ونملأ أوزانها بتهيئة He في المكان نفسه (الشرطة السفلية).</span></div>
+    <div class="cl"><code>net.apply(init_he)</code><span>المشي على الشجرة كلها.</span></div>
+    <div class="cl"><code>nn.init.trunc_normal_(w, std=0.02, a=-0.04, b=0.04)</code><span>طبيعي مقطوع عند ±2σ. انتبه: a وb حدود <b>مطلقة</b> لا مضاعفات σ.</span></div>
+    <div class="cl"><code>with torch.no_grad(): net[-1].weight *= 0.5</code><span>تعديل مباشر بلا تسجيل في الرسم الحسابي.</span></div>
+  </div>
+  <p>على كومة من عشر طبقات ReLU بعرض ٢٥٦: بالتهيئة الافتراضية ينهار متوسط مربع المخرج بمراتب، وبـHe يعود قريباً من ١. و<b>الطبيعي المقطوع</b>: في نموذج بـ١٠<sup>٨</sup> أوزان ستقع عشرات القيم حتماً أبعد من ٥σ؛ فنماذج مثل BERT تسحب من طبيعي مقطوع يعيد سحب ما يتجاوز حداً. مع σ = ٠٫٠٢ والقطع عند ±٠٫٠٤ ينخفض الانحراف الفعلي إلى نحو ٠٫٠١٧٦. وتصغير أوزان الطبقة الأخيرة إلى النصف يقسم متوسط مربع المخرج على أربعة بالضبط، لأن ReLU «متجانسة موجبة».</p>
+  <div class="math"><div class="mh"><span class="sym">(1+g²)ᴺ</span>مفهوم رياضي · لماذا تنفجر الشبكة المتبقية؟</div><div class="mb">
+    <p>جسم الكتلة: طبقة من d إلى 4d بتهيئة He، ثم ReLU، ثم <b>إسقاط مخرج</b> من 4d إلى d بانحراف <span class="mono" dir="ltr">g/√(4d)</span>. تتبّع متوسط المربع m: الطبقة الأولى تضاعفه، وReLU تنصّفه فيعود m، وإسقاط المخرج يضربه في g². وأوزان الإسقاط مستقلة عن المدخل، فمخرج الجسم غير مترابط مع الإشارة المارة عبر الوصلة، فتُجمع المربعات:</p>
+    <div class="eq">m<sub>k+1</sub> = m<sub>k</sub> + g² m<sub>k</sub> = (1 + g²) m<sub>k</sub></div>
+    <p>مع g = ١ تتضاعف المربعات في كل كتلة، فالانحراف المعياري ينمو <span class="mono" dir="ltr">2^(N/2)</span>: مرتان بعد كتلتين، و١٦ بعد ٨، و٦٥٬٥٣٦ بعد ٣٢. وكل طبقة احترمت قاعدتها! <b>الحل الأول</b>: g² = 1/N، فـ<span class="mono" dir="ltr">(1 + 1/N)ᴺ ≤ e</span>، والانحراف لا يتجاوز √e ≈ ١٫٦٥ مهما كان العمق؛ وهذا ما يفعله GPT-2. <b>الحل الثاني</b>: g = ٠، فكل كتلة تبدأ دالة هوية تماماً. وهذا لا يسبب مشكلة التناظر، لأن الطبقة الأولى في الجسم عشوائية: في أول مرور خلفي يأخذ الإسقاط تدرّجاً غير صفري ويبتعد عن الصفر فوراً.</p>
+  </div></div>
+  <div class="w" id="rvBox"><div class="cap">انحراف الإشارة عبر N كتلة متبقية (المحاكاة في متصفحك: عرض ٣٢، جسم بعرض ١٢٨، دفعة ١٢٨)</div>
+    <div class="row" style="flex-wrap:wrap"><label class="note">عدد الكتل N: <b id="rvNo"></b></label><input type="range" id="rvN" min="1" max="32" value="16" style="flex:1"><span class="seg" id="rvG" dir="ltr"><button data-v="1" class="on">g = 1</button><button data-v="s">g = 1/√N</button><button data-v="0">g = 0</button></span></div>
+    <div id="rvPlot"></div><div class="calc" id="rvCalc"></div></div>
+</section>
+
+<!-- ============ 5.4 ============ -->
+<section class="sec" id="s5-4">
+  <header><div class="kicker">القسم ٥٫٤ <a class="pg" href="https://d2l.ai/chapter_builders-guide/custom-layers.html">d2l.ai ↗</a></div><h2>الطبقات والدوال المخصصة</h2></header>
+  <div class="brief"><b>باختصار</b>الطبقة المخصصة صنف فرعي من الوحدة الأساسية بمرور أمامي، وتسجيل موتراتها يعطيها كل قدرات الطبقات الجاهزة. أربعة أمثلة: طبقة بلا معاملات، وRMSNorm بكسب يتعلّم، وطبقة «خصائص عشوائية» بمخازن ثابتة، ودالة بقاعدة خلفية مخصصة: المقدِّر المستقيم الذي يمرر التدرّج عبر التقريب إلى عدد صحيح.</div>
+  <div class="terms"><span>الطبقة المخصصة <i>custom layer</i></span><span>RMSNorm</span><span>الخصائص العشوائية <i>random features</i></span><span>المقدِّر المستقيم <i>straight-through estimator</i></span><span>إيقاف التدرّج <i>stop-gradient</i></span><span>التكميم <i>quantization</i></span></div>
+  <p>أبسطها <code>CenteredLayer</code>: تطرح المتوسط من مدخلها، فـ[١، ٢، ٣، ٤، ٥] (متوسطها ٣) تصير [−٢ … ٢]. ولأن لها واجهة الطبقات نفسها توضع في <code>nn.Sequential</code> بعد طبقة خطية فيصير متوسط مخرجها صفراً (أو نحو ١٠<sup>−٨</sup>، خطأ تقريب لا خطأ برمجة).</p>
+  <h3>RMSNorm</h3>
+  <div class="math"><div class="mh"><span class="sym">x/RMS(x)</span>مفهوم رياضي · RMSNorm</div><div class="mb">
+    <div class="eq">RMSNorm(x) = x / √( (1/d) Σ xᵢ² + ε ) ⊙ g</div>
+    <p>«الجذر التربيعي لمتوسط المربعات» (RMS) مقياس لحجم المتجه. نقسم عليه فيصير حجم كل متجه نحو ١ مهما كان حجمه الأصلي، ثم نضرب عنصراً بعنصر في كسب g يتعلّم (يبدأ آحاداً). وε صغير (١٠<sup>−٦</sup>) يمنع القسمة على صفر. مثال الكتاب: (٣، ٤) متوسط مربعيها ١٢٫٥ وجذره ٣٫٥٣٦، فالناتج (٠٫٨٤٩، ١٫١٣١)؛ و(٣٠٠، ٤٠٠) تعطي الناتج نفسه.</p>
+    <p>هندسياً: تحافظ على <b>اتجاه</b> x وتنقله إلى كرة نصف قطرها √d، ثم يمطّ الكسب كل محور. وهي تبسيط لتطبيع الطبقة (الذي يطرح المتوسط أيضاً ويضيف انحيازاً)، وقد بيّن زانغ وسينريتش (٢٠١٩) أن حذف الطرح نادراً ما يضر ويوفر حساباً، فتستعملها Llama 3 وغيرها.</p>
+  </div></div>
+  <div class="w" id="rmBox"><div class="cap">RMSNorm في بعدين: الدائرة نصف قطرها √2، والكسب يمطّها إلى قطع ناقص</div>
+    <div class="row" dir="ltr" style="flex-wrap:wrap;gap:12px"><label class="note">x₁ <input type="range" id="rmX1" min="-4" max="4" step="0.1" value="3"></label><label class="note">x₂ <input type="range" id="rmX2" min="-4" max="4" step="0.1" value="4"></label><label class="note">g₁ <input type="range" id="rmG1" min="0.2" max="2" step="0.1" value="1"></label><label class="note">g₂ <input type="range" id="rmG2" min="0.2" max="2" step="0.1" value="1"></label></div>
+    <div id="rmPlot"></div><div class="calc" id="rmCalc"></div></div>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>class RMSNorm(nn.Module):</code><span>طبقة بمعامل:</span></div>
+    <div class="cl"><code>    def __init__(self, d, eps=1e-6):</code><span>العرض وε.</span></div>
+    <div class="cl"><code>        super().__init__(); self.eps = eps</code><span>ε ثابت عادي (خاصية بايثون).</span></div>
+    <div class="cl"><code>        self.gain = nn.Parameter(torch.ones(d))</code><span>الكسب معامل مسجّل، فيراه المحسِّن ويُحفظ وينتقل.</span></div>
+    <div class="cl"><code>    def forward(self, X):</code><span>المرور الأمامي = المعادلة حرفياً:</span></div>
+    <div class="cl"><code>        rms = torch.sqrt((X ** 2).mean(-1, keepdim=True) + self.eps)</code><span>RMS لكل صف (المحور الأخير).</span></div>
+    <div class="cl"><code>        return X / rms * self.gain</code><span>قسمة بالبث، ثم الكسب.</span></div>
+  </div>
+  <p>ويتحقق الكتاب من الطبقة بطريقتين: يدرّبها خطوة ويتأكد أن الكسب تحرّك وأن نسخة محمّلة من الحالة تعطي المخرجات نفسها بتطابق تام، ثم يقارنها بـ<code>nn.RMSNorm</code> الجاهزة بكسب غير بديهي. والنصيحة: إن وُجدت طبقة جاهزة تطابق ما تريد فاستعملها في الإنتاج (أسرع وأسهل صيانة)، واكتب طبقتك للجديد فقط.</p>
+  <p><b>طبقة بحالة ثابتة</b>: «الخصائص العشوائية» (رحيمي وريشت ٢٠٠٧) تحسب <span class="mono" dir="ltr">Z = √(2/D) cos(XW + b)</span> بمصفوفة W طبيعية عشوائية وأطوار b منتظمة من [٠، 2π]، ولا تتعلّمها أبداً؛ وطبقة خطية واحدة فوقها تقرّب دوالاً غنية. فـW وb <b>مخازن</b>: ثابتة، لكن يجب حفظها. وفي تجربة الكتاب (٥٠٠ خاصية تقرّب sin 3x) نزل الخطأ تحت ٠٫٠١؛ لكن نقطة حفظ للرأس الخطي وحده، تُحمَّل في نموذج سحب W وb جديدتين، تعطي هراءً.</p>
+  <h3>دوال بتدرّج مخصص: المقدِّر المستقيم</h3>
+  <p>لضغط نموذج ٨ مليارات إلى ٤ غيغابايت تُقرَّب أوزانه إلى أعداد صحيحة بأربعة بتات. وتكميم نموذج جاهز لا يحتاج تدرّجاً، لكن <b>التدريب</b> بأوزان مكمّمة يحتاجه، والتقريب «درج» مشتقته صفر في كل مكان تقريباً: كل وزن خلف التقريب لا يتعلّم أبداً. <b>المقدِّر المستقيم</b> (بنجيو وآخرون ٢٠١٣) يفصل الاتجاهين: أمامياً نقرّب فعلاً، وخلفياً نتظاهر بأن التقريب دالة الهوية (مشتقة ١). وهو ليس المشتقة الحقيقية، لكنه يعمل لأن الدرج لا يبتعد عن خط الهوية أكثر من ½.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>class RoundSTE(torch.autograd.Function):</code><span>دالة بقاعدتين نكتبهما نحن:</span></div>
+    <div class="cl"><code>    @staticmethod</code><span></span></div>
+    <div class="cl"><code>    def forward(ctx, X): return torch.round(X)</code><span>أمامياً: تقريب حقيقي.</span></div>
+    <div class="cl"><code>    @staticmethod</code><span></span></div>
+    <div class="cl"><code>    def backward(ctx, grad): return grad</code><span>خلفياً: مرّر التدرّج كما هو، كأنها الهوية.</span></div>
+    <div class="cl"><code>w_q = RoundSTE.apply(w)</code><span>تُستدعى بـ<code>apply</code> دائماً.</span></div>
+    <div class="cl"><code>w_q = w + (torch.round(w) - w).detach()</code><span>الاختصار الشائع بإيقاف التدرّج: القيمة round(w)، والتدرّج يمر عبر w الأولى وحدها.</span></div>
+  </div>
+  <div class="w" id="stBox"><div class="cap">درّب نموذجاً خطياً بثمانية أوزان مقرّبة إلى أعداد صحيحة (الإعداد من الكتاب، والتشغيل في متصفحك)</div>
+    <div class="row"><button class="pill" id="stGo">▶ درّب الطريقتين</button></div>
+    <div id="stPlot"></div><div class="calc" id="stCalc"></div></div>
+  <p>ومفارقة يختم بها الكتاب: «فحص التدرّج» بالفروق المحدودة (الفصل ٤) <b>يفشل</b> مع المقدِّر المستقيم، وهذا مقصود: الفرق المحدود يقيس ميل الدرج (صفراً)، والقاعدة تقول ١. فالفحص يخبرك هل القاعدة هي المشتقة الحقيقية، لا هل هي قاعدة مفيدة.</p>
+</section>
+
+<!-- ============ 5.5 ============ -->
+<section class="sec" id="s5-5">
+  <header><div class="kicker">القسم ٥٫٥ <a class="pg" href="https://d2l.ai/chapter_builders-guide/numerics.html">d2l.ai ↗</a></div><h2>صيغ الأعداد</h2></header>
+  <div class="brief"><b>باختصار</b>نصف البتات يعني نصف الذاكرة وضعف السرعة على الأقل. لكن ١٦ بت تفشل بصمت بطريقتين: fp16 مداها ضيق (300² تطفح إلى لانهاية)، وbf16 دقتها خشنة (1 + 0.001 تبقى 1). الحل: <b>الدقة المختلطة</b> بأوزان رئيسية بـ٣٢ بت وحساب بـ١٦، و<b>تحجيم الخسارة</b> مع fp16. وأبقِ المجاميع الطويلة بـ٣٢ بت.</div>
+  <div class="terms"><span>نوع البيانات <i>dtype</i></span><span>المدى <i>dynamic range</i></span><span>الدقة <i>precision</i></span><span>fp32 / bf16 / fp16</span><span>الأعداد دون الطبيعية <i>subnormal numbers</i></span><span>الدقة المختلطة <i>mixed precision</i></span><span>تحجيم الخسارة <i>loss scaling</i></span></div>
+  <div class="math"><div class="mh"><span class="sym">2ᵉ(1+f)</span>مفهوم رياضي · كيف يُخزَّن العدد العشري؟</div><div class="mb">
+    <p>كل عدد عشري «طبيعي» ثلاثة أجزاء: بت للإشارة s، وأس e، و«كسر» (المانتيسا) من t بت يمثل كسراً f بين ٠ و١:</p>
+    <div class="eq">x = (−1)ˢ · 2ᵉ · (1 + f)</div>
+    <p>بتات الأس تحدد <b>المدى</b> (أكبر عدد وأصغره)، وبتات الكسر تحدد <b>الدقة</b>: الأعداد المتجاورة بين ١ و٢ تبعد <span class="mono" dir="ltr">2⁻ᵗ</span>، وبين <span class="mono" dir="ltr">2ᵉ</span> و<span class="mono" dir="ltr">2ᵉ⁺¹</span> تبعد <span class="mono" dir="ltr">2ᵉ⁻ᵗ</span>، أي إن الدقة <b>النسبية</b> ثابتة. وتحت أصغر عدد طبيعي تأتي الأعداد «دون الطبيعية» بمسافات متساوية حتى الصفر، تفقد بتاتها تدريجياً.</p>
+  </div></div>
+  <div class="scroll"><table class="tb">
+    <tr><th>الصيغة</th><th>إشارة</th><th>أس</th><th>كسر</th><th>أكبر عدد</th><th>المسافة بعد ١ (eps)</th></tr>
+    <tr><td>fp32</td><td class="num">١</td><td class="num">٨</td><td class="num">٢٣</td><td class="num" dir="ltr">≈ 3.4×10³⁸</td><td class="num" dir="ltr">2⁻²³ ≈ 1.2×10⁻⁷</td></tr>
+    <tr><td>bf16</td><td class="num">١</td><td class="num">٨</td><td class="num">٧</td><td class="num" dir="ltr">≈ 3.4×10³⁸</td><td class="num" dir="ltr">2⁻⁷ ≈ 0.0078</td></tr>
+    <tr><td>fp16</td><td class="num">١</td><td class="num">٥</td><td class="num">١٠</td><td class="num" dir="ltr">65504</td><td class="num" dir="ltr">2⁻¹⁰ ≈ 0.00098</td></tr>
+  </table></div>
+  <p>bf16 تحتفظ بأس fp32 كاملاً وتقصّ الكسر: مدى fp32 بدقة خشنة (رقمان أو ثلاثة أرقام عشرية). وfp16 العكس: دقة أنعم (ثلاثة أو أربعة أرقام) ومدى ضيق. وأيهما أخطر في التعلّم العميق؟ التنشيطات والتدرّجات تمتد عبر مراتب كثيرة، ونفاد المدى كارثي (لانهاية أو صفر) أما الدقة الخشنة فضجيج خفيف. ولهذا صارت bf16 الافتراضية على العتاد الحديث، وبقيت fp16 للمعالجات الأقدم وللتنبؤ.</p>
+  <div class="w" id="fpBox"><div class="cap">أقرب عدد ممثَّل في كل صيغة (التقريب إلى الأقرب، والتعادل إلى الزوجي)</div>
+    <div class="row" style="flex-wrap:wrap"><input id="fpIn" class="arin" dir="ltr" style="max-width:220px;font-family:var(--f-mono);font-size:16px" value="90000"><span class="seg" id="fpEx" dir="ltr" style="flex-wrap:wrap"><button data-v="300*300">300²</button><button data-v="1+0.001">1 + 10⁻³</button><button data-v="1+0.0001">1 + 10⁻⁴</button><button data-v="1e-8">10⁻⁸</button><button data-v="1e-8*65536">10⁻⁸ × 2¹⁶</button><button data-v="65520">65520</button><button data-v="1/3">1/3</button></span></div>
+    <div class="scroll"><table class="tb" id="fpTab" dir="ltr" style="margin-top:8px"></table></div></div>
+  <p>جرّب «1 + 10⁻³»: في bf16 المسافة قرب ١ هي ٠٫٠٠٧٨، فأي تحديث أصغر من نصفها يختفي. وهذه هي المشكلة الحقيقية: خطوة التعلّم <span class="mono" dir="ltr">ηg</span> كثيراً ما تكون أصغر من ١٠<sup>−٣</sup> من حجم الوزن. في تجربة الكتاب على Fashion-MNIST بـη = ٠٫٠١، تختفي نحو تسعة من كل عشرة تحديثات للطبقة الأولى في bf16، وتحمل نحو أربعة أخماس حجم الخطوة. فبعد ١٬٠٠٠ خطوة: أوزان bf16 الخالصة عند خسارة ١٫١٥ ودقة نحو ٦٤٪، مقابل ٠٫٨٥ ونحو ٦٨٪ لـfp32 وللدقة المختلطة (اللتين تكادان تتطابقان).</p>
+  <div class="math"><div class="mh"><span class="sym">AMP</span>مفهوم رياضي · الدقة المختلطة وتحجيم الخسارة</div><div class="mb">
+    <p><b>الدقة المختلطة</b>: الأوزان الرئيسية بـfp32 فلا تضيع التحديثات الصغيرة، وتُنسخ إلى ١٦ بت لضرب المصفوفات وتخزين التنشيطات في المرورين، وتبقى العمليات الحساسة (الخسارة، والمجاميع، والتطبيع) بـfp32. في PyTorch: <code>torch.autocast</code>.</p>
+    <p><b>تحجيم الخسارة</b> لـfp16: التدرّجات الأصغر من <span class="mono" dir="ltr">2⁻¹⁴ ≈ 6.1×10⁻⁵</span> تدخل منطقة الأعداد دون الطبيعية، وما دون <span class="mono" dir="ltr">≈ 3×10⁻⁸</span> يصير صفراً. فنضرب الخسارة في ثابت كبير S قبل المرور الخلفي (فكل التدرّجات تُضرب في S بخطية الاشتقاق)، ثم نقسم عليه بـfp32 قبل التحديث. وفي تجربة الكتاب: نحو ثلث تدرّجات الطبقة الأولى غير الصفرية تقع في المنطقة دون الطبيعية، واثنان في الألف يصيران صفراً؛ والضرب في 2¹⁶ يرفعها كلها. و«التحجيم الديناميكي» يبدأ بـS كبير، ويخطّي الخطوة ويقسم S على ٢ إن ظهرت لانهاية، ويضاعفه بعد سلسلة خطوات نظيفة (<code>torch.amp.GradScaler</code>). أما bf16 فلا تحتاج ذلك.</p>
+    <p>و<b>tf32</b> على معالجات NVIDIA منذ جيل Ampere: يقص مدخلات ضرب المصفوفات بـfp32 إلى كسر fp16 ويجمع بـfp32، فيسرّع دون تغيير أي نوع (<code>torch.set_float32_matmul_precision('high')</code>).</p>
+  </div></div>
+  <div class="w" id="acBox"><div class="cap">اجمع 2⁻¹⁰ أربعة آلاف وستاً وتسعين مرة (الناتج الصحيح ٤)</div>
+    <div id="acPlot"></div><div class="calc" id="acCalc"></div></div>
+  <p>المجمِّع بـfp16 يتجمد عند ٢ بعد ٢٠٤٨ خطوة: بين ٢ و٤ تبعد الأعداد <span class="mono" dir="ltr">2⁻⁹</span>، فـ<span class="mono" dir="ltr">2 + 2⁻¹⁰</span> تقع في المنتصف تماماً، والتقريب إلى الزوجي يعيدها إلى ٢ إلى الأبد. ومتوسطات الدفعات ومجاميع الخسارة وتباينات التطبيع كلها معرضة لهذا، فتبقى بـfp32. والفشل الثالث الذي يذكره الكتاب: اللانهاية التي تولد في طبقة مبكرة تظهر بعد ذلك <code>nan</code> في مكان آخر، وعلاجه الأسس المزاحة (LogSumExp من الفصل ٣).</p>
+</section>
+
+<!-- ============ 5.6 ============ -->
+<section class="sec" id="s5-6">
+  <header><div class="kicker">القسم ٥٫٦ <a class="pg" href="https://d2l.ai/chapter_builders-guide/saving-loading.html">d2l.ai ↗</a></div><h2>الحفظ والتحميل والأوزان المدرَّبة مسبقاً</h2></header>
+  <div class="brief"><b>باختصار</b>نحفظ <b>الحالة</b> (قاموس من المسارات إلى الموترات) لا الكود. وصيغة pickle تنفّذ كوداً عند التحميل، فالأوزان القادمة من غيرك تُحمَّل بصيغة لا تحمل كوداً مثل safetensors. ونقطة الاستئناف تحتاج خمسة مكونات: حالة النموذج، وحالة المحسِّن، وحالة المولّد العشوائي، ورقم الخطوة، والإعداد. وعند تحميل أوزان جاهزة في بنية معدّلة، افحص المفاتيح الناقصة والزائدة.</div>
+  <div class="terms"><span>قاموس الحالة <i>state dict</i></span><span>pickle</span><span>safetensors</span><span>نقطة الاستئناف <i>training checkpoint</i></span><span>الكتابة الذرية <i>atomic write</i></span><span>المفاتيح الناقصة والزائدة <i>missing / unexpected keys</i></span></div>
+  <p>والدافع واقعي: في ٥٤ يوماً من تدريب Llama 3 405B على ما يصل إلى ١٦٬٣٨٤ معالجاً رسومياً سجّلت Meta ٤١٩ انقطاعاً غير متوقع، أي نحو انقطاع كل ثلاث ساعات. بلا نقاط حفظ واستئناف موثوقة لا يكتمل تدريب بهذا الحجم.</p>
+  <p>قاموس الحالة أسماء وأشكال وأعداد، ولا شيء غيرها: لا أثر للصنف ولا للمرور الأمامي. فإعادة البناء تحتاج كوداً يصنع الأسماء والأشكال نفسها بالضبط؛ ومجرد تغيير اسم خاصية من <code>output</code> إلى <code>head</code> يكسر المطابقة رغم أن الدالة واحدة.</p>
+  <h3>pickle وsafetensors</h3>
+  <p>صيغة pickle في بايثون لا تخزّن بيانات خاملة، بل <b>برنامجاً</b> يعيد بناء الكائنات، وفك التخزين ينفّذه، فيستطيع استدعاء أي دالة. ومثال الكتاب «الفخ» يستدعي <code>print</code> ببراءة، وملف خبيث يستطيع أن يستدعي <code>os.system</code>. ولهذا صار <code>torch.load</code> يستعمل <code>weights_only=True</code> افتراضاً منذ PyTorch 2.6. لكن الأسلم صيغة <b>لا تستطيع</b> أصلاً أن تحمل تعليمات: safetensors ثلاثة أجزاء متتالية: ٨ بايت لطول الترويسة، ثم ترويسة JSON بنوع كل موتر وشكله وموقعه بالبايت، ثم البيانات الخام متراصة. والتحميل لا ينفّذ شيئاً، ويسمح بقراءة موتر واحد دون الملف كله. وهي الصيغة المعتمدة في منصة Hugging Face.</p>
+  <div class="w" id="sfBox"><div class="cap">ملف safetensors لشبكة 20 → 256 → 10 كما يصفه الكتاب: أين يقع كل موتر؟</div>
+    <div id="sfOut" style="margin-top:6px"></div><div class="scroll"><table class="tb" id="sfTab" dir="ltr" style="margin-top:8px"></table></div></div>
+  <h3>نقطة الاستئناف</h3>
+  <div class="math"><div class="mh"><span class="sym">m̂/√v̂</span>مفهوم رياضي · لماذا حالة Adam ضرورية؟</div><div class="mb">
+    <div class="eq">w ← w − η · m̂ / (√v̂ + ε)</div>
+    <p>Adam (القسم ٩) يحفظ متوسطاً جارياً للتدرّج m ولمربعه v، ويقسم الأول على جذر الثاني. فالخطوة الفعلية لكل معامل تقريباً η مضروبة في «نسبة» التدرّج الحالي إلى حجمه التاريخي. وفي الخطوة الأولى من محسِّن جديد يصير <span class="mono" dir="ltr">m̂ = g</span> و<span class="mono" dir="ltr">v̂ = g²</span>، فالخطوة <span class="mono" dir="ltr">η|g|/(|g| + ε) ≈ η</span> لكل معامل، مهما صغر تدرّجه. أما المحسِّن المستأنَف فـv فيه يتذكر تدرّجات كبيرة سابقة، فتبقى الخطوات قرب نهاية التدريب صغيرة.</p>
+  </div></div>
+  <div class="w" id="adBox"><div class="cap">خطوة واحدة لـAdam بعد الاستئناف: بحالة محفوظة أم بمحسِّن جديد؟ (η = 0.05 كما في تجربة الكتاب)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">التدرّج الحالي |g| = 10<sup id="adGo"></sup></label><input type="range" id="adG" min="-6" max="0" step="0.5" value="-3" style="flex:1"><label class="note">حجم التدرّجات السابقة √v = 10<sup id="adVo"></sup></label><input type="range" id="adV" min="-4" max="1" step="0.5" value="-1" style="flex:1"></div>
+    <div class="calc" id="adCalc"></div></div>
+  <p>تجربة الكتاب: شبكة صغيرة بـAdam (η = ٠٫٠٥)، ٢٠٠ خطوة، ثم نقطة حفظ، ثم ٥ خطوات. الاستئناف الكامل يطابق التدريب المتصل <b>بتاً ببت</b>. وبلا حالة المولّد العشوائي يعيد الاستئناف أول الدفعات بدل التالية، فتختلف الأوزان بين ٠٫٠٠٤ و٠٫٠٢. وبمحسِّن جديد ترتفع الخسارة في خطوة واحدة نحو ألف ضعف، وتبقى بعد أربع خطوات أعلى بأكثر من مئة ضعف. ونقطة استئناف نموذج ٨ مليارات بـfp32: ١٢ بايت لكل معامل (الأوزان والعزمان، بلا تدرّجات لأنها تُحسب من جديد)، أي ٩٦ غيغابايت.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>ckpt = {'model': net.state_dict(), 'optim': opt.state_dict(),</code><span>١ و٢: حالة النموذج وحالة المحسِّن…</span></div>
+    <div class="cl"><code>        'step': step, 'config': asdict(cfg),</code><span>٤ و٥: رقم الخطوة (لتصحيح Adam وجدول معدّل التعلّم) والإعداد…</span></div>
+    <div class="cl"><code>        'rng': gen.get_state()}</code><span>٣: حالة المولّد العشوائي (ترتيب الدفعات والإسقاط).</span></div>
+    <div class="cl"><code>torch.save(ckpt, path + '.tmp')</code><span>اكتب إلى ملف مؤقت…</span></div>
+    <div class="cl"><code>os.replace(path + '.tmp', path)</code><span>…ثم أعد التسمية ذرياً: أي قارئ يرى النقطة القديمة كاملة أو الجديدة كاملة، ولا يرى نصف ملف أبداً.</span></div>
+  </div>
+  <h3>الأوزان المدرَّبة مسبقاً</h3>
+  <p>ResNet-50 المدرَّبة على ImageNet (١٫٢ مليون صورة في ١٬٠٠٠ صنف) فيها نحو ٢٥ مليون معامل. لتكييفها مع مسألة بعشرة أصناف نحمّل كل شيء إلا الرأس، ونضع رأساً جديداً. و<code>load_state_dict(..., strict=False)</code> يعيد مجموعتين: <b>الناقصة</b> (معاملات في النموذج ليست في الملف، فتبقى عشوائية) و<b>الزائدة</b> (مفاتيح في الملف لا يستعملها النموذج). في تجربة الكتاب حُذفت المرحلة الأخيرة من العمود الفقري عمداً: الرأس الناقص متوقع، أما المرحلة الأخيرة الناقصة فإنذار؛ لو تجاهلت المجموعتين لبقي جزء ضخم من نموذجك «المدرَّب» ضجيجاً عشوائياً. والنصيحة: تحقّق صراحة أن المجموعتين لا تحويان إلا ما قصدت استبداله.</p>
+</section>
+
+<!-- ============ 5.7 ============ -->
+<section class="sec" id="s5-7">
+  <header><div class="kicker">القسم ٥٫٧ <a class="pg" href="https://d2l.ai/chapter_builders-guide/gpus-devices-memory.html">d2l.ai ↗</a></div><h2>المعالجات الرسومية والأجهزة والذاكرة</h2></header>
+  <div class="brief"><b>باختصار</b>كل موتر يعيش على جهاز، وكل عملية تحتاج معاملاتها على الجهاز نفسه. والنسخ بين ذاكرة الحاسوب والمعالج الرسومي أبطأ من الحساب، فانقل النموذج مرة وانقل الدفعات عند حدود الخطوات. والمعالج الرسومي ينفّذ من طابور غير متزامن، فبايثون لا ينتظر إلا عند «نقاط المزامنة». وذاكرة التدريب = حالة ثابتة + تنشيطات تكبر مع الدفعة؛ وتقسيم التنشيطات وإعادة حسابها يخفضها من K إلى √K.</div>
+  <div class="terms"><span>الجهاز <i>device</i></span><span>التنفيذ غير المتزامن <i>asynchronous execution</i></span><span>نقطة المزامنة <i>synchronization point</i></span><span>المخصِّص بالتخزين المؤقت <i>caching allocator</i></span><span>نفاد الذاكرة <i>OOM</i></span><span>إعادة حساب التنشيطات <i>activation checkpointing</i></span></div>
+  <p>معالج رسومي مكتبي يضرب مصفوفتين ٤٠٩٦×٤٠٩٦ في أقل من ٢ ملّي ثانية، والمعالج المركزي يحتاج من ١٠٠ ملّي ثانية إلى ثانيتين (أسرع ١٠٠ إلى ١٠٠٠ مرة)، و١٦ بت تنصّف الزمن مرة أخرى. لكن المفاجأة في قياس الكتاب: <b>نسخ</b> تلك المصفوفة من ذاكرة الحاسوب إلى المعالج الرسومي أبطأ من ضربها بثلاث إلى ست مرات. والقاعدة: انقل البيانات مرة عند حدود الحساب، وأبقِ الحلقات الداخلية كلها على جهاز واحد.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')</code><span>المعالج الرسومي الأول إن وُجد، وإلا المركزي؛ فيعمل الكود نفسه على الحاسوب المحمول والخادم.</span></div>
+    <div class="cl"><code>X = torch.ones(2, 3, device=device)</code><span>أنشئ الموتر على جهازه مباشرة، بلا نسخة إضافية.</span></div>
+    <div class="cl"><code>net = net.to(device)</code><span>انقل النموذج كله (الشجرة) <b>قبل</b> بناء المحسِّن، كي تُحجز عزوم Adam على الجهاز نفسه.</span></div>
+    <div class="cl"><code>Y = X.to('cuda:1'); X + Y</code><span>خطأ: الموتران على جهازين. المكتبة لا تنسخ بصمت، لأن النسخ الصامت يخفي بطئاً شديداً.</span></div>
+    <div class="cl"><code>torch.cuda.synchronize()</code><span>انتظر حتى ينتهي كل ما في الطابور (ضروري لقياس الزمن بصدق).</span></div>
+  </div>
+  <h3>الطابور غير المتزامن</h3>
+  <p>حين يستدعي بايثون عملية على المعالج الرسومي فهو يضعها في طابور ويعود فوراً. فقياس زمن حلقة بايثون يقيس <b>الإدراج</b> لا <b>التنفيذ</b>. ولا ينتظر بايثون إلا حين يحتاج قيمة فعلية: طباعة موتر، أو <code>loss.item()</code>، أو التحويل إلى NumPy، أو شرط <code>if</code> على موتر. وكل نقطة مزامنة توقف بايثون حتى يفرغ الطابور، ثم يبقى المعالج الرسومي عاطلاً حتى يصله عمل جديد. ولهذا يحفظ المدرِّب الخسائر على الجهاز ويحوّلها إلى أعداد مرة في كل دورة. وقواعد القياس الصادق أربع: تسخين أولاً، ومزامنة قبل بدء المؤقت وقبل إيقافه، وتكرار وأخذ المتوسط، و<code>time.perf_counter</code>.</p>
+  <h3>ذاكرة المعالج الرسومي</h3>
+  <p>ثلاث قراءات متداخلة للذاكرة: ما تشغله الموترات الحية (<code>memory_allocated</code>)، وما حجزه «المخصِّص» من كتل للإعادة (<code>memory_reserved</code>)، وما يعطيه المشغّل للعملية (ما يعرضه <code>nvidia-smi</code>). احذف موتراً بحجم ١ غيغابايت: تنخفض الأولى، ولا تتغير <code>nvidia-smi</code>، لأن المخصِّص يحتفظ بالكتلة للإعادة.</p>
+  <div class="w" id="smBox"><div class="cap">الذاكرة في أول خطوة تدريب لشبكة: مدخل ١٠٢٤، وثلاث طبقات مخفية بعرض W، وعشرة مخارج، بـfp32 وAdam</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">العرض W: <b id="smWo"></b> <input type="range" id="smW" min="9" max="13" value="12"></label><label class="note">حجم الدفعة: <b id="smBo"></b> <input type="range" id="smB" min="6" max="14" value="12"></label></div>
+    <div id="smOut" style="margin-top:8px"></div><div class="calc" id="smCalc"></div></div>
+  <p>إعداد الكتاب الافتراضي (عرض ٤٠٩٦ ودفعة ٤٠٩٦): N ≈ ٣٫٨×١٠<sup>٧</sup> معامل، أي ١٤٤ ميغابايت للأوزان، والتنشيطات الثلاثة ٦٤ ميغابايت لكل منها (١٩٢)، أكثر من الأوزان نفسها. والدرس: إن ضاقت الذاكرة فأسرع حل تصغير الدفعة. وإن كانت الذاكرة تزيد <b>من خطوة إلى خطوة</b> فابحث عن تسرّب، أشهره إلحاق الخسارة بقائمة بايثون دون <code>.detach()</code> أو <code>.item()</code>، فيبقى رسمها الحسابي كله حياً.</p>
+  <div class="math"><div class="mh"><span class="sym">√K</span>مفهوم رياضي · إعادة حساب التنشيطات</div><div class="mb">
+    <p>الانتشار العكسي يحفظ مخرج كل طبقة ليقرأه مرة واحدة في المرور الخلفي. <b>إعادة حساب التنشيطات</b> (تشن وآخرون ٢٠١٦) ترمي معظمها في المرور الأمامي، وتحفظ فقط مدخلات «مقاطع» مختارة، ثم تعيد حساب ما داخل كل مقطع عند الحاجة. قسّم K طبقة إلى مقاطع من s طبقة: نحفظ K/s حداً، ومعها s تنشيطاً داخل المقطع النشط، أي نحو <span class="mono" dir="ltr">K/s + s</span> بدل K. وأصغر مجموع عند <span class="mono" dir="ltr">s = √K</span>، فتنخفض الذاكرة من <span class="mono" dir="ltr">O(K)</span> إلى <span class="mono" dir="ltr">O(√K)</span>. والثمن مرور أمامي إضافي: من نحو ٣ «مرورات» للخطوة إلى ٤، أي حد أعلى ٣٣٪ تقريباً. وفي تجربة الكتاب (١٦ كتلة بعرض ١٠٢٤ ودفعة ٨١٩٢، مقاطع من أربع): من نحو ١٫١ غيغابايت إلى ٠٫٤–٠٫٥ بنحو ربع وقت إضافي.</p>
+  </div></div>
+  <div class="w" id="ckBox"><div class="cap">كم تنشيطاً نحفظ؟</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">عدد الطبقات K: <b id="ckKo"></b> <input type="range" id="ckK" min="4" max="100" value="16"></label><label class="note">طول المقطع s: <b id="ckSo"></b> <input type="range" id="ckS" min="1" max="100" value="4"></label></div>
+    <div id="ckOut" style="margin-top:8px"></div><div class="calc" id="ckCalc"></div></div>
+</section>
+
+<!-- ============ 5.8 ============ -->
+<section class="sec" id="s5-8">
+  <header><div class="kicker">القسم ٥٫٨ <a class="pg" href="https://d2l.ai/chapter_builders-guide/reproducibility-inspection.html">d2l.ai ↗</a></div><h2>قابلية التكرار والفحص</h2></header>
+  <div class="brief"><b>باختصار</b>كل عشوائية في التدريب (التهيئة، والخلط، والإسقاط، وتكبير البيانات) تأتي من مولّدات تحكمها بذور. لكن الجمع العشري ليس تجميعياً، والمعالجات الرسومية تجمع بترتيب متغير، فالتطابق بتاً ببت يحتاج أيضاً عمليات حتمية، ويصح على جهاز وبرمجيات واحدة فقط. فهو أداة تشخيص، أما الاستنتاج العلمي فيجب أن يصمد عبر بذور كثيرة. والخطافات تفحص النموذج من الخارج.</div>
+  <div class="terms"><span>البذرة <i>seed</i></span><span>المولّد شبه العشوائي <i>PRNG</i></span><span>كائن المولّد <i>generator object</i></span><span>عدم التجميعية <i>non-associativity</i></span><span>العمليات الحتمية <i>deterministic algorithms</i></span><span>الخطّاف <i>hook</i></span></div>
+  <p>افترض أنك غيّرت سطراً فارتفعت الدقة ٠٫٣ نقطة. قبل الاحتفال: كم تتفاوت نتيجة السكربت نفسه بلا تغيير؟ في تجربة الكتاب درّب انحدار سوفتماكس خمس مرات لا تختلف إلا في البذرة: تفاوتت الدقة النهائية بين نقطة وأربع نقاط حول ٨١٪، فتحسّن ٠٫٣ من تشغيل واحد ضجيج محض. والقاعدة: قارن متوسطات وتشتتات عبر بذور.</p>
+  <ul class="clean">
+    <li><code>torch.manual_seed(k)</code> يبذر مولّدات PyTorch، لكن <code>random</code> وNumPy تحتاج بذوراً مستقلة.</li>
+    <li><b>كائن مولّد خاص</b> (<code>torch.Generator().manual_seed(42)</code>) يعزل تياراً عشوائياً: إضافة طبقة أو طباعة عشوائية للتجربة لن تغيّر تقسيم البيانات.</li>
+    <li><b>عمّال تحميل البيانات</b>: إن نُسخوا من العملية الرئيسية دون إعادة بذر ولّدوا التكبيرات «العشوائية» نفسها، وإن بُذروا من إنتروبيا النظام لم يتطابق تشغيلان أبداً.</li>
+  </ul>
+  <h3>الجمع العشري ليس تجميعياً</h3>
+  <p>قرب ١٠<sup>٨</sup> تبعد أعداد fp32 المتجاورة ٨، فـ<span class="mono" dir="ltr">−10⁸ + 1</span> تُقرَّب إلى <span class="mono" dir="ltr">−10⁸</span>. فتغيير الأقواس يغيّر الجواب من ١ إلى ٠. وعلى المعالج الرسومي آلاف الخيوط تجمع نتائجها الجزئية «ذرياً» بترتيب انتهائها، فيختلف تشغيلان ببذرة واحدة في البتات الأخيرة، والتدريب الفوضوي يضخّم الفرق إلى منحنيات مختلفة. و<code>torch.use_deterministic_algorithms(True)</code> يفرض ترتيباً ثابتاً ببعض البطء. في تجربة الكتاب: جمع مليون عدد في عشر خانات مرتين على المعالج الرسومي نفسه اختلف ببضعة أجزاء من الألف، وبالنواة الحتمية تطابق تماماً.</p>
+  <div class="w" id="naBox"><div class="cap">رتّب الجمع كما تشاء: الأعداد نفسها، والنتيجة مختلفة (حساب fp32 حقيقي)</div>
+    <div class="row" style="flex-wrap:wrap"><button class="pill" id="naShuf">اخلط ترتيب الجمع</button><button class="pill" id="naSort">الأصغر حجماً أولاً</button><button class="pill" id="naRev">الأكبر حجماً أولاً</button></div>
+    <div class="calc" id="naCalc"></div></div>
+  <h3>الخطافات</h3>
+  <p>الخطّاف دالة تسجّلها من خارج النموذج فتستدعيها المكتبة قبل طبقة أو بعدها، دون أي تعديل في كود الطبقات. وثلاثة استعمالات في الكتاب: <b>إحصاءات التنشيط</b> على شبكة متبقية من ثماني كتل بتهيئة Xavier، فيصعد الانحراف من نحو ٠٫٧ إلى ٣–٤٫٥ (كل كتلة تضرب التباين في ١٫٥ هنا، وهو تحليل القسم ٥٫٣ نفسه)؛ و<b>كاشف nan</b> يحدد أول طبقة أخرجت قيمة غير منتهية، لأن الخطافات تُستدعى بترتيب التنفيذ؛ و<b>فحص التدرّجات</b> بخطافات خلفية، فيكبر معيار التدرّج من الكتلة الثامنة إلى الأولى بين ١٫٢ و١٫٤ مرة في كل كتلة.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>def record(m, inputs, output):</code><span>الخطاف يأخذ الطبقة ومدخلاتها ومخرجها:</span></div>
+    <div class="cl"><code>    stats.append(output.detach().std().item())</code><span><code>detach</code> ضروري، وإلا بقي الرسم الحسابي كله حياً في الذاكرة.</span></div>
+    <div class="cl"><code>h = block.register_forward_hook(record)</code><span>التسجيل يعيد «مقبضاً»…</span></div>
+    <div class="cl"><code>h.remove()</code><span>…ونزيل الخطاف به حين ننتهي.</span></div>
+    <div class="cl"><code>block.register_full_backward_hook(f)</code><span>خطاف خلفي: يُستدعى أثناء <code>backward()</code> من الكتلة الأخيرة إلى الأولى.</span></div>
+  </div>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">الخلاصة والتمارين</div><h2>ما تأخذه من الفصل</h2></header>
+  <ul class="clean">
+    <li>النموذج شجرة وحدات؛ سجّل كل ابن (لا قوائم بايثون عادية) وابنِ من إعداد صريح.</li>
+    <li>ميّز المعاملات من المخازن، واحسب الذاكرة: ١٦ بايت للمعامل مع Adam قبل التنشيطات.</li>
+    <li>في الشبكات المتبقية صغّر إسقاط المخرج بـ<span class="mono" dir="ltr">1/√N</span> أو صفّره.</li>
+    <li>الطبقة المخصصة: صنف فرعي وتسجيل؛ والقاعدة الخلفية البديلة حين لا تفيد المشتقة الحقيقية.</li>
+    <li>bf16 بدقة مختلطة هي الوصفة الحديثة؛ fp16 تحتاج تحجيم الخسارة؛ والمجاميع بـfp32.</li>
+    <li>احفظ بـsafetensors، واستأنف بالمكونات الخمسة، وافحص المفاتيح الناقصة والزائدة.</li>
+    <li>قلّل النقل والمزامنة، واعرف من أين تأتي الذاكرة؛ والتطابق بتاً ببت أداة تشخيص، والنتائج تُقارن عبر بذور.</li>
+  </ul>
+  <h3>تمارين (مختارة ومبسطة من تمارين الكتاب)</h3>
+  <ol class="clean">
+    <li>ماذا يحدث لنموذج طبقاته في قائمة بايثون عادية عند <code>model.eval()</code> وعند تحميل قاموس حالة؟ <details><summary>الحل</summary>الطبقات غير المسجلة لا تراها الشجرة: <code>eval()</code> لن يصل إليها (فيبقى إسقاطها يعمل في الاختبار)، وقاموس الحالة لن يحويها (فلا تُحفظ ولا تُحمَّل، وستبقى عشوائية بعد التحميل). وكل ذلك بلا خطأ.</details></li>
+    <li>كتلة متبقية مخرجها أعرض من مدخلها: كيف تصمم مسار الوصلة؟ وكم معاملاً إضافياً؟ <details><summary>الحل</summary>إما إسقاط خطي متعلَّم من d إلى d′ (‏d·d′ معاملاً، و+d′ مع الانحياز)، وإما بلا معاملات: إكمال المدخل بأصفار حتى العرض d′. والأول هو المعتاد في ResNet.</details></li>
+    <li>جمّدت كل طبقات نموذج ٨ مليارات بعد أن خطا Adam على الكل. كم ذاكرة لا تزال محجوزة بلا فائدة؟ <details><summary>الحل</summary>عزما Adam (٨ بايت لكل معامل): نحو ٦٤ غيغابايت، لأن التجميد لا يحرر حالة المحسِّن. أنشئ المحسِّن من جديد على المعاملات القابلة للتدريب فقط.</details></li>
+    <li>بيّن أن <span class="mono" dir="ltr">(1 + 1/N)ᴺ</span> لا يتجاوز e، واحسب نمو الانحراف المعياري بعد ٢ و٨ و٣٢ كتلة. <details><summary>الحل</summary>‏<span class="mono" dir="ltr">ln(1 + 1/N)ᴺ = N ln(1 + 1/N) ≤ N·(1/N) = 1</span>. والانحراف جذر ذلك: √٢٫٢٥ = ١٫٥ بعد كتلتين، و١٫٦٠ بعد ٨، و١٫٦٤ بعد ٣٢، مقترباً من √e ≈ ١٫٦٥. تحقق في أداة الشبكة المتبقية.</details></li>
+    <li>أكبر عدد في fp16 هو <span class="mono" dir="ltr">2¹⁵(2 − 2⁻¹⁰)</span>. احسبه، واشرح لماذا تصير ٩٠٬٠٠٠ في bf16 ‏٩٠٬١١٢. <details><summary>الحل</summary>‏٣٢٧٦٨ × (٢ − ٠٫٠٠٠٩٧٧) = ٦٥٥٠٤. وفي bf16 بين 2¹⁶ و2¹⁷ تبعد الأعداد 2⁹ = ٥١٢، و٩٠٬٠٠٠ بين ١٧٥×٥١٢ = ٨٩٬٦٠٠ و١٧٦×٥١٢ = ٩٠٬١١٢، وهي أقرب إلى الثاني.</details></li>
+    <li>لماذا يتأخر نموذج قريب من التقارب أكثر من غيره إن استأنفته بمحسِّن Adam جديد؟ <details><summary>الحل</summary>لأن الخطوة الأولى ≈ η لكل معامل مهما صغر تدرّجه، وقرب التقارب تكون التدرّجات صغيرة جداً، فالخطوة الصحيحة (بـv المحفوظة) أصغر بكثير من η. كلما قرب التقارب كبرت النسبة بين الخطوتين. انظر أداة «خطوة واحدة لـAdam».</details></li>
+    <li>مع K = ١٠٠ طبقة، ما طول المقطع الأمثل؟ وكم تنشيطاً نحفظ؟ <details><summary>الحل</summary>‏s = ١٠ يعطي ١٠٠/١٠ + ١٠ = ٢٠ بدل ١٠٠، أي خُمس الذاكرة، بثمن مرور أمامي إضافي.</details></li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="04-multilayer-perceptrons.html">→ الفصل السابق: الشبكات متعددة الطبقات</a><a href="index.html">فهرس الكتاب ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/d2l-common.js"></script>
+<script src="../assets/js/d2l05.js"></script>
+</body>
+</html>
