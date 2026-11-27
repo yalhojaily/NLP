@@ -21,3 +21,5 @@ function initPage(SECS,GL){
 /* Arabic text utilities */
 const HARAKAT=/[ً-ْٰ]/g;
 const stripH=s=>s.replace(HARAKAT,'');
+/* segmented buttons with Arabic labels: right-to-left, body font (the mono font has no Arabic glyphs) */
+document.querySelectorAll('.seg button').forEach(b=>{if(/[؀-ۿ]/.test(b.textContent))b.classList.add('arl')});

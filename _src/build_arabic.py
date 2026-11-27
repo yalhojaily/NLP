@@ -30,11 +30,11 @@ HEAD = '''<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title} · المسار العربي | تعلّم معالجة اللغة الطبيعية</title>
 <meta name="description" content="{desc}">
-<script src="../assets/js/theme.js?v=202611270846"></script>
+<script src="../assets/js/theme.js?v=202611280300"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="../assets/css/site.css?v=202611270846">
+<link rel="stylesheet" href="../assets/css/site.css?v=202611280300">
 </head>
 <body>
 '''
@@ -96,8 +96,8 @@ def build():
 
 <nav class="toc" aria-label="أقسام الدرس"><h4>أقسام الدرس</h4><div id="toc"></div></nav>
 </div>
-<script src="../assets/js/ar-common.js?v=202611270846"></script>
-<script src="../assets/js/ar{i:02d}.js?v=202611270846"></script>
+<script src="../assets/js/ar-common.js?v=202611280300"></script>
+<script src="../assets/js/ar{i:02d}.js?v=202611280300"></script>
 </body>
 </html>
 '''

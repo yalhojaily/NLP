@@ -316,6 +316,7 @@ table.dp td .ar{display:block;font-size:10px;color:var(--soft);line-height:1;let
 .seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
 .seg button{direction:ltr;unicode-bidi:isolate;border:0;border-inline-start:1px solid var(--rule);background:var(--paper);padding:4px 12px;cursor:pointer;font-family:var(--f-mono);font-size:13px}
 .seg button:first-child{border-inline-start:0}
+.seg button.arl{direction:rtl;font-family:var(--f-body);font-size:14px;padding:3px 12px}
 .seg button.on{background:var(--accent);color:var(--paper)}
 .gen-out{margin-top:10px;min-height:52px}
 table.mat td{position:relative;cursor:pointer;background:color-mix(in srgb,var(--amber) calc(var(--a,0)*55%),var(--paper))}
