@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الفصل ٦ · الشبكات الالتفافية | الغوص في التعلّم العميق</title>
+<meta name="description" content="شرح عربي للفصل السادس من كتاب Dive into Deep Learning: من الطبقة الكاملة الاتصال إلى الالتفاف، والارتباط المتقاطع، والحشو والخطوة والتمدد، والقنوات المتعددة والالتفاف 1×1، والتجميع، وشبكة LeNet.">
+<script src="../assets/js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Noto+Sans:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <nav class="book crumb"><a href="../">الرئيسية</a><i>›</i><a href="index.html">الغوص في التعلّم العميق</a></nav>
+    <div class="chnav"><a class="pill" href="05-computation.html" style="text-decoration:none">→ الفصل ٥</a><b>الفصل ٦ من ٤٢</b></div>
+  </div>
+  <div class="progress" id="prog"></div>
+</div>
+
+<div class="page">
+<article class="col">
+
+<header class="hero">
+  <div class="num">البنى والتحسين · الفصل السادس</div>
+  <h1>الشبكات الالتفافية</h1>
+  <div class="sub en" style="font-size:16px">Chapter 6 · Convolutional Neural Networks · <a href="https://d2l.ai/chapter_convolutional-neural-networks/index.html">d2l.ai</a></div>
+  <p class="epi">كل مصنّفات الصور السابقة سطّحت الصورة إلى ٧٨٤ عدداً بلا ترتيب. لو خلطنا مواقع النقاط بالخلطة نفسها في كل الصور وأعدنا التدريب، لأعطت الشبكة متعددة الطبقات الدقة نفسها تماماً، مع أن الصور صارت ضجيجاً في أعيننا. أما نحن فنعرف الحذاء من حدوده وملمسه، وهذه أنماط تصنعها النقاط <b>المتجاورة</b>، ومعناها واحد أينما ظهرت في الصورة. الالتفاف يبني هاتين الحقيقتين في الشبكة نفسها.</p>
+  <div class="howto">
+    <span><i class="sw" style="background:var(--green-soft);border-color:var(--green)"></i>«باختصار»: خلاصة القسم في سطرين</span>
+    <span><i class="sw" style="background:var(--math-soft);border-color:var(--math)"></i>«مفهوم رياضي»: شرح من الصفر</span>
+    <span><i class="sw" style="background:var(--tint);border-color:var(--rule)"></i>كود مشروح: كل سطر وبجانبه معناه</span>
+    <span><i class="sw" style="background:var(--paper);border-color:var(--rule)"></i>أداة تفاعلية: جرّب بيدك</span>
+  </div>
+</header>
+
+<details class="mtoc"><summary>أقسام الفصل</summary><div id="mtoc"></div></details>
+
+<div class="minute">
+  <h2>الفصل في دقيقة</h2>
+  <ol>
+    <li>فرض مبدأين على الطبقة الكاملة الاتصال، <b>التكافؤ مع الإزاحة</b> (الكاشف نفسه في كل مكان) و<b>المحلية</b> (انظر إلى الجوار فقط)، لا يترك إلا خياراً خطياً واحداً: الالتفاف. وعدد الأوزان ينهار من ١٠<sup>١٢</sup> إلى بضع عشرات.</li>
+    <li>الطبقة الالتفافية تمرر «نواة» صغيرة على الصورة وتجمع حواصل الضرب. ونواة [١، −١] تكشف الحواف العمودية، والنزول التدرّجي يكتشفها وحده من البيانات.</li>
+    <li>الحشو يحفظ الحجم ويعطي الحواف حقها، والخطوة تصغّر الخريطة وتوسّع مجال الرؤية، والتمدد يوسّع المجال مع حفظ الدقة المكانية.</li>
+    <li>كل قناة مخرج لها نواة على كل قنوات المدخل؛ فالكلفة تتناسب مع حاصل ضرب القنوات. والالتفاف 1×1 طبقة كاملة الاتصال عند كل نقطة، ويصنع «عنق زجاجة» رخيصاً.</li>
+    <li>التجميع (أكبر قيمة أو متوسط) يلخّص الجوار بلا معاملات، فيتسامح مع الإزاحات الصغيرة؛ والتجميع الشامل يعطي ثباتاً تاماً.</li>
+    <li>LeNet (١٩٩٨) تجمع كل ذلك: تتفوق على الشبكة متعددة الطبقات بثلث معاملاتها. وإن خلطنا النقاط ضاع تفوقها، دليلاً على أن مصدره التحيز المكاني.</li>
+  </ol>
+</div>
+
+<!-- ============ 6.1 ============ -->
+<section class="sec" id="s6-1">
+  <header><div class="kicker">القسم ٦٫١ <a class="pg" href="https://d2l.ai/chapter_convolutional-neural-networks/why-conv.html">d2l.ai ↗</a></div><h2>من الطبقات الكاملة الاتصال إلى الالتفاف</h2></header>
+  <div class="brief"><b>باختصار</b>صورة ميغابكسل وطبقة مخفية بالحجم نفسه تحتاجان ١٠<sup>١٢</sup> وزن. نفرض مبدأين: <b>التكافؤ مع الإزاحة</b> (إزاحة المدخل تزيح المخرج بالقدر نفسه) فتتشارك كل المواقع الأوزان نفسها، و<b>المحلية</b> فتقتصر الأوزان على نافذة صغيرة. والنتيجة طبقة التفافية بـ<span class="mono" dir="ltr">(2Δ+1)²</span> وزناً فقط.</div>
+  <div class="terms"><span>التكافؤ مع الإزاحة <i>translation equivariance</i></span><span>الثبات أمام الإزاحة <i>translation invariance</i></span><span>المحلية <i>locality</i></span><span>النواة / المرشِّح <i>kernel / filter</i></span><span>الارتباط المتقاطع <i>cross-correlation</i></span><span>خريطة الخصائص <i>feature map</i></span><span>المجال الاستقبالي <i>receptive field</i></span></div>
+  <p>والإلهام من علم الأعصاب: وجد هوبل وفيزل أن خلايا القشرة البصرية الأولى تستجيب لحواف وخطوط مائلة في رقعة صغيرة من مجال الرؤية، أي «مجالها الاستقبالي». ثم نظّم فوكوشيما (١٩٨٠) الكواشف المحلية في طبقات متكررة، ودرّبها ليكون وزملاؤه بالانتشار العكسي لقراءة الرموز البريدية. ويذكّر الكتاب بأن الأحياء كانت إلهاماً لا مخططاً.</p>
+  <p>لعبة «أين والي؟»: الصورة مزدحمة، ووالي في مكان ما، لكن <b>شكله</b> لا يعتمد على <b>مكانه</b>. فنمرر كاشف والي نفسه على كل الرقع. ومن هنا مبدآن: الطبقات الأولى تستجيب للرقعة نفسها بالطريقة نفسها أينما كانت، وتنظر إلى جوار صغير فقط. ثم تركّب الطبقات اللاحقة هذه الاستجابات في أنماط أكبر.</p>
+  <div class="math"><div class="mh"><span class="sym">f(TᵥX)</span>مفهوم رياضي · التكافؤ والثبات</div><div class="mb">
+    <p>ليكن <span class="mono" dir="ltr">Tᵥ</span> إزاحة الصورة بمقدار v. الدالة من صورة إلى صورة <b>متكافئة</b> إن كانت إزاحة المدخل تزيح المخرج بالقدر نفسه، والدالة من صورة إلى وسم <b>ثابتة</b> إن كانت الإزاحة لا تغيّر المخرج:</p>
+    <div class="eq">f(TᵥX) = Tᵥ f(X) &nbsp; (equivariance) &nbsp;&nbsp;&nbsp;&nbsp; f(TᵥX) = f(X) &nbsp; (invariance)</div>
+    <p>التكافؤ يحفظ <b>أين</b> ظهر النمط، والثبات يتجاهل المكان. فخريطة درجات والي يجب أن تكون متكافئة (تتبع والي)، وسؤال «هل والي في الصورة؟» يجب أن يكون ثابتاً، ونحصل عليه في النهاية بتلخيص الخريطة المتكافئة (مثلاً أخذ أكبر قيمة فيها).</p>
+  </div></div>
+  <div class="w" id="wsBox"><div class="cap">طبقة خطية من ٨ عينات إلى ٨ وحدات: الألوان المتساوية أوزان متساوية، والأبيض صفر</div>
+    <div class="row"><span class="seg" id="wsS"><button data-v="a">كاملة الاتصال</button><button data-v="b">متكافئة مع الإزاحة</button><button data-v="c" class="on">متكافئة ومحلية</button></span></div>
+    <div id="wsOut" style="margin-top:8px"></div><div class="calc" id="wsCalc"></div></div>
+  <p>في بعد واحد يظهر كل شيء: ادخل بنبضة (١ في الموضع k وأصفار في البقية) فيخرج العمود k من المصفوفة. أزح النبضة إلى k + ١ فيخرج العمود k + ١. التكافؤ يشترط أن يكون العمود الجديد هو القديم مزاحاً صفاً للأسفل: <span class="mono" dir="ltr">W(i+1, k+1) = W(i, k)</span>، أي إن المصفوفة ثابتة على كل قطر (مصفوفة «توبليتز»). وكل قطر إزاحة نسبية واحدة، فمن ٦٤ وزناً حراً يبقى ١٥. ثم المحلية تصفّر كل الأقطار البعيدة، فيبقى ٣ أوزان تتكرر في كل صف: نافذة من ثلاثة أوزان تمر على الإشارة كلها.</p>
+  <div class="math"><div class="mh"><span class="sym">Σ K X</span>مفهوم رياضي · من ١٠<sup>١٢</sup> إلى بضع عشرات</div><div class="mb">
+    <p>في بعدين: <span class="mono" dir="ltr">[H]ᵢⱼ = [U]ᵢⱼ + Σₖ Σₗ [W]ᵢⱼₖₗ [X]ₖₗ</span>، وللصورة ١٠٠٠×١٠٠٠ إلى خريطة بالحجم نفسه: ١٠<sup>٦</sup> × ١٠<sup>٦</sup> = ١٠<sup>١٢</sup> وزن. يبرهن الكتاب (بنبضة واحدة كما في البعد الواحد) أن التكافؤ يجبر الأوزان والانحياز على ألا تعتمد على الموقع (i، j)، فيبقى نمط واحد K يُطبَّق متمركزاً عند كل موقع: نحو ١٩٩٩² ≈ ٤×١٠<sup>٦</sup> وزن. ثم المحلية تقصر K على نافذة بنصف قطر Δ:</p>
+    <div class="eq">[H]ᵢⱼ = u + Σ<sub>a=−Δ..Δ</sub> Σ<sub>b=−Δ..Δ</sub> [K]ₐᵦ [X]ᵢ₊ₐ,ⱼ₊ᵦ</div>
+    <p>فقط <span class="mono" dir="ltr">(2Δ+1)²</span> وزناً: ٩ لنافذة 3×3. هذه هي <b>الطبقة الالتفافية</b>. والثمن: الطبقة الواحدة لا تميّز رقعتين متطابقتين بموقعهما (عين أعلى صورة جواز السفر وأنف أسفلها)، فتكديس طبقات مع لاخطيات يتيح دمج سياق أوسع.</p>
+    <p><b>تنبيه في التسمية</b>: «الالتفاف» الرياضي يقلب النواة: <span class="mono" dir="ltr">(f * g)(i) = Σₐ f(a) g(i − a)</span>. والمعادلة أعلاه بلا قلب، واسمها الصحيح <b>الارتباط المتقاطع</b>. ولأن النواة تُتعلَّم فلا فرق في القدرة، والمكتبات كلها تسمي الارتباط المتقاطع «التفافاً»، والكتاب يتبعها.</p>
+  </div></div>
+  <p><b>القنوات</b>: الصورة الملونة ثلاث قنوات (أحمر وأخضر وأزرق)، والطبقة المخفية تكشف أنماطاً كثيرة معاً (حواف بزوايا مختلفة، وزوايا، وتباين ألوان)، فلكل قناة مخرج نواتها الخاصة على كل قنوات المدخل. فالنواة موتر رباعي، والطبقة 3×3 من صورة ملونة إلى ٦٤ خريطة: ٩×٣×٦٤ + ٦٤ = ١٬٧٩٢ معاملاً، لا تعتمد على دقة الصورة أبداً.</p>
+</section>
+
+<!-- ============ 6.2 ============ -->
+<section class="sec" id="s6-2">
+  <header><div class="kicker">القسم ٦٫٢ <a class="pg" href="https://d2l.ai/chapter_convolutional-neural-networks/conv-layer.html">d2l.ai ↗</a></div><h2>الالتفاف على الصور</h2></header>
+  <div class="brief"><b>باختصار</b>نضع النافذة على كل موقع ممكن، ونضرب الرقعة عنصراً بعنصر في النواة ونجمع: <span class="mono" dir="ltr">(n − k + 1)</span> موقعاً على كل محور. نواة [١، −١] تكشف الحواف العمودية، والنزول التدرّجي يتعلّمها وحده في تسع خطوات. والالتفاف يُحسب كضرب مصفوفة واحد (im2col). وتكديس الطبقات يوسّع المجال الاستقبالي خطياً.</div>
+  <div class="terms"><span>الارتباط المتقاطع الثنائي <i>2D cross-correlation</i></span><span>الفرق المحدود <i>finite difference</i></span><span>im2col</span><span>المجال الاستقبالي الفعّال <i>effective receptive field</i></span></div>
+  <div class="eq">[Y]ᵢⱼ = Σ<sub>a=0..kₕ−1</sub> Σ<sub>b=0..k_w−1</sub> [K]ₐᵦ [X]ᵢ₊ₐ,ⱼ₊ᵦ &nbsp;&nbsp; → &nbsp; (nₕ − kₕ + 1) × (n_w − k_w + 1)</div>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>def corr2d(X, K):</code><span>الارتباط المتقاطع الثنائي بحلقتين:</span></div>
+    <div class="cl"><code>    h, w = K.shape</code><span>أبعاد النواة.</span></div>
+    <div class="cl"><code>    Y = torch.zeros((X.shape[0] - h + 1, X.shape[1] - w + 1))</code><span>المخرج أصغر: n − k + 1 على كل محور.</span></div>
+    <div class="cl"><code>    for i in range(Y.shape[0]):</code><span>لكل موقع…</span></div>
+    <div class="cl"><code>        for j in range(Y.shape[1]):</code><span></span></div>
+    <div class="cl"><code>            Y[i, j] = (X[i:i + h, j:j + w] * K).sum()</code><span>…اضرب الرقعة في النواة عنصراً بعنصر واجمع.</span></div>
+    <div class="cl"><code>    return Y</code><span></span></div>
+    <div class="cl"><code>class Conv2D(nn.Module):</code><span>طبقة التفافية: نواة وانحياز مسجّلان…</span></div>
+    <div class="cl"><code>    def forward(self, x): return corr2d(x, self.weight) + self.bias</code><span>…لا يعتمدان على حجم الصورة: طبقة 2×2 (٥ معاملات) تعمل على 3×3 وعلى 6×8.</span></div>
+  </div>
+  <div class="w" id="cvBox"><div class="cap">ملعب الالتفاف: اختر صورة ونواة، وانقر خانة في المخرج لترى حسابها</div>
+    <div class="row" style="flex-wrap:wrap"><span class="note">الصورة:</span><span class="seg" id="cvX" style="flex-wrap:wrap"><button data-v="book">مثال الكتاب 3×3</button><button data-v="stripe" class="on">شريط أسود 6×8</button><button data-v="stripeT">الشريط منقولاً</button><button data-v="plus">علامة زائد 8×8</button></span></div>
+    <div class="row" style="flex-wrap:wrap;margin-top:6px"><span class="note">النواة:</span><span class="seg" id="cvK" dir="ltr" style="flex-wrap:wrap"><button data-v="book">[[0,1],[2,3]]</button><button data-v="edge" class="on">[1, −1]</button><button data-v="edgeT">[1; −1]</button><button data-v="blur">blur 3×3</button><button data-v="lap">Laplacian 3×3</button></span><button class="pill" id="cvShift">أزح الصورة يميناً ←</button></div>
+    <div class="tw" id="cvOut"></div><div class="calc" id="cvCalc"></div></div>
+  <p>جرّب الشريط مع [١، −١]: المخرج +١ على الحد من الأبيض إلى الأسود، و−١ من الأسود إلى الأبيض، وصفر في كل مكان آخر. ثم الشريط منقولاً (حد أفقي): كله أصفار، فهذه النواة لا ترى إلا الحواف العمودية. ثم «أزح الصورة»: تتحرك الحواف في المخرج بالقدر نفسه، وهذا هو التكافؤ مع الإزاحة.</p>
+  <h3>تعلّم النواة</h3>
+  <p>صمّمنا [١، −١] بأيدينا لأننا نعرف ما نريد، لكن لا أحد يصمم آلاف المرشحات في شبكة عميقة. فهل يكتشفها النزول التدرّجي من الزوج (X، Y) وحده؟ تجربة الكتاب: نواة 1×2 بلا انحياز، تبدأ من <span class="mono" dir="ltr">𝒩(0, 0.01²)</span>، وتقلل مجموع مربعات الخطأ على خانات المخرج الـ٤٢، بعشر خطوات ومعدّل تعلّم ٠٫٠٣.</p>
+  <div class="w" id="lkBox"><div class="cap">النزول التدرّجي يكتشف كاشف الحواف (تجربة الكتاب تجري في متصفحك)</div>
+    <div class="row"><button class="pill" id="lkGo">بداية عشوائية جديدة</button></div>
+    <div id="lkPlot"></div><div class="calc" id="lkCalc"></div></div>
+  <h3>الالتفاف كضرب مصفوفات: im2col</h3>
+  <p>الحلقتان بطيئتان جداً في بايثون. لكن كل خانة مخرج ضرب نقطي للنواة المسطحة في رقعة مسطحة. فنستخرج كل الرقع ونجعلها صفوف «مصفوفة رقع»، ونضربها في النواة المسطحة: الالتفاف كله ضرب مصفوفة واحد، وهو ما تتقنه المعالجات الرسومية. والثمن ذاكرة: كل نقطة داخلية تتكرر في حتى kₕk_w رقعة. وفي مثال الكتاب 3×3 تتكرر النقطة الوسطى ٤ في الرقع الأربع كلها.</p>
+  <h3>المجال الاستقبالي</h3>
+  <p>المجال الاستقبالي لعنصر في خريطة الخصائص: منطقة المدخل التي تؤثر فيه. وكل طبقة k×k تضيف k − 1: <span class="mono" dir="ltr">r = 1 + Σ (kᵢ − 1)</span>. فثلاث طبقات 3×3 ترى 7×7، كطبقة 7×7 واحدة، لكن بـ٢٧ وزناً بدل ٤٩ لكل زوج قنوات، ومع ثلاث لاخطيات بدل واحدة. لكن «المجال النظري» لا يقول كم يؤثر كل بكسل. فالبكسل في الطرف يصل إلى الوحدة العليا بمسار واحد، والمركزي بمسارات كثيرة. ولهذا وجد لو وآخرون (٢٠١٦) أن <b>المجال الفعّال</b> جرس غاوسي يتركز في الوسط.</p>
+  <div class="w" id="rfBox"><div class="cap">عدد المسارات من كل مدخل إلى الوحدة العليا (طبقات ببعد واحد ونواة k)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">الطبقات L: <b id="rfLo"></b> <input type="range" id="rfL" min="1" max="8" value="3"></label><label class="note">حجم النواة k: <b id="rfKo"></b> <input type="range" id="rfK" min="2" max="5" value="3"></label></div>
+    <div id="rfOut" style="margin-top:8px"></div><div class="calc" id="rfCalc"></div></div>
+  <div class="xref"><b>في الكتاب الأول</b>الالتفاف نفسه على تسلسل الكلمات أو موجة الصوت (طبقات التفافية ببعد واحد في التعرّف على الكلام): <a href="../slp/16-asr.html">الفصل ١٦: التعرّف الآلي على الكلام</a>.</div>
+</section>
+
+<!-- ============ 6.3 ============ -->
+<section class="sec" id="s6-3">
+  <header><div class="kicker">القسم ٦٫٣ <a class="pg" href="https://d2l.ai/chapter_convolutional-neural-networks/padding-and-strides.html">d2l.ai ↗</a></div><h2>الحشو والخطوة والتمدد</h2></header>
+  <div class="brief"><b>باختصار</b>ثلاثة مقابض هندسية: <b>الحشو</b> يحيط المدخل بإطار فيحفظ الحجم ويعطي الحواف حقها؛ و<b>الخطوة</b> تقفز بالنافذة أكثر من بكسل فتصغّر الخريطة وتسرّع نمو المجال الاستقبالي؛ و<b>التمدد</b> يباعد بين أوزان النواة فتغطي مساحة أكبر بالأوزان نفسها ودون تصغير. وكلها في معادلة واحدة لحجم المخرج.</div>
+  <div class="terms"><span>الحشو <i>padding</i></span><span>الحشو الصفري / الانعكاسي / التكراري <i>zero / reflect / replicate</i></span><span>الخطوة <i>stride</i></span><span>التمدد <i>dilation</i></span><span>التقطيع إلى رقع <i>patchify</i></span><span>التنبؤ الكثيف <i>dense prediction</i></span></div>
+  <p>الدافع بالأرقام: عشر طبقات 5×5 بلا حشو تحوّل صورة 240×240 إلى 200×200، فتضيع ٣٠٪ من المساحة. ومع الحفاظ على الدقة بخطوة ١ تضيف كل طبقة 3×3 بكسلين فقط للمجال، فتحتاج أكثر من ١٠٠ طبقة لترى صورة 224×224 كاملة. وفوق ذلك، بلا حشو يُستعمل بكسل الزاوية في نافذة واحدة، والبكسل الداخلي في k² نافذة (٢٥ مع 5×5): ما في الأطراف يكاد لا يُرى.</p>
+  <div class="math"><div class="mh"><span class="sym">⌊…⌋+1</span>مفهوم رياضي · معادلة حجم المخرج</div><div class="mb">
+    <p>على محور طوله n، بنواة k وحشو p لكل جانب وخطوة s وتمدد d:</p>
+    <div class="eq">output = ⌊ (n + 2p − d(k − 1) − 1) / s ⌋ + 1</div>
+    <p>الرمز ⌊ ⌋ يعني «قرّب للأسفل». مع d = ١ وs = ١ وp = ٠ تعود إلى n − k + 1. واختيار <span class="mono" dir="ltr">p = (k − 1)/2</span> يحفظ الحجم، ولهذا تكون النوى فردية غالباً (١، ٣، ٥، ٧ مع حشو ٠، ١، ٢، ٣): للنواة الفردية مركز، فتبقى الشبكتان متحاذيتين. ومع حشو حافظ للحجم وخطوة s يصير الحجم <span class="mono" dir="ltr">⌈n/s⌉</span>: الخطوة تقسم الدقة. والنواة المتمددة لها «حجم فعّال» <span class="mono" dir="ltr">k′ = d(k − 1) + 1</span>: نواة 3×3 بتمدد ٢ تغطي 5×5 بتسعة أوزان فقط.</p>
+  </div></div>
+  <div class="w" id="osBox"><div class="cap">حاسبة حجم المخرج (محور واحد): المواقع التي تبدأ عندها النافذة، والخانات التي تلمسها النافذة الأولى</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px" dir="ltr"><label class="note">n <b id="osNo"></b> <input type="range" id="osN" min="3" max="16" value="8"></label><label class="note">k <b id="osKo"></b> <input type="range" id="osK" min="1" max="7" value="3"></label><label class="note">p <b id="osPo"></b> <input type="range" id="osP" min="0" max="3" value="1"></label><label class="note">s <b id="osSo"></b> <input type="range" id="osS" min="1" max="4" value="2"></label><label class="note">d <b id="osDo"></b> <input type="range" id="osD" min="1" max="3" value="1"></label></div>
+    <div id="osOut" style="margin-top:8px;overflow-x:auto"></div><div class="calc" id="osCalc"></div></div>
+  <p><b>قيم الحشو</b>: الحشو بالأصفار يفترض أن خارج الصورة أسود. صورة 5×5 كلها آحاد، محشوّة بصفر، مع نواة آحاد 3×3: الداخل ٩ والحافة ٦ والزوايا ٤. الصورة منتظمة، لكن الطبقة ترى إطاراً مظلماً حولها، ينتشر إلى الداخل طبقة بعد طبقة؛ قد تتعلّمه الشبكة إشارةً للموقع، وقد يصنع «بقعاً عمياء» قرب الأطراف. والبديلان: الحشو <b>الانعكاسي</b> (مرآة عند الحد) و<b>التكراري</b> (تكرار قيمة الحد)، وكلاهما يحوّل الصورة الثابتة إلى مخرج ثابت، فيشيعان في توليد الصور وترميمها. أما في التصنيف فالحشو الصفري هو المعتاد لبساطته وسرعته.</p>
+  <p><b>حالتان شهيرتان</b>: طبقة 3×3 بحشو ١ وخطوة ٢ تنصّف الأبعاد، وتتكرر في عائلة ResNet. وحين تساوي الخطوة حجم النواة بلا حشو تُقطَّع الصورة إلى رقع غير متداخلة: التفاف 16×16 بخطوة ١٦ يحوّل صورة 224×224 إلى شبكة 14×14 من الرقع، وهذه بالضبط طريقة «محوّلات الرؤية» في تحويل الصورة إلى رموز.</p>
+  <div class="math"><div class="mh"><span class="sym">Π s</span>مفهوم رياضي · الخطوة والتمدد والمجال الاستقبالي</div><div class="mb">
+    <p>بعد طبقة بخطوة ٢، الخانتان المتجاورتان في مخرجها تبعدان بكسلين في الصورة الأصلية، فنواة 3×3 بعدها تضيف (٣ − ١)×٢ = ٤ بكسلات لا ٢. وعموماً:</p>
+    <div class="eq">r = 1 + Σᵢ (kᵢ − 1) · Π<sub>j&lt;i</sub> sⱼ</div>
+    <p>ثلاث طبقات 3×3 بخطوات (١، ١، ١): ‏r = ١ + ٢ + ٢ + ٢ = ٧. وبخطوات (٢، ٢، ١): ‏r = ١ + ٢ + ٤ + ٨ = ١٥. والحشو لا يدخل المعادلة. وبعد خمس مراحل بخطوة ٢ (المعتاد في مصنّفات 224×224) تقابل الخطوة الواحدة في الخريطة ٣٢ بكسلاً. والتمدد يصل إلى المجال نفسه دون تصغير: تمددات (١، ٢، ٤) بخطوة ١ تعطي أيضاً ١٥، ومع مضاعفة التمدد في كل طبقة يصير المجال <span class="mono" dir="ltr">2^(L+1) − 1</span>. وهذا مفيد في <b>التنبؤ الكثيف</b> (وسم كل بكسل) لأنه يحفظ الدقة، وثمنه حساب كل الطبقات بالدقة الكاملة.</p>
+  </div></div>
+  <div class="w" id="twBox"><div class="cap">برجان بثلاث طبقات ونواة ٣ ببعد واحد: كلاهما يرى ١٥ مدخلاً</div>
+    <div class="row"><span class="seg" id="twS"><button data-v="s" class="on">خطوات (٢، ٢، ١)</button><button data-v="d">تمددات (١، ٢، ٤)</button><button data-v="1">خطوة ١ بلا تمدد</button></span></div>
+    <div id="twOut" style="margin-top:8px"></div><div class="calc" id="twCalc"></div></div>
+</section>
+
+<!-- ============ 6.4 ============ -->
+<section class="sec" id="s6-4">
+  <header><div class="kicker">القسم ٦٫٤ <a class="pg" href="https://d2l.ai/chapter_convolutional-neural-networks/channels.html">d2l.ai ↗</a></div><h2>قنوات المدخل والمخرج المتعددة</h2></header>
+  <div class="brief"><b>باختصار</b>مع cᵢ قناة مدخل نلتف على كل قناة بشريحتها من النواة ونجمع، فتخرج خريطة واحدة. ولـcₒ قناة مخرج نحتاج cₒ نواة كهذه: موتر <span class="mono" dir="ltr">cₒ × cᵢ × kₕ × k_w</span>. المعاملات والحساب يتناسبان مع <span class="mono" dir="ltr">cᵢcₒ</span>، والذاكرة مع حجم المخرج المكاني. والالتفاف 1×1 طبقة خطية عند كل بكسل، وأداة رخيصة لتغيير عدد القنوات.</div>
+  <div class="terms"><span>القناة <i>channel</i></span><span>الالتفاف 1×1 <i>1×1 convolution</i></span><span>عنق الزجاجة <i>bottleneck</i></span><span>عمليات الضرب-الجمع <i>multiply-adds</i></span><span>ذاكرة التنشيطات <i>activation memory</i></span></div>
+  <p>مثال الكتاب بقناتي مدخل: الخانة العليا اليسرى = (١×١ + ٢×٢ + ٤×٣ + ٥×٤) + (٠×٠ + ١×١ + ٣×٢ + ٤×٣) = ٤٠ + ١٦ = <b>٥٦</b>. ولثلاث قنوات مخرج بالنوى K وK + ١ وK + ٢: إضافة ١ لكل وزن تزيد كل خانة بمجموع نافذتها في القناتين (٢٠ للنافذة الأولى)، فالقناة الثانية تبدأ بـ٧٦.</p>
+  <p>والجمع عبر القنوات هو ما يسمح بمقارنة الألوان: نواة 1×1 بوزن +١ على الأحمر و−١ على الأخضر تحسب «أحمر ناقص أخضر» عند كل بكسل. فتكشف حداً بين منطقة حمراء وأخرى خضراء <b>بالسطوع نفسه</b>، حداً لا يراه أي كاشف على الصورة الرمادية.</p>
+  <div class="w" id="rgBox"><div class="cap">منطقتان حمراء وخضراء بالسطوع نفسه: ماذا يرى كل كاشف؟</div>
+    <div id="rgOut" class="tw" style="margin-top:8px"></div><div class="calc" id="rgCalc"></div></div>
+  <div class="math"><div class="mh"><span class="sym">cᵢcₒk²</span>مفهوم رياضي · ثلاث كلف</div><div class="mb">
+    <p><b>المعاملات</b>: <span class="mono" dir="ltr">cₒcᵢkₕk_w + cₒ</span>. <b>الحساب</b>: <span class="mono" dir="ltr">hₒwₒ · cₒcᵢkₕk_w</span> عملية ضرب-جمع، لأن كل وزن يُعاد استعماله عند كل موقع. <b>ذاكرة التنشيطات</b> للمرور الخلفي: <span class="mono" dir="ltr">hₒwₒcₒ</span> عدد لكل مثال. فطبقة 3×3 من ٢٥٦ قناة إلى ٢٥٦ فيها ٥٨٩٬٨٢٤ وزناً، وعلى خريطة 56×56 تجري نحو ١٫٨×١٠<sup>٩</sup> عملية لصورة واحدة. وطبقة من ٣ إلى ٦٤ بمخرج 224×224 فيها ١٬٧٩٢ معاملاً فقط، لكنها تخزّن نحو ٣٫٢ مليون تنشيط لكل مثال، أي قرابة ألفي ضعف معاملاتها: المعاملات تكثر في العمق، والذاكرة تكثر في البداية.</p>
+    <p><b>الالتفاف 1×1</b>: لا يرى جيراناً، لكنه عند كل بكسل يضرب متجه القنوات (بطول cᵢ) في مصفوفة <span class="mono" dir="ltr">cₒ × cᵢ</span> مشتركة: طبقة كاملة الاتصال تُطبَّق على كل بكسل. فيُحسب كله بضرب مصفوفة واحد بعد إعادة التشكيل إلى <span class="mono" dir="ltr">cᵢ × hw</span>. و<b>عنق الزجاجة</b>: بدل 3×3 على ٢٥٦ قناة، نسقط إلى ٦٤ بـ1×1، ثم 3×3 على ٦٤، ثم نعود إلى ٢٥٦ بـ1×1: ١٦٬٣٨٤ + ٣٦٬٨٦٤ + ١٦٬٣٨٤ = ٦٩٬٦٣٢ وزناً بدل ٥٨٩٬٨٢٤، أي نحو ٨٫٥ مرات أقل.</p>
+  </div></div>
+  <div class="w" id="ccBox"><div class="cap">كلفة طبقة التفافية (قارن بعنق الزجاجة)</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px" dir="ltr"><label class="note">cᵢ <b id="ccIo"></b> <input type="range" id="ccI" min="0" max="5" value="4"></label><label class="note">cₒ <b id="ccOo"></b> <input type="range" id="ccO" min="0" max="5" value="4"></label><label class="note">k <b id="ccKo"></b> <input type="range" id="ccK" min="1" max="7" step="2" value="3"></label><label class="note">h = w <b id="ccHo"></b> <input type="range" id="ccH" min="7" max="224" value="56"></label></div>
+    <div id="ccOut" style="margin-top:8px"></div><div class="calc" id="ccCalc"></div></div>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, padding=1)</code><span>النواة مخزنة بشكل (64, 3, 3, 3): المخرج أولاً.</span></div>
+    <div class="cl"><code>nn.Conv2d(256, 64, kernel_size=1)</code><span>إسقاط 1×1 إلى ٦٤ قناة.</span></div>
+    <div class="cl"><code>nn.Conv2d(64, 64, kernel_size=3, padding=1)</code><span>الالتفاف المكاني على القنوات القليلة.</span></div>
+    <div class="cl"><code>nn.Conv2d(64, 256, kernel_size=1)</code><span>العودة إلى ٢٥٦.</span></div>
+  </div>
+</section>
+
+<!-- ============ 6.5 ============ -->
+<section class="sec" id="s6-5">
+  <header><div class="kicker">القسم ٦٫٥ <a class="pg" href="https://d2l.ai/chapter_convolutional-neural-networks/pooling.html">d2l.ai ↗</a></div><h2>التجميع</h2></header>
+  <div class="brief"><b>باختصار</b>طبقة التجميع تمرر نافذة على كل قناة وحدها، وتلخّص كل رقعة بأكبر قيمة أو بالمتوسط، بلا أي معاملات. التجميع المحلي يتسامح مع الإزاحات الصغيرة (لا يثبت أمامها تماماً)، والتجميع الشامل على الخريطة كلها يعطي رقماً لكل قناة لا يتغير بالإزاحة.</div>
+  <div class="terms"><span>تجميع القيمة العظمى <i>max-pooling</i></span><span>تجميع المتوسط <i>average pooling</i></span><span>التجميع الشامل <i>global pooling</i></span><span>التشويه بالاعتيان <i>aliasing</i></span></div>
+  <p>مثال الكتاب: نافذة 2×2 بخطوة ١ على 3×3 (الأعداد ٠–٨) تعطي max(٠، ١، ٣، ٤) = ٤، ثم ٥، ٧، ٨. ولاحظ أن خمسة من التسعة (٠، ١، ٢، ٣، ٦) ليست أكبر قيمة في أي نافذة؛ تغييرها قليلاً لا يغيّر شيئاً. وتجميع المتوسط على المدخل نفسه يعطي ٢، ٣، ٥، ٦.</p>
+  <div class="w" id="plBox"><div class="cap">استجابة واحدة في خريطة 4×4 تتحرك: تجميع 2×2 بخطوة ٢، وتجميع شامل</div>
+    <div class="row" style="flex-wrap:wrap;gap:12px"><label class="note">العمود: <b id="plCo"></b> <input type="range" id="plC" min="0" max="3" value="0"></label><label class="note">الصف: <b id="plRo"></b> <input type="range" id="plR" min="0" max="3" value="1"></label></div>
+    <div class="tw" id="plOut"></div><div class="calc" id="plCalc"></div></div>
+  <p>من العمود ٠ إلى ١ لا يتغير المخرج (البكسلان في الكتلة نفسها)، ومن ١ إلى ٢ يقفز إلى الخانة المجاورة. فالتجميع المحلي <b>يتسامح</b> مع بعض الإزاحات لا كلها. والفرق بين النوعين: العظمى تحفظ قوة الاستجابة كاملة (١) وتسأل «هل الخاصية موجودة في الجوار؟»، والمتوسط يعطي ٠٫٢٥ ويقيس «كم تغطي الخاصية من الجوار؟». والاعتيان بخطوة ٢ له خطر: الإشارة المتناوبة ١، ٠، ١، ٠ تصير كلها آحاداً أو كلها أصفاراً بحسب إزاحة بكسل واحد (<b>التشويه بالاعتيان</b>)، ويخففه تنعيم صغير قبل الاعتيان.</p>
+  <p>وحشو التجميع الأعظمي يكون بـ<span class="mono" dir="ltr">−∞</span> لا بالصفر، كي لا تغلب الخانةُ المحشوة قيمةً حقيقية. ومع المدخل X − ١٦ (كله سالب) ينقص كل مخرج ١٦ بالضبط، ولو حُشي بأصفار لأعطت النوافذ الملامسة للحد صفراً خاطئاً. والتجميع يعمل على كل قناة وحدها، فعدد القنوات لا يتغير. وفي البنى الحديثة (الفصل ٧) يتولى الالتفاف بخطوة ٢ التصغير الوسيط، ويُختم بتجميع المتوسط الشامل قبل المصنّف.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>nn.MaxPool2d(2)</code><span>نافذة 2×2، والخطوة الافتراضية = حجم النافذة (كتل غير متداخلة).</span></div>
+    <div class="cl"><code>nn.MaxPool2d(3, padding=1, stride=2)</code><span>على 4×4: ‏⌊(4 + 2 − 3)/2⌋ + 1 = 2 على كل محور.</span></div>
+    <div class="cl"><code>nn.AdaptiveAvgPool2d((1, 1))</code><span>تجميع المتوسط الشامل: رقم لكل قناة.</span></div>
+  </div>
+</section>
+
+<!-- ============ 6.6 ============ -->
+<section class="sec" id="s6-6">
+  <header><div class="kicker">القسم ٦٫٦ <a class="pg" href="https://d2l.ai/chapter_convolutional-neural-networks/lenet.html">d2l.ai ↗</a></div><h2>LeNet</h2></header>
+  <div class="brief"><b>باختصار</b>LeNet (ليكون وزملاؤه، ١٩٩٨): مشفّر التفافي من كتلتين (التفاف 5×5 وسيغمويد وتجميع متوسط 2×2) ثم ثلاث طبقات كاملة الاتصال (١٢٠، ٨٤، ١٠). ٦١٬٧٠٦ معاملاً فقط، ودقة نحو ٨٨–٩٠٪ على Fashion-MNIST مقابل نحو ٨٧٪ للشبكة متعددة الطبقات بـ٢٠٣٬٥٣٠ معاملاً. وحين تُخلط مواقع النقاط يضيع تفوقها.</div>
+  <div class="terms"><span>LeNet-5</span><span>المشفّر الالتفافي <i>convolutional encoder</i></span><span>الرأس الكثيف <i>dense head</i></span><span>ملخص الطبقات <i>layer summary</i></span><span>التحيز الاستقرائي المكاني <i>spatial inductive bias</i></span></div>
+  <p>بحلول ١٩٩٨ كانت LeNet-5 تخطئ في أقل من ١٪ من الأرقام المكتوبة باليد، منافسةً آلات المتجهات الداعمة التي سادت آنذاك، واستُعملت تجارياً لقراءة مبالغ الشيكات في المصارف. والنسخة في الكتاب تعليمية: تحفظ التناوب بين الالتفاف والتجميع وعروض الطبقات (٦، ١٦، ١٢٠، ٨٤)، وتبسّط تفاصيل قديمة نادرة الاستعمال اليوم. وأصل الشبكة كان يأخذ مدخلاً 32×32، فالحشو ٢ في الطبقة الأولى يؤدي الدور نفسه على صور 28×28.</p>
+  <div class="code"><div class="hd">PyTorch</div>
+    <div class="cl"><code>nn.Sequential(</code><span>الشبكة كلها في حاوية واحدة:</span></div>
+    <div class="cl"><code>  nn.LazyConv2d(6, kernel_size=5, padding=2), nn.Sigmoid(),</code><span>٦ خرائط 28×28 (الحشو ٢ يحفظ الحجم).</span></div>
+    <div class="cl"><code>  nn.AvgPool2d(kernel_size=2, stride=2),</code><span>← 6@14×14.</span></div>
+    <div class="cl"><code>  nn.LazyConv2d(16, kernel_size=5), nn.Sigmoid(),</code><span>بلا حشو: 14 − 4 = 10 ← 16@10×10.</span></div>
+    <div class="cl"><code>  nn.AvgPool2d(kernel_size=2, stride=2),</code><span>← 16@5×5.</span></div>
+    <div class="cl"><code>  nn.Flatten(),</code><span>← ١٦×٥×٥ = ٤٠٠.</span></div>
+    <div class="cl"><code>  nn.LazyLinear(120), nn.Sigmoid(),</code><span>الرأس الكثيف…</span></div>
+    <div class="cl"><code>  nn.LazyLinear(84), nn.Sigmoid(),</code><span></span></div>
+    <div class="cl"><code>  nn.LazyLinear(10))</code><span>…إلى عشر درجات.</span></div>
+  </div>
+  <div class="w" id="lnBox"><div class="cap">أين المعاملات وأين الحساب في LeNet؟ (أرقام جدول الكتاب)</div>
+    <div class="row"><span class="seg" id="lnS"><button data-v="p" class="on">المعاملات</button><button data-v="m">عمليات الضرب-الجمع</button></span></div>
+    <div id="lnOut" style="margin-top:8px"></div><div class="calc" id="lnCalc"></div></div>
+  <p>انقسام لافت يتكرر في تصميم الشبكات الالتفافية: طبقتا الالتفاف فيهما ٤٪ من المعاملات لكنهما تجريان ٨٦٪ من الحساب، لأن كل وزن يُقيَّم على شبكة مكانية كاملة. والطبقة الكثيفة الأولى وحدها فيها ٧٨٪ من المعاملات و١٢٪ من الحساب. ومقارنة بالشبكة متعددة الطبقات: أقل من ثلث المعاملات، ونحو ضعف الحساب.</p>
+  <h3>التدريب</h3>
+  <p>الإعداد نفسه للشبكة متعددة الطبقات (إنتروبيا تقاطعية وSGD و٣٠ دورة، ودفعة ١٢٨) مع تغيير واحد كبير: معدّل التعلّم ٢٫٠ بدل ٠٫١. السبب من الفصل الرابع: مشتقة السيغمويد لا تتجاوز ¼، والتدرّج يمر بأربع سيغمويدات قبل أن يصل إلى الطبقة الأولى. وبمعدّل ٠٫١ تبقى الدقة قرب الصدفة دورتين إلى أربع، ولا تتجاوز نحو ٧٣٪ بعد عشر دورات. ولاحظ الكتاب أن بعض التشغيلات تبقى عند ١٠٪ والخسارة عند ln 10 ≈ ٢٫٣ بضع دورات، ثم تنطلق فجأة. ووجد في المرشحات الست للطبقة الأولى عائلتين: كواشف سطوع تعيد صورة ظلية للقطعة، وكواشف حواف (أعمدة فاتحة بجانب أعمدة داكنة)، أي أقارب [١، −١] اكتشفتها الشبكة من الوسوم وحدها.</p>
+  <h3>تجربة النقاط المخلوطة</h3>
+  <p>هل تفوّق نقطة إلى ثلاث نقاط مئوية حقيقي؟ تجربة الكتاب المضبوطة: خلطة عشوائية ثابتة واحدة لمواقع النقاط الـ٧٨٤، تُطبَّق على كل الصور. الشبكة متعددة الطبقات لا تتأثر إطلاقاً: الخلط يعيد ترتيب صفوف مصفوفتها الأولى فقط، والتهيئة عشوائية مستقلة، فالتدريب متكافئ إحصائياً (نحو ٨٧٪). أما LeNet فكل نواة 5×5 صارت تقرأ ٢٥ بكسلاً متناثراً: تنخفض إلى نحو ٨٥–٨٦٪، عند الشبكة متعددة الطبقات أو تحتها. فمصدر التفوق هو التحيز الاستقرائي المكاني بالضبط.</p>
+  <div class="w" id="shBox"><div class="cap">صورة بنطال وكاشف حواف عمودية [1, −1]: قبل خلط المواقع وبعده</div>
+    <div class="row"><button class="pill" id="shGo">خلطة جديدة</button></div>
+    <div class="tw" id="shOut"></div><div class="calc" id="shCalc"></div></div>
+  <p>ويختم الكتاب بصدق: LeNet ليست متكافئة تماماً ولا ثابتة تماماً. الحشو يكسر التكافؤ قرب الأطراف، والتجميع لا يمتص إلا ما بقي داخل الكتلة، والتسطيح في النهاية يعطي كل خانة من خرائط 5×5 أوزاناً مختلفة. وهذا يكفي لـFashion-MNIST حيث القطع في وسط الصورة دائماً، ولا يكفي للمشاهد الحرة. وجعل الشبكات الالتفافية العميقة سهلة التدريب هو موضوع الفصل التالي.</p>
+</section>
+
+<!-- ============ EX ============ -->
+<section class="sec" id="ex">
+  <header><div class="kicker">الخلاصة والتمارين</div><h2>ما تأخذه من الفصل</h2></header>
+  <ul class="clean">
+    <li>التكافؤ مع الإزاحة والمحلية يجعلان الالتفاف الخيار الخطي الوحيد، ويهبطان بالأوزان من ١٠<sup>١٢</sup> إلى بضع عشرات.</li>
+    <li>حجم المخرج: ‏⌊(n + 2p − d(k − 1) − 1)/s⌋ + 1. والمجال الاستقبالي يكبر خطياً مع العمق، وأسياً مع الخطوات أو التمددات المتضاعفة.</li>
+    <li>الكلفة تتناسب مع cᵢcₒ، والذاكرة مع حجم المخرج المكاني. والالتفاف 1×1 يغيّر القنوات برخص.</li>
+    <li>التجميع يلخّص بلا معاملات: محلياً يتسامح، وشاملاً يثبت.</li>
+    <li>LeNet: ثلث المعاملات ودقة أعلى، وتفوقها يأتي من البنية المكانية (يختفي بخلط النقاط).</li>
+  </ul>
+  <h3>تمارين (مختارة ومبسطة من تمارين الكتاب)</h3>
+  <ol class="clean">
+    <li>كم وزناً حراً في طبقة خطية من ٨ عينات إلى ٨ وحدات: كاملة، ومتكافئة، ومتكافئة ومحلية بمدى ١؟ <details><summary>الحل</summary>‏٦٤، ثم ١٥ (إزاحات من −٧ إلى ٧)، ثم ٣ (الإزاحات −١، ٠، ١).</details></li>
+    <li>احسب حجم المخرج: ‏n = ٢٢٤ ونواة ١١ وحشو ٢ وخطوة ٤ (أول طبقات AlexNet). <details><summary>الحل</summary>‏⌊(224 + 4 − 11)/4⌋ + 1 = ⌊217/4⌋ + 1 = 54 + 1 = 55. جرّب بأعداد أصغر في الحاسبة.</details></li>
+    <li>ما المجال الاستقبالي لثلاث طبقات 3×3 بخطوات (٢، ١، ٢)؟ وماذا لو بُدّل الترتيب إلى (١، ٢، ٢)؟ <details><summary>الحل</summary>‏(٢، ١، ٢): ‏١ + ٢ + ٢×٢ + ٢×٢ = ١١. و(١، ٢، ٢): ‏١ + ٢ + ٢ + ٢×٢ = ٩. الخطوة المبكرة تضاعف مساهمة كل ما بعدها.</details></li>
+    <li>لماذا تُفضَّل ثلاث طبقات 3×3 على طبقة 7×7 واحدة؟ <details><summary>الحل</summary>المجال نفسه (7×7)، بأوزان أقل (٢٧ مقابل ٤٩ لكل زوج قنوات)، ومع ثلاث لاخطيات بدل واحدة فيزيد التعبير.</details></li>
+    <li>طبقة 3×3 من ٣ قنوات إلى ٦٤ بمخرج 224×224: كم معاملاً، وكم تنشيطاً لكل مثال؟ <details><summary>الحل</summary>‏٩×٣×٦٤ + ٦٤ = ١٬٧٩٢ معاملاً، و٢٢٤²×٦٤ ≈ ٣٫٢ مليون تنشيط.</details></li>
+    <li>لماذا يُحشى التجميع الأعظمي بـ−∞؟ <details><summary>الحل</summary>لأن −∞ هو «العنصر المحايد» لأخذ الأكبر: لا يغلب أي قيمة حقيقية. ولو حُشي بصفر لأعطى صفراً خاطئاً حين تكون كل القيم الحقيقية سالبة.</details></li>
+    <li>لماذا لا تتأثر الشبكة متعددة الطبقات بخلط مواقع النقاط؟ <details><summary>الحل</summary>الخلط الثابت يكافئ إعادة ترتيب صفوف المصفوفة الأولى؛ وبما أن التهيئة مستقلة ومتماثلة التوزيع، فتوزيع النماذج المدرَّبة واحد. أما الالتفاف فيفترض أن الجيران في المصفوفة جيران في الصورة.</details></li>
+  </ol>
+  <h3>مسرد مصطلحات الفصل</h3>
+  <div class="scroll"><table class="tb" id="gloss"></table></div>
+</section>
+
+<div class="foot"><a href="05-computation.html">→ الفصل السابق: البناء والحساب</a><a href="index.html">فهرس الكتاب ←</a></div>
+</article>
+
+<nav class="toc" aria-label="أقسام الفصل"><h4>أقسام الفصل</h4><div id="toc"></div></nav>
+</div>
+<script src="../assets/js/ar-common.js"></script>
+<script src="../assets/js/d2l-common.js"></script>
+<script src="../assets/js/d2l06.js"></script>
+</body>
+</html>
